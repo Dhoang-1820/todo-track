@@ -93,7 +93,7 @@
 
   async function pushAttempt(a) {
     try {
-      const { answers, synced, flags, ...row } = a;
+      const { answers, synced, flags, order, ...row } = a;
       await api("attempts", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(row) });
       await api("attempt_answers", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(answers.map((x) => ({ attempt_id: a.id, question_id: x.question_id, selected: x.selected, is_correct: x.is_correct }))) });
       return true;
@@ -127,13 +127,43 @@
     return [...s.values()];
   }
 
-  function readiness() {
-    const full = attempts.filter(isFull).slice(0, 3);
-    if (full.length < 3) return { label: "Take 3 full tests to see readiness", cls: "" };
-    const avg = Math.round(full.reduce((s, a) => s + a.score, 0) / 3);
-    if (full.every((a) => a.score >= 750)) return { label: `Exam ready: last 3 full tests all 750+ (avg ${avg})`, cls: "pass" };
-    if (avg >= CFG.passScore) return { label: `Close: last 3 full tests average ${avg}`, cls: "near" };
-    return { label: `Keep practicing: last 3 full tests average ${avg}`, cls: "fail" };
+  /* ---------- learning model: first attempts and spaced repetition ---------- */
+  const DAY = 86400000, INTERVALS = [1, 3, 7];
+  const dayStart = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+  const optOrder = (o, q) => { const ord = o && o.order && o.order[q.id]; return ord ? ord.map((k) => q.options.find((x) => x.key === k)).filter(Boolean) : q.options; };
+
+  function learning() {
+    const seen = new Set(), fresh = [], srs = new Map();
+    const chron = attempts.slice().sort((a, b) => a.submitted_at.localeCompare(b.submitted_at));
+    for (const a of chron) {
+      const day = dayStart(Date.parse(a.submitted_at));
+      for (const ans of a.answers) {
+        const id = ans.question_id;
+        if (!byId.has(id)) continue;
+        if (!seen.has(id)) { seen.add(id); fresh.push(ans.is_correct); }
+        const st = srs.get(id);
+        if (!ans.is_correct) srs.set(id, { box: 0, day, due: day + INTERVALS[0] * DAY });
+        else if (st && st.box < 3 && st.day !== day) { st.box++; st.day = day; st.due = st.box < 3 ? day + INTERVALS[st.box] * DAY : Infinity; }
+      }
+    }
+    const now = Date.now(), states = [...srs.entries()];
+    const recent = fresh.slice(-80);
+    return {
+      fresh, recent,
+      estimate: recent.length >= 20 ? scaled(recent.filter(Boolean).length, recent.length) : null,
+      due: states.filter(([, x]) => x.due <= now).map(([id]) => id),
+      learningN: states.filter(([, x]) => x.box < 3).length,
+      mastered: states.filter(([, x]) => x.box === 3).length,
+      seenAll: seen.size >= bank.length
+    };
+  }
+
+  function readiness(L) {
+    if (L.fresh.length < 40) return { label: `Answer ${40 - L.fresh.length} more new questions to see readiness`, cls: "" };
+    const e = L.estimate, n = L.recent.length, tail = L.seenAll ? " · all questions seen" : "";
+    if (e >= 750) return { label: `Exam ready: ${e} on your last ${n} first attempts${tail}`, cls: "pass" };
+    if (e >= CFG.passScore) return { label: `Close: ${e} on your last ${n} first attempts${tail}`, cls: "near" };
+    return { label: `Keep practicing: ${e} on your last ${n} first attempts${tail}`, cls: "fail" };
   }
 
   /* ---------- test generation ---------- */
@@ -159,7 +189,8 @@
     const study = !!opts.study;
     return {
       id: uuid(), mode: opts.mode, mock: opts.mock || null, domain: opts.domain || null, skill: opts.skill || null,
-      ids: qs.map((q) => q.id), answers: {}, flags: {}, checked: {}, index: 0, study,
+      ids: qs.map((q) => q.id), answers: {}, flags: {}, checked: {}, index: 0, study, follow: {},
+      order: Object.fromEntries(qs.map((q) => [q.id, shuffle(q.options.map((o) => o.key))])),
       timed: !study && opts.timed !== false, limitSec: minutes * 60, startedAt: Date.now()
     };
   }
@@ -214,7 +245,8 @@
     const bestMock = {};
     attempts.filter((a) => a.mode === "mock").forEach((a) => { bestMock[a.mock] = Math.max(bestMock[a.mock] || 0, a.score); });
     const weak = skillBreakdown(stats).filter((s) => s.total >= 2).sort((a, b) => a.correct / a.total - b.correct / b.total || b.total - a.total).slice(0, 5);
-    const ready = readiness();
+    const L = learning();
+    const ready = readiness(L);
 
     setView(`
       ${current ? `<div class="banner"><span>Test in progress: <b>${esc(modeLabel(current))}</b>, ${Object.values(current.answers).filter((v) => v.length).length}/${current.ids.length} answered.</span><span><a class="btn small primary" href="#/test">Resume</a> <button class="btn small ghost" id="discard">Discard</button></span></div>` : ""}
@@ -223,9 +255,9 @@
           <h1>Exam AI-200 practice</h1>
           <p class="muted">Developing AI Cloud Solutions on Azure · ${bank.length} questions${bank.some((q) => q.origin === "upload") ? " (including your uploads)" : ""} · 10 mock tests of 40 questions</p>
         </div>
-        <div class="overall ${answered.length ? (overall >= CFG.passScore ? "pass" : "fail") : ""}">
-          <div class="big">${answered.length ? overall : "—"}</div>
-          <div class="small">Overall score<br>${answered.length ? (overall >= CFG.passScore ? "✓ Above the pass mark" : `✗ Below the pass mark (${CFG.passScore})`) : "Take a test to start"}</div>
+        <div class="overall ${L.estimate === null ? "" : L.estimate >= CFG.passScore ? "pass" : "fail"}">
+          <div class="big">${L.estimate ?? "—"}</div>
+          <div class="small">Estimated exam score<br>${L.estimate === null ? "Answer 20 new questions to see it" : `first attempts only · ${L.estimate >= CFG.passScore ? "✓ above" : "✗ below"} ${CFG.passScore}`}</div>
         </div>
       </section>
 
@@ -234,6 +266,12 @@
         <div class="stat"><b>${attempts.length ? avg : "—"}</b><span>Average test score</span></div>
         <div class="stat"><b>${attempts.length ? pct(passed, attempts.length) + "%" : "—"}</b><span>Tests passed</span></div>
         <div class="stat"><b>${stats.latest.size}/${bank.length}</b><span>Questions seen</span></div>
+      </section>
+
+      <section class="card srs">
+        <div class="rowhead"><h2>Spaced review</h2>${L.due.length ? `<button class="btn primary" id="srsStart">Review ${Math.min(40, L.due.length)} due now</button>` : ""}</div>
+        <p class="small">${L.due.length ? `<b>${L.due.length}</b> question${L.due.length > 1 ? "s are" : " is"} due for review today.` : L.learningN ? "Nothing due today. Come back tomorrow." : "Questions you get wrong will come back here to review."} <span class="muted">Learning: ${L.learningN} · Mastered: ${L.mastered}</span></p>
+        <p class="muted small">A wrong answer comes back the next day. Each correct answer on a later day pushes it out to 3, then 7 days; the third correct day marks it mastered.</p>
       </section>
 
       <section class="card">
@@ -264,7 +302,7 @@
       </section>
 
       <section class="card">
-        <h2>Score by exam domain</h2>
+        <h2>Mastery by exam domain</h2>
         <p class="muted small">Based on your most recent answer to each question. The marker shows the 70% pass line.</p>
         ${Object.entries(DOMAINS).map(([k, d]) => { const v = pct(dom[k].correct, dom[k].total); return `
           <div class="domrow">
@@ -309,6 +347,8 @@
     };
     document.querySelectorAll(".mock").forEach((b) => b.onclick = () => startTest(generate({ mode: "mock", mock: +b.dataset.mock })));
     document.querySelectorAll("[data-drill]").forEach((b) => b.onclick = () => startTest(generate({ mode: "skill", skill: b.dataset.drill, count: 10, study: true })));
+    const srsBtn = document.getElementById("srsStart");
+    if (srsBtn) srsBtn.onclick = () => startTest(generate({ mode: "review", ids: L.due, count: 40, study: true, timed: false }));
     const discard = document.getElementById("discard");
     if (discard) discard.onclick = () => { if (confirm("Discard the test in progress?")) { lsDel(LS_CURRENT); renderDashboard(); } };
   }
@@ -316,7 +356,7 @@
   function renderTest() {
     const t = lsGet(LS_CURRENT, null);
     if (!t) { location.hash = "#/"; return; }
-    t.checked = t.checked || {};
+    t.checked = t.checked || {}; t.follow = t.follow || {}; t.order = t.order || {};
     const qs = t.ids.map((id) => byId.get(id)).filter(Boolean);
     const save = () => lsSet(LS_CURRENT, t);
     const announced = {};
@@ -326,6 +366,7 @@
       const multi = q.type === "multi";
       const need = q.correct.length;
       const chosen = t.answers[q.id] || [];
+      const opts = optOrder(t, q);
       const checked = t.study && t.checked[q.id];
       const isOk = checked && sameSet(chosen, q.correct);
       const answeredCount = Object.values(t.answers).filter((v) => v.length).length;
@@ -338,23 +379,24 @@
         </div>
         <div class="progress" aria-hidden="true"><div style="width:${pct(answeredCount, qs.length)}%"></div></div>
         <section class="card question">
-          <div class="qmeta"><span>Question ${t.index + 1} of ${qs.length}</span>${t.study ? `<span class="tag">${q.domain} · ${esc(q.skill_name || "")}</span>` : ""}</div>
+          <div class="qmeta"><span>Question ${t.index + 1} of ${qs.length}${t.follow[q.id] ? ` <span class="tag fu">Follow-up: same concept</span>` : ""}</span>${t.study ? `<span class="tag">${q.domain} · ${esc(q.skill_name || "")}</span>` : ""}</div>
           <fieldset ${checked ? "disabled" : ""}>
             <legend class="stem">${esc(q.stem)}</legend>
             ${multi ? `<p class="hint">Select ${need} answers.</p>` : ""}
             <div class="options">
-              ${q.options.map((o) => {
+              ${opts.map((o, i) => {
                 const mine = chosen.includes(o.key), right = q.correct.includes(o.key);
                 const state = checked ? (right ? "right" : mine ? "wrong" : "") : "";
                 return `<label class="opt ${mine ? "sel" : ""} ${state}">
                   <input type="${multi ? "checkbox" : "radio"}" name="opt" value="${o.key}" ${mine ? "checked" : ""}>
-                  <span class="key">${o.key}</span><span class="txt">${esc(o.text)}</span>
+                  <span class="key">${"ABCDEF"[i]}</span><span class="txt">${esc(o.text)}</span>
                   ${state === "right" ? `<span class="mark okc">✓ Correct</span>` : state === "wrong" ? `<span class="mark errc">✗ Your answer</span>` : ""}
                 </label>`; }).join("")}
             </div>
           </fieldset>
           ${checked ? `<div class="feedback ${isOk ? "ok" : "bad"}" role="status">
               <b>${isOk ? "✓ Correct." : "✗ Not quite."}</b> ${esc(q.explanation)}
+              ${!isOk && qs[t.index + 1] && t.follow[qs[t.index + 1].id] === q.id ? `<p class="small"><b>Next:</b> a follow-up question on the same concept, to check you've got it.</p>` : ""}
               ${q.source_url ? `<p class="src">Source: <a href="${esc(q.source_url)}" target="_blank" rel="noopener">${esc(q.source_title || q.source_url)}</a></p>` : ""}
             </div>` : ""}
           <div class="qnav">
@@ -363,7 +405,7 @@
             ${t.study && !checked ? `<button class="btn primary" id="check" ${chosen.length === need ? "" : "disabled"}>Check answer</button>`
               : last ? `<button class="btn primary" id="submit2">Finish test</button>` : `<button class="btn primary" id="next">Next →</button>`}
           </div>
-          <p class="muted small keys">Keyboard: A–${q.options[q.options.length - 1].key} choose · ${t.study ? "Enter check/next · " : "Enter next · "}←/→ move · F flag</p>
+          <p class="muted small keys">Keyboard: A–${"ABCDEF"[opts.length - 1]} choose · ${t.study ? "Enter check/next · " : "Enter next · "}←/→ move · F flag</p>
         </section>
         <section class="card">
           <div class="palette" role="list">
@@ -385,7 +427,17 @@
       };
       document.querySelectorAll(".opt input").forEach((inp) => inp.onchange = () => pickKey(inp.value));
       const go = (i) => { if (i < 0 || i >= qs.length) return; t.index = i; save(); draw(); };
-      const doCheck = () => { if (chosen.length !== need) return; t.checked[q.id] = true; save(); draw(); announce(sameSet(chosen, q.correct) ? "Correct" : "Incorrect"); };
+      const doCheck = () => {
+        if (chosen.length !== need) return;
+        t.checked[q.id] = true;
+        const ok = sameSet(chosen, q.correct);
+        if (!ok && !t.follow[q.id] && q.skill) {
+          const used = new Set(t.ids);
+          const f = pick(bank.filter((x) => x.skill === q.skill && !used.has(x.id)), 1, questionStats())[0];
+          if (f) { t.ids.splice(t.index + 1, 0, f.id); qs.splice(t.index + 1, 0, f); t.follow[f.id] = q.id; t.order[f.id] = shuffle(f.options.map((o) => o.key)); }
+        }
+        save(); draw(); announce(ok ? "Correct" : "Incorrect");
+      };
       document.getElementById("prev").onclick = () => go(t.index - 1);
       const nx = document.getElementById("next"); if (nx) nx.onclick = () => go(t.index + 1);
       const ck = document.getElementById("check"); if (ck) ck.onclick = doCheck;
@@ -402,7 +454,8 @@
       keyHandler = (e) => {
         if (typing(e) || e.ctrlKey || e.metaKey || e.altKey) return;
         const k = e.key.toUpperCase();
-        const opt = q.options.find((o) => o.key === k) || (/^[1-6]$/.test(k) ? q.options[+k - 1] : null);
+        const pos = k.length === 1 ? "ABCDEF".indexOf(k) : -1;
+        const opt = (pos >= 0 ? opts[pos] : null) || (/^[1-6]$/.test(k) ? opts[+k - 1] : null);
         if (opt) { e.preventDefault(); pickKey(opt.key); }
         else if (e.key === "ArrowRight") { e.preventDefault(); go(t.index + 1); }
         else if (e.key === "ArrowLeft") { e.preventDefault(); go(t.index - 1); }
@@ -440,7 +493,7 @@
     const attempt = {
       id: t.id, mode: t.mode, mock: t.mock, domain: t.domain, skill: t.skill || null, study: !!t.study, total: qs.length, correct, score,
       passed: score >= CFG.passScore, domain_scores, duration_sec: Math.round((Date.now() - t.startedAt) / 1000),
-      submitted_at: new Date().toISOString(), answers, flags: t.flags
+      submitted_at: new Date().toISOString(), answers, flags: t.flags, order: t.order
     };
     setView(`<p class="muted center pad">Saving your result…</p>`);
     attempt.synced = await pushAttempt(attempt);
@@ -458,12 +511,17 @@
     const wrongIds = items.filter((x) => !x.ans.is_correct).map((x) => x.q.id);
     const flags = a.flags || {};
     const flagged = items.filter((x) => flags[x.q.id]).length;
+    const before = new Set();
+    attempts.forEach((x) => { if (x.submitted_at < a.submitted_at) x.answers.forEach((y) => before.add(y.question_id)); });
+    const freshAns = a.answers.filter((x) => !before.has(x.question_id));
+    const freshOk = freshAns.filter((x) => x.is_correct).length;
     setView(`
       <section class="result ${a.passed ? "pass" : "fail"}">
         <div>
           <p class="muted">${esc(modeLabel(a))}${a.study ? " · Study mode" : ""} · ${fmtDate(a.submitted_at)} · ${fmtTime(a.duration_sec || 0)}</p>
           <h1>${a.passed ? "✓ Passed" : "✗ Not passed yet"}</h1>
           <p>${a.correct} of ${a.total} correct (${pct(a.correct, a.total)}%). Pass mark: ${CFG.passScore}.</p>
+          ${freshAns.length < a.total ? `<p class="small">${freshAns.length ? `First-try score: <b>${scaled(freshOk, freshAns.length)}</b> (${freshOk}/${freshAns.length} questions you hadn't seen before). ` : ""}${a.total - freshAns.length} question${a.total - freshAns.length > 1 ? "s were" : " was"} repeats, which can inflate the score.</p>` : ""}
           ${a.synced === false ? `<p class="muted small">Saved in this browser only; it will sync to the database later.</p>` : ""}
         </div>
         <div class="scorebig">${a.score}<span>/1000</span></div>
@@ -492,9 +550,9 @@
       return `<details class="rev ${x.ans.is_correct ? "ok" : "bad"}" ${open ? "open" : ""}>
         <summary><span class="qmeta"><span>${x.n}. ${x.ans.is_correct ? "✓ Correct" : "✗ Incorrect"}${flags[x.q.id] ? " · ★ flagged" : ""}</span><span class="tag">${x.q.domain} · ${esc(x.q.skill_name || "")}</span></span>
           <span class="stem">${esc(x.q.stem)}</span></summary>
-        <ul class="ropts">${x.q.options.map((o) => {
+        <ul class="ropts">${optOrder(a, x.q).map((o, i) => {
           const isC = x.q.correct.includes(o.key), mine = x.ans.selected.includes(o.key);
-          return `<li class="${isC ? "c" : ""} ${mine && !isC ? "w" : ""}"><span class="key">${o.key}</span><span>${esc(o.text)}</span>${isC ? `<em>✓ correct</em>` : ""}${mine ? `<em class="mine">${isC ? "your answer" : "✗ your answer"}</em>` : ""}</li>`;
+          return `<li class="${isC ? "c" : ""} ${mine && !isC ? "w" : ""}"><span class="key">${"ABCDEF"[i]}</span><span>${esc(o.text)}</span>${isC ? `<em>✓ correct</em>` : ""}${mine ? `<em class="mine">${isC ? "your answer" : "✗ your answer"}</em>` : ""}</li>`;
         }).join("")}</ul>
         ${x.ans.selected.length ? "" : `<p class="muted small">Not answered.</p>`}
         <div class="expl"><b>Explanation.</b> ${esc(x.q.explanation)}</div>

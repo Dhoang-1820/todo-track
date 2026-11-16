@@ -227,3 +227,6 @@ details.rev[open] summary::after { content: ""; }
   .qmeta .tag { text-align: left; }
   .weakrow .btn { flex: none; }
 }
+.tag.fu { background: var(--bad-soft); color: var(--bad); margin-left: .3rem; }
+.srs .rowhead { margin-bottom: .3rem; }
+.srs p { margin: .2rem 0; }
