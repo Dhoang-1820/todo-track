@@ -1,40 +1,572 @@
 [
-{"s":"pconn","q":"A Python app connects to Azure Database for PostgreSQL flexible server with Microsoft Entra authentication and no stored password. How does it obtain the credential it passes as the password?","o":["It uses azure-identity (for example DefaultAzureCredential) to get an access token for Azure Database for PostgreSQL and passes the token as the password","It reads the server admin password from an environment variable","It calls the PostgreSQL REST API to create a temporary password","It uses the storage account key of the server"],"a":[0],"e":"In the passwordless (recommended) path of the Python quickstart, the azure-identity library acquires a Microsoft Entra access token for Azure Database for PostgreSQL, and the driver sends that token in place of a password. An admin password is exactly what passwordless avoids, and there's no REST API for temporary passwords or any storage key involved.","r":"pg-python"},
-{"s":"pconn","q":"An App Service app with a system-assigned managed identity can get an Entra token, but login to Azure Database for PostgreSQL still fails with an authentication error. What is the most likely missing step?","o":["A database role for the managed identity hasn't been created and granted privileges by a Microsoft Entra administrator of the server","The app must also send the admin password","The server must use port 6432","The managed identity needs the Key Vault Secrets User role"],"a":[0],"e":"The managed identity has to exist as a user inside PostgreSQL. A Microsoft Entra admin on the server creates a database user for the identity and grants it privileges; only then can the token be used to log in. Admin passwords aren't combined with tokens, the port is unrelated, and Key Vault roles don't grant database access.","r":"pg-msi-app"},
-{"s":"pconn","q":"Microsoft Entra access tokens for Azure Database for PostgreSQL typically expire after about an hour. What happens to a connection that was opened with a token that has since expired?","o":["The token is checked when the connection opens, so the open connection keeps working, but new connections need a fresh token","The connection is closed exactly when the token expires","Queries on the connection start failing with permission errors","The server automatically refreshes the token for the client"],"a":[0],"e":"The token is validated at connection time, so pooled connections that are already open keep working after it expires. Any new connection must present a valid token, which is why clients and pools need a token-refresh callback. The server doesn't refresh client tokens.","r":"pg-cache"},
-{"s":"pconn","q":"Your Python code builds SQL like f\"SELECT * FROM docs WHERE owner = '{user}'\" before calling psycopg. What should you change?","o":["Pass values as query parameters, for example cursor.execute(\"SELECT * FROM docs WHERE owner = %s\", (user,))","Escape quotes manually in the user string","Switch to the pgbouncer port","Use a stored procedure for every query"],"a":[0],"e":"psycopg sends parameters separately from the SQL text, which prevents SQL injection and handles quoting and types correctly. Manual escaping is error-prone, the pooler port doesn't affect injection, and stored procedures aren't required to use parameters safely.","r":"pg-python"},
-{"s":"pconn","q":"A script inserts rows with psycopg inside a with psycopg.connect(...) block that doesn't call commit, but no rows appear in the table when you check from another session. Why?","o":["The transaction was never committed, so the changes weren't made durable or visible","psycopg writes rows to a temporary table first","Azure Database for PostgreSQL delays inserts by one hour","Inserts require port 6432"],"a":[0],"e":"psycopg opens a transaction implicitly, and changes only become visible to other sessions once committed. Call conn.commit(), use the connection context manager in a way that commits, or enable autocommit. There's no temporary table or delay, and the port doesn't affect commits.","r":"pg-python"},
-{"s":"pconn","q":"A Spring Boot app on Azure must connect to Azure Database for PostgreSQL with a managed identity instead of a password, using Spring Cloud Azure. Which application property enables this?","o":["spring.datasource.azure.passwordless-enabled=true","spring.datasource.password=managed-identity","spring.jpa.hibernate.ddl-auto=update","server.port=6432"],"a":[0],"e":"With Spring Cloud Azure, setting spring.datasource.azure.passwordless-enabled to true makes the JDBC connection acquire Entra tokens for the configured identity; Service Connector uses this property for system- and user-assigned identities. A literal password string doesn't work, and the JPA and server port properties are unrelated.","r":"svc-pg"},
-{"s":"pconn","q":"What is the default port for connecting directly to an Azure Database for PostgreSQL flexible server, and which port is used for its built-in connection pooler?","o":["5432 for direct connections and 6432 for PgBouncer","6432 for direct connections and 5432 for PgBouncer","1433 for both","443 for both"],"a":[0],"e":"Clients connect to PostgreSQL on port 5432, and the built-in PgBouncer listens on port 6432 on the same host name. 1433 is SQL Server's port, and 443 is HTTPS.","r":"pg-bouncer"},
-{"s":"pconn","q":"Which SSL setting does the Python quickstart use in the connection string for Azure Database for PostgreSQL flexible server?","o":["sslmode=require","sslmode=disable","ssl=false","sslmode=allow with a self-signed certificate on the client"],"a":[0],"e":"Connections to Azure Database for PostgreSQL are encrypted with TLS, and the quickstart sets sslmode=require. Disabling SSL breaks connections to servers that enforce secure transport and exposes credentials, including tokens.","r":"pg-python"},
-{"s":"pconn","q":"You are writing a .NET app that connects to Azure Database for PostgreSQL with Npgsql and a user-assigned managed identity. How do you select that identity with DefaultAzureCredential?","o":["Set ManagedIdentityClientId to the identity's client ID in DefaultAzureCredentialOptions","Add the identity's object ID to the connection string as Password","Set the server parameter azure.extensions to the identity name","Nothing; DefaultAzureCredential always uses user-assigned identities first"],"a":[0],"e":"For a user-assigned identity, DefaultAzureCredential needs the identity's client ID (ManagedIdentityClientId); otherwise it uses the system-assigned identity. The token, not an object ID, is the password, and azure.extensions controls allowed PostgreSQL extensions.","r":"pg-msi-app"},
-{"s":"pschema","q":"You run CREATE EXTENSION pgvector; on Azure Database for PostgreSQL and it fails. What is the correct extension name?","o":["vector","pgvector","pg_vector","azure_vector"],"a":[0],"e":"Although the community calls it pgvector, the binary and the extension are named vector, and that name is used both to allowlist it and in CREATE EXTENSION vector.","r":"pg-vector"},
-{"s":"pschema","q":"Before you can create the vector extension in a database on Azure Database for PostgreSQL flexible server, what must you do?","o":["Add vector to the allowlist in the azure.extensions server parameter, then run CREATE EXTENSION in each database that needs it","Restart the server in single-user mode","Open a support ticket to enable the extension","Install the extension binaries with apt-get"],"a":[0],"e":"Extensions are allowlisted at the server level with the azure.extensions parameter (check with SHOW azure.extensions;), and then created separately in every database where they are used. It is a managed service, so you don't install binaries or need support tickets.","r":"pg-vector"},
-{"s":"pschema","q":"You define a column as embedding vector and try to create an HNSW index on it. The command fails with \"column does not have dimensions\". How should the column be defined?","o":["With an explicit dimension, for example embedding vector(1536)","As embedding float8[]","As embedding jsonb","As embedding text"],"a":[0],"e":"pgvector can only index columns whose dimensions are declared, such as vector(1536); a bare vector column can't be indexed. Arrays, JSON, and text columns can't be used with pgvector operators or indexes.","r":"pg-vecperf"},
-{"s":"pschema","q":"Your semantic search must search both product titles and product descriptions. How does the Azure tutorial model the data?","o":["Create a separate vector column for each data field involved in the search and store each field's embedding there","Store a single embedding of the whole row in a JSON column","Concatenate all vectors into one text column","Store embeddings in a separate database"],"a":[0],"e":"The tutorial identifies the fields used in search and, for each one, creates a corresponding vector field holding that field's embedding, then searches the vector field and lists the nearest neighbors. JSON or text columns can't be indexed by pgvector, and a separate database complicates joins with the source data.","r":"pg-semantic"},
-{"s":"pschema","q":"You want to fill an embedding column from text already stored in the database without writing an external batch job. Which feature can do this inside Azure Database for PostgreSQL?","o":["The azure_ai extension's azure_openai schema, which can call Azure OpenAI to create embeddings from SQL","The pg_stat_statements extension","PgBouncer","The pg_cron extension alone"],"a":[0],"e":"The azure_ai extension lets you generate embeddings with Azure OpenAI directly from SQL (for example in an UPDATE that sets the vector column), while pgvector stores and searches them. pg_stat_statements tracks query statistics, PgBouncer pools connections, and pg_cron only schedules jobs.","r":"pg-azureai"},
-{"s":"pschema","q":"You want to use DiskANN indexes on Azure Database for PostgreSQL, but you haven't created the vector extension yet. Which statement creates everything you need in one step?","o":["CREATE EXTENSION IF NOT EXISTS pg_diskann CASCADE;","CREATE EXTENSION diskann;","CREATE INDEX USING diskann;","ALTER SYSTEM SET azure.extensions = 'diskann';"],"a":[0],"e":"pg_diskann depends on the vector extension, and CASCADE automatically creates the dependency in the same database. Both extensions must also be allowed at the server level. diskann isn't the extension's name, CREATE INDEX needs the extension first, and server parameters are changed through Azure, not ALTER SYSTEM.","r":"pg-diskann"},
-{"s":"pschema","q":"Most vector queries search only the last 30 days of documents. Which schema design helps the planner touch only relevant data?","o":["Partition the table by date range and create the vector index on the partitioned table so each partition gets its own index","Add a text column with the month name","Store each month in a separate database","Use a single unpartitioned table with no date column"],"a":[0],"e":"The pgvector performance guide shows range partitioning by date: the planner prunes irrelevant partitions, and an index created on the partitioned table is built per partition (visible as a Merge Append in the plan). A month-name column doesn't enable pruning, and separate databases make queries much harder.","r":"pg-vecperf"},
-{"s":"pschema","q":"Your embedding model outputs 3,072 dimensions. What happens if you store them in a vector(3072) column and plan to use HNSW or IVFFlat?","o":["The vectors can be stored, but IVFFlat and HNSW indexes support at most 2,000 dimensions, so the column can't be indexed with them","The insert fails because vector supports at most 1,024 dimensions","HNSW automatically reduces the vectors to 2,000 dimensions","IVFFlat supports up to 16,000 dimensions"],"a":[0],"e":"pgvector lets you store higher-dimensional vectors, but IVFFlat and HNSW indexes are limited to 2,000 dimensions, so indexing fails with an error naming the index type. Options include choosing a model or setting that outputs fewer dimensions. Indexes never reduce dimensions automatically.","r":"pg-vecperf"},
-{"s":"pschema","q":"Which pgvector operator returns the cosine distance between two vectors?","o":["<=>","<->","<#>","@>"],"a":[0],"e":"In pgvector, <=> is cosine distance, <-> is Euclidean (L2) distance, and <#> is negative inner product. @> is PostgreSQL's containment operator for arrays and JSON, not a vector distance.","r":"pg-vector"},
-{"s":"pidx","q":"You are creating an IVFFlat index on a table with 500,000 rows. What value of lists does the Azure guidance suggest as a starting point?","o":["About 500 (rows / 1000)","About 707 (the square root of rows)","1 (the default)","500,000 (one list per row)"],"a":[0],"e":"For tables up to 1 million rows, the guide suggests lists = rows / 1000; for larger tables, sqrt(rows). 500,000 / 1,000 = 500. One list per row defeats the purpose of clustering, and the square-root rule applies above 1 million rows.","r":"pg-vecperf"},
-{"s":"pidx","q":"An IVFFlat index returns poor recall. You want more accurate results for one transaction only, without changing the setting for other sessions. What should you run?","o":["SET LOCAL ivfflat.probes = 10; inside the transaction","ALTER INDEX ... SET (lists = 1)","SET hnsw.ef_search = 100;","REINDEX the table every query"],"a":[0],"e":"probes controls how many lists are searched; the default is 1, and more probes give better recall at higher cost. SET LOCAL applies the change only to the current transaction, while plain SET applies it to the connection. lists is fixed at build time, ef_search is an HNSW parameter, and reindexing doesn't improve recall.","r":"pg-vecperf"},
-{"s":"pidx","q":"You set ivfflat.probes equal to the index's lists value, and EXPLAIN now shows a sequential scan. Why?","o":["Searching all lists is an exact search, so the planner doesn't use the index","The index became corrupted","probes can't exceed 10","Sequential scans are always faster for vectors"],"a":[0],"e":"When probes equals the number of lists, every list is searched, which makes the search exact, so the guide notes the planner won't use the index. Nothing is corrupted, there's no probes limit of 10, and for large tables an index scan is usually faster for approximate search.","r":"pg-vecperf"},
-{"s":"pidx","q":"What are the default HNSW parameters in pgvector, according to the Azure performance guide?","o":["m = 16, ef_construction = 64, and hnsw.ef_search = 40","m = 32, ef_construction = 100, and hnsw.ef_search = 10","m = 8, ef_construction = 16, and hnsw.ef_search = 100","lists = 100 and probes = 1"],"a":[0],"e":"HNSW defaults are m = 16 (maximum connections per layer), ef_construction = 64 (candidate list size during build), and hnsw.ef_search = 40 (candidate list size at query time). lists and probes are IVFFlat parameters.","r":"pg-vecperf"},
-{"s":"pidx","q":"HNSW search results are fast but miss some relevant documents. Which change improves recall at query time without rebuilding the index?","o":["Increase hnsw.ef_search, for example SET hnsw.ef_search = 100","Decrease m","Increase ivfflat.probes","Drop the index and use a sequential scan in production"],"a":[0],"e":"hnsw.ef_search sets how many candidates are considered at query time; raising it improves recall at some latency cost and can be changed per session. m is a build-time parameter, probes only applies to IVFFlat, and sequential scans are exact but slow at scale.","r":"pg-vecperf"},
-{"s":"pidx","q":"Which statement correctly compares pgvector index types on Azure Database for PostgreSQL?","o":["IVFFlat builds faster and uses less memory than HNSW but has a worse speed-recall trade-off, while DiskANN balances accuracy and fast builds","HNSW builds faster and uses less memory than IVFFlat","IVFFlat has the best recall of the three","DiskANN only supports exact search"],"a":[0],"e":"According to the Azure guide, IVFFlat has faster build times and lower memory use than HNSW but lower query performance for a given recall, and DiskANN offers a good balance of highly accurate queries and fast build times. DiskANN is an approximate nearest neighbor algorithm, not exact search.","r":"pg-vecperf"},
-{"s":"pidx","q":"You are loading 2 million embeddings into a new table. When should you create the IVFFlat index?","o":["After loading the data, because the build is faster and the resulting layout is better","Before loading, so every insert updates the index","Never; IVFFlat indexes build themselves","Halfway through the load"],"a":[0],"e":"The guide recommends loading data before indexing whenever possible. For IVFFlat in particular, the lists are computed from the existing data with k-means, so building on an empty table produces poor clusters. Inserting into an existing index is also slower.","r":"pg-vecperf"},
-{"s":"pidx","q":"You created CREATE INDEX ON docs USING hnsw (embedding vector_cosine_ops). Queries use ORDER BY embedding <-> :q LIMIT 10 and do a sequential scan. Why?","o":["The index operator class (cosine) doesn't match the query operator (<-> is Euclidean distance); use <=> or build the index with vector_l2_ops","HNSW indexes can't be used with LIMIT","The table needs to be vacuumed first","Cosine indexes only work with halfvec"],"a":[0],"e":"An index is only used when the query's distance operator matches the operator class: vector_cosine_ops serves <=>, vector_l2_ops serves <->, and vector_ip_ops serves <#>. LIMIT is the normal pattern for nearest-neighbor queries, and vacuuming doesn't change operator matching.","r":"pg-vecperf"},
-{"s":"pidx","q":"A partial IVFFlat index was created with WHERE tier = 'premium'. A query filters WHERE tier LIKE 'premium' and doesn't use the index. Why?","o":["The query's predicate must match the partial index's predicate form; LIKE doesn't match the = condition","Partial indexes don't work with vectors","The index must be rebuilt after every insert","LIKE disables all indexes in PostgreSQL"],"a":[0],"e":"The planner uses a partial index only when it can prove the query's WHERE clause implies the index predicate. The guide's example shows WHERE tier = 'premium' using the index and WHERE tier LIKE 'premium' not using it. Partial vector indexes are a valid filtering strategy.","r":"pg-vecperf"},
-{"s":"pidx","q":"A DiskANN index build is taking a long time on a large table. How can you monitor its progress?","o":["Query pg_stat_progress_create_index","Query pg_stat_statements","Run SHOW azure.extensions","Check the PgBouncer log"],"a":[0],"e":"On PostgreSQL 12 and later, pg_stat_progress_create_index reports index build phases; for HNSW and DiskANN they are initializing and loading tuples. pg_stat_statements records query statistics, azure.extensions lists allowed extensions, and PgBouncer doesn't build indexes.","r":"pg-vecperf"},
-{"s":"pidx","q":"Your OpenAI embeddings are normalized to length 1. Which distance operator does the Azure guide recommend for the best performance?","o":["Inner product (<#>)","Euclidean distance (<->)","Cosine distance (<=>) is always faster","Manhattan distance"],"a":[0],"e":"For vectors normalized to length 1, inner product gives the same ranking as cosine similarity and is cheaper to compute, so the guide recommends <#> (with an inner-product operator class). Euclidean distance also ranks the same but isn't the recommended choice, and pgvector has no Manhattan distance operator.","r":"pg-vecperf"},
-{"s":"pidx","q":"Which DiskANN index parameters and defaults are correct on Azure Database for PostgreSQL?","o":["max_neighbors (default 32) and l_value_ib (default 50) at build time, and diskann.l_value_is at query time","lists (default 100) and probes (default 1)","m (default 16) and ef_construction (default 64)","max_neighbors (default 1,000) only"],"a":[0],"e":"pg_diskann indexes take max_neighbors (default 32) and l_value_ib, the build-time search list size (default 50), and you tune query-time search with diskann.l_value_is. lists and probes belong to IVFFlat, and m and ef_construction belong to HNSW.","r":"pg-vecperf"},
-{"s":"pcomp","q":"Creating an HNSW index on millions of rows is slow. Which server parameter governs the memory used by CREATE INDEX, and what is its maximum on flexible server?","o":["maintenance_work_mem, which can be set up to 2 GB","work_mem, which can be set up to 64 GB","shared_buffers, which must be lowered","max_connections, which must be raised"],"a":[0],"e":"maintenance_work_mem sets the memory for maintenance operations such as VACUUM, CREATE INDEX, and ALTER TABLE, and the bulk-load guidance notes it can be set to a maximum of 2 GB on flexible server. work_mem applies to query operations like sorts and hashes, and the other two parameters don't speed up an index build.","r":"pg-bulk"},
-{"s":"pcomp","q":"You want CREATE INDEX on a large table to use several CPU cores. Which parameter controls the number of worker processes for index builds?","o":["max_parallel_maintenance_workers","max_parallel_workers_per_gather","autovacuum_max_workers","max_worker_processes is the only parameter involved"],"a":[0],"e":"max_parallel_maintenance_workers controls how many parallel workers CREATE INDEX can use, as described in the bulk-load guidance. max_parallel_workers_per_gather is for parallel query execution, and autovacuum workers handle vacuuming. max_worker_processes is an overall ceiling, not the specific control.","r":"pg-bulk"},
-{"s":"pcomp","q":"A server with many concurrent vector queries runs out of memory. Which server parameters does Microsoft list as having a direct impact on memory consumption?","o":["work_mem, maintenance_work_mem, and shared_buffers","azure.extensions and timezone","log_min_duration_statement and log_line_prefix","ssl_min_protocol_version"],"a":[0],"e":"The high memory utilization guide lists work_mem, maintenance_work_mem, and shared_buffers as parameters whose configuration affects memory consumption. Extension, time zone, logging, and TLS settings don't drive memory usage in the same way.","r":"pg-highmem"},
-{"s":"pcomp","q":"You scaled a flexible server to a larger compute size and noticed that the default value of maintenance_work_mem increased. Why?","o":["Its default is calculated from the memory allocated to the server, so it changes when you change the compute size","Azure resets all parameters to random values after scaling","maintenance_work_mem always doubles after a restart","The value is copied from the client's connection string"],"a":[0],"e":"On flexible server, the default maintenance_work_mem depends on the resources allocated to the server and is computed from its memory with a documented formula. Scaling changes the memory, so the default changes. Parameters aren't randomized, and clients can't set server defaults through connection strings.","r":"pg-mem"},
-{"s":"pcomp","q":"An exact (non-indexed) vector search over a moderately sized table is slow, and EXPLAIN shows few parallel workers. Which parameter can you raise so the planner may use more workers per Gather node?","o":["max_parallel_workers_per_gather","maintenance_work_mem","ivfflat.probes","pgbouncer.default_pool_size"],"a":[0],"e":"The pgvector guide explains that max_parallel_workers_per_gather limits workers per Gather node, and raising it can speed up exact searches, although the planner may still decide not to parallelize. maintenance_work_mem affects index builds, probes affects IVFFlat searches, and pool size affects PgBouncer.","r":"pg-vecperf"},
-{"s":"pcomp","q":"You will load 50 million rows with embeddings into a new table that will have an HNSW index and foreign keys. Which sequence does Microsoft recommend for the initial load?","o":["Load the data first, then create indexes and constraints with a high maintenance_work_mem","Create all indexes first so that inserts are validated","Disable maintenance_work_mem during the load","Load through PgBouncer with session pooling"],"a":[0],"e":"For initial loads, the guidance is to drop or postpone indexes and constraints, load the data, and then re-create them using a high maintenance_work_mem, which speeds up index and foreign key creation. Building indexes first slows every insert, and the pooling mode doesn't change load efficiency.","r":"pg-bulk"},
-{"s":"pcomp","q":"A team sets work_mem to 1 GB to speed up a reporting query. Shortly after, the server runs out of memory under normal load. What is the most likely explanation?","o":["work_mem is allocated per sort or hash operation in each connection, so many concurrent connections can multiply it far beyond available memory","work_mem is shared by all connections, so 1 GB is too small","work_mem only affects index builds","The server ignores work_mem above 64 MB"],"a":[0],"e":"work_mem applies to each sort or hash operation in each session, so total usage can reach many times the setting when many connections run queries at once. That's why the high-memory guide lists it as a key parameter to review. It isn't shared, it isn't specific to index builds (that's maintenance_work_mem), and it isn't silently capped at 64 MB.","r":"pg-highmem"},
-{"s":"pcomp","q":"A serverless API opens hundreds of short-lived connections to Azure Database for PostgreSQL, and memory and CPU are high even though queries are simple. What does Microsoft recommend?","o":["Use connection pooling, for example the built-in PgBouncer, to reduce the number of backend connections","Increase max_connections to the maximum allowed","Increase work_mem","Move the database to a larger region"],"a":[0],"e":"Each PostgreSQL connection is a backend process with its own memory, so connection churn and many idle connections waste resources. PgBouncer uses real server connections only while a transaction or query is active and can handle up to 10,000 client connections with low overhead. Raising max_connections or work_mem makes memory pressure worse.","r":"pg-bouncer"}
+{
+"s": "pconn",
+"q": "A Python app connects to Azure Database for PostgreSQL flexible server with Microsoft Entra authentication and no stored password. How does it obtain the credential it passes as the password?",
+"o": [
+"It gets an Entra access token with azure-identity and sends it as the password",
+"It reads the server admin password from an environment variable at startup",
+"It calls the PostgreSQL REST API to create a temporary one-hour password",
+"It signs in with the storage account key that belongs to the server"
+],
+"a": [
+0
+],
+"e": "In the passwordless (recommended) path of the Python quickstart, the azure-identity library acquires a Microsoft Entra access token for Azure Database for PostgreSQL, and the driver sends that token in place of a password. An admin password is exactly what passwordless avoids, and there's no REST API for temporary passwords or any storage key involved.",
+"r": "pg-python"
+},
+{
+"s": "pconn",
+"q": "An App Service app with a system-assigned managed identity can get an Entra token, but login to Azure Database for PostgreSQL still fails with an authentication error. What is the most likely missing step?",
+"o": [
+"No database role was created for the identity by an Entra admin of the server",
+"The app must also send the server admin password along with the access token",
+"The server must be reached on port 6432 for token-based authentication",
+"The managed identity also needs the Key Vault Secrets User role on the server"
+],
+"a": [
+0
+],
+"e": "The managed identity has to exist as a user inside PostgreSQL. A Microsoft Entra admin on the server creates a database user for the identity and grants it privileges; only then can the token be used to log in. Admin passwords aren't combined with tokens, the port is unrelated, and Key Vault roles don't grant database access.",
+"r": "pg-msi-app"
+},
+{
+"s": "pconn",
+"q": "Microsoft Entra access tokens for Azure Database for PostgreSQL typically expire after about an hour. What happens to a connection that was opened with a token that has since expired?",
+"o": [
+"It keeps working; tokens are only checked when a connection opens",
+"It is closed by the server exactly when the token expires",
+"Its queries start failing with permission-denied errors",
+"The server refreshes the token for the client automatically"
+],
+"a": [
+0
+],
+"e": "The token is validated at connection time, so pooled connections that are already open keep working after it expires. Any new connection must present a valid token, which is why clients and pools need a token-refresh callback. The server doesn't refresh client tokens.",
+"r": "pg-cache"
+},
+{
+"s": "pconn",
+"q": "Your Python code builds SQL like f\"SELECT * FROM docs WHERE owner = '{user}'\" before calling psycopg. What should you change?",
+"o": [
+"cursor.execute(\"SELECT * FROM docs WHERE owner = %s\", (user,))",
+"Escape single quotes in user before building the f-string",
+"Connect through the PgBouncer port so input is sanitized",
+"Wrap every query in a stored procedure that takes text input"
+],
+"a": [
+0
+],
+"e": "psycopg sends parameters separately from the SQL text, which prevents SQL injection and handles quoting and types correctly. Manual escaping is error-prone, the pooler port doesn't affect injection, and stored procedures aren't required to use parameters safely.",
+"r": "pg-python"
+},
+{
+"s": "pconn",
+"q": "A script inserts rows with psycopg inside a with psycopg.connect(...) block that doesn't call commit, but no rows appear in the table when you check from another session. Why?",
+"o": [
+"The transaction was never committed, so other sessions can't see it",
+"psycopg writes rows to a temporary table until the script exits",
+"Azure Database for PostgreSQL delays inserts by up to one hour",
+"Inserts only succeed through the PgBouncer port 6432 on Azure"
+],
+"a": [
+0
+],
+"e": "psycopg opens a transaction implicitly, and changes only become visible to other sessions once committed. Call conn.commit(), use the connection context manager in a way that commits, or enable autocommit. There's no temporary table or delay, and the port doesn't affect commits.",
+"r": "pg-python"
+},
+{
+"s": "pconn",
+"q": "A Spring Boot app on Azure must connect to Azure Database for PostgreSQL with a managed identity instead of a password, using Spring Cloud Azure. Which application property enables this?",
+"o": [
+"spring.datasource.azure.passwordless-enabled=true",
+"spring.datasource.password=${AZURE_MANAGED_IDENTITY}",
+"spring.jpa.hibernate.ddl-auto=update with azure-identity",
+"server.port=6432 with spring.datasource.username set"
+],
+"a": [
+0
+],
+"e": "With Spring Cloud Azure, setting spring.datasource.azure.passwordless-enabled to true makes the JDBC connection acquire Entra tokens for the configured identity; Service Connector uses this property for system- and user-assigned identities. A literal password string doesn't work, and the JPA and server port properties are unrelated.",
+"r": "svc-pg"
+},
+{
+"s": "pconn",
+"q": "What is the default port for connecting directly to an Azure Database for PostgreSQL flexible server, and which port is used for its built-in connection pooler?",
+"o": [
+"5432 for direct connections and 6432 for PgBouncer",
+"6432 for direct connections and 5432 for PgBouncer",
+"1433 for both",
+"443 for both"
+],
+"a": [
+0
+],
+"e": "Clients connect to PostgreSQL on port 5432, and the built-in PgBouncer listens on port 6432 on the same host name. 1433 is SQL Server's port, and 443 is HTTPS.",
+"r": "pg-bouncer"
+},
+{
+"s": "pconn",
+"q": "Which SSL setting does the Python quickstart use in the connection string for Azure Database for PostgreSQL flexible server?",
+"o": [
+"sslmode=require",
+"sslmode=disable",
+"ssl=false",
+"sslmode=allow with a self-signed certificate on the client"
+],
+"a": [
+0
+],
+"e": "Connections to Azure Database for PostgreSQL are encrypted with TLS, and the quickstart sets sslmode=require. Disabling SSL breaks connections to servers that enforce secure transport and exposes credentials, including tokens.",
+"r": "pg-python"
+},
+{
+"s": "pconn",
+"q": "You are writing a .NET app that connects to Azure Database for PostgreSQL with Npgsql and a user-assigned managed identity. How do you select that identity with DefaultAzureCredential?",
+"o": [
+"Set ManagedIdentityClientId in DefaultAzureCredentialOptions",
+"Add the identity's object ID to the connection string as Password",
+"Set the server parameter azure.extensions to the identity's name",
+"Nothing; DefaultAzureCredential always tries user-assigned identities first"
+],
+"a": [
+0
+],
+"e": "For a user-assigned identity, DefaultAzureCredential needs the identity's client ID (ManagedIdentityClientId); otherwise it uses the system-assigned identity. The token, not an object ID, is the password, and azure.extensions controls allowed PostgreSQL extensions.",
+"r": "pg-msi-app"
+},
+{
+"s": "pschema",
+"q": "You run CREATE EXTENSION pgvector; on Azure Database for PostgreSQL and it fails. What is the correct extension name?",
+"o": [
+"vector",
+"pgvector",
+"pg_vector",
+"azure_vector"
+],
+"a": [
+0
+],
+"e": "Although the community calls it pgvector, the binary and the extension are named vector, and that name is used both to allowlist it and in CREATE EXTENSION vector.",
+"r": "pg-vector"
+},
+{
+"s": "pschema",
+"q": "Before you can create the vector extension in a database on Azure Database for PostgreSQL flexible server, what must you do?",
+"o": [
+"Allowlist vector in azure.extensions, then CREATE EXTENSION per database",
+"Restart the server in single-user mode and load the vector library",
+"Open a support ticket so Microsoft enables the extension on the server",
+"Install the extension binaries with apt-get on the server's host VM"
+],
+"a": [
+0
+],
+"e": "Extensions are allowlisted at the server level with the azure.extensions parameter (check with SHOW azure.extensions;), and then created separately in every database where they are used. It is a managed service, so you don't install binaries or need support tickets.",
+"r": "pg-vector"
+},
+{
+"s": "pschema",
+"q": "You define a column as embedding vector and try to create an HNSW index on it. The command fails with \"column does not have dimensions\". How should the column be defined?",
+"o": [
+"As embedding vector(1536)",
+"As embedding float8[] with a CHECK on length",
+"As embedding jsonb with a dimensions key",
+"As embedding text holding the JSON array"
+],
+"a": [
+0
+],
+"e": "pgvector can only index columns whose dimensions are declared, such as vector(1536); a bare vector column can't be indexed. Arrays, JSON, and text columns can't be used with pgvector operators or indexes.",
+"r": "pg-vecperf"
+},
+{
+"s": "pschema",
+"q": "Your semantic search must search both product titles and product descriptions. How does the Azure tutorial model the data?",
+"o": [
+"A separate vector column for each searched field, holding its embedding",
+"A single embedding of the whole row, stored in a JSON column",
+"All vectors concatenated into one text column for each product",
+"Embeddings stored in a separate database that is joined at query time"
+],
+"a": [
+0
+],
+"e": "The tutorial identifies the fields used in search and, for each one, creates a corresponding vector field holding that field's embedding, then searches the vector field and lists the nearest neighbors. JSON or text columns can't be indexed by pgvector, and a separate database complicates joins with the source data.",
+"r": "pg-semantic"
+},
+{
+"s": "pschema",
+"q": "You want to fill an embedding column from text already stored in the database without writing an external batch job. Which feature can do this inside Azure Database for PostgreSQL?",
+"o": [
+"azure_openai.create_embeddings from the azure_ai extension",
+"The pg_stat_statements extension with a scheduled job",
+"PgBouncer, which calls Azure OpenAI for new rows",
+"The pg_cron extension alone, without other extensions"
+],
+"a": [
+0
+],
+"e": "The azure_ai extension lets you generate embeddings with Azure OpenAI directly from SQL (for example in an UPDATE that sets the vector column), while pgvector stores and searches them. pg_stat_statements tracks query statistics, PgBouncer pools connections, and pg_cron only schedules jobs.",
+"r": "pg-azureai"
+},
+{
+"s": "pschema",
+"q": "You want to use DiskANN indexes on Azure Database for PostgreSQL, but you haven't created the vector extension yet. Which statement creates everything you need in one step?",
+"o": [
+"CREATE EXTENSION IF NOT EXISTS pg_diskann CASCADE;",
+"CREATE EXTENSION diskann;",
+"CREATE INDEX USING diskann;",
+"ALTER SYSTEM SET azure.extensions = 'diskann';"
+],
+"a": [
+0
+],
+"e": "pg_diskann depends on the vector extension, and CASCADE automatically creates the dependency in the same database. Both extensions must also be allowed at the server level. diskann isn't the extension's name, CREATE INDEX needs the extension first, and server parameters are changed through Azure, not ALTER SYSTEM.",
+"r": "pg-diskann"
+},
+{
+"s": "pschema",
+"q": "Most vector queries search only the last 30 days of documents. Which schema design helps the planner touch only relevant data?",
+"o": [
+"Range-partition the table by date and index the partitioned table",
+"Add a text column with the month name and filter on that column",
+"Store each month's documents in a separate database on the server",
+"Use a single unpartitioned table and drop the date column"
+],
+"a": [
+0
+],
+"e": "The pgvector performance guide shows range partitioning by date: the planner prunes irrelevant partitions, and an index created on the partitioned table is built per partition (visible as a Merge Append in the plan). A month-name column doesn't enable pruning, and separate databases make queries much harder.",
+"r": "pg-vecperf"
+},
+{
+"s": "pschema",
+"q": "Your embedding model outputs 3,072 dimensions. What happens if you store them in a vector(3072) column and plan to use HNSW or IVFFlat?",
+"o": [
+"They store fine, but IVFFlat and HNSW can't index over 2,000 dimensions",
+"The insert fails because the vector type supports at most 1,024 dimensions",
+"HNSW automatically reduces the vectors to 2,000 dimensions when indexing",
+"They store and index fine, because IVFFlat supports up to 16,000 dimensions"
+],
+"a": [
+0
+],
+"e": "pgvector lets you store higher-dimensional vectors, but IVFFlat and HNSW indexes are limited to 2,000 dimensions, so indexing fails with an error naming the index type. Options include choosing a model or setting that outputs fewer dimensions. Indexes never reduce dimensions automatically.",
+"r": "pg-vecperf"
+},
+{
+"s": "pschema",
+"q": "Which pgvector operator returns the cosine distance between two vectors?",
+"o": [
+"<=>",
+"<->",
+"<#>",
+"@>"
+],
+"a": [
+0
+],
+"e": "In pgvector, <=> is cosine distance, <-> is Euclidean (L2) distance, and <#> is negative inner product. @> is PostgreSQL's containment operator for arrays and JSON, not a vector distance.",
+"r": "pg-vector"
+},
+{
+"s": "pidx",
+"q": "You are creating an IVFFlat index on a table with 500,000 rows. What value of lists does the Azure guidance suggest as a starting point?",
+"o": [
+"About 500 (rows / 1000)",
+"About 707 (the square root of rows)",
+"1 (the default)",
+"500,000 (one list per row)"
+],
+"a": [
+0
+],
+"e": "For tables up to 1 million rows, the guide suggests lists = rows / 1000; for larger tables, sqrt(rows). 500,000 / 1,000 = 500. One list per row defeats the purpose of clustering, and the square-root rule applies above 1 million rows.",
+"r": "pg-vecperf"
+},
+{
+"s": "pidx",
+"q": "An IVFFlat index returns poor recall. You want more accurate results for one transaction only, without changing the setting for other sessions. What should you run?",
+"o": [
+"SET LOCAL ivfflat.probes = 10; inside the transaction",
+"ALTER INDEX docs_idx SET (lists = 1); then reindex",
+"SET hnsw.ef_search = 100; at the start of the session",
+"REINDEX the table before each query in the transaction"
+],
+"a": [
+0
+],
+"e": "probes controls how many lists are searched; the default is 1, and more probes give better recall at higher cost. SET LOCAL applies the change only to the current transaction, while plain SET applies it to the connection. lists is fixed at build time, ef_search is an HNSW parameter, and reindexing doesn't improve recall.",
+"r": "pg-vecperf"
+},
+{
+"s": "pidx",
+"q": "You set ivfflat.probes equal to the index's lists value, and EXPLAIN now shows a sequential scan. Why?",
+"o": [
+"Searching every list is exact search, so the index isn't used",
+"The index became corrupted after probes was set so high",
+"ivfflat.probes can't exceed 10, so the setting was rejected",
+"Sequential scans are always faster than indexes for vectors"
+],
+"a": [
+0
+],
+"e": "When probes equals the number of lists, every list is searched, which makes the search exact, so the guide notes the planner won't use the index. Nothing is corrupted, there's no probes limit of 10, and for large tables an index scan is usually faster for approximate search.",
+"r": "pg-vecperf"
+},
+{
+"s": "pidx",
+"q": "What are the default HNSW parameters in pgvector, according to the Azure performance guide?",
+"o": [
+"m = 16, ef_construction = 64, and hnsw.ef_search = 40",
+"m = 32, ef_construction = 100, and hnsw.ef_search = 10",
+"m = 8, ef_construction = 16, and hnsw.ef_search = 100",
+"lists = 100 and probes = 1"
+],
+"a": [
+0
+],
+"e": "HNSW defaults are m = 16 (maximum connections per layer), ef_construction = 64 (candidate list size during build), and hnsw.ef_search = 40 (candidate list size at query time). lists and probes are IVFFlat parameters.",
+"r": "pg-vecperf"
+},
+{
+"s": "pidx",
+"q": "HNSW search results are fast but miss some relevant documents. Which change improves recall at query time without rebuilding the index?",
+"o": [
+"SET hnsw.ef_search = 100 (a larger value than the default)",
+"Decrease m on the existing index to keep more neighbors",
+"Increase ivfflat.probes so more lists are searched",
+"Drop the index and use a sequential scan in production"
+],
+"a": [
+0
+],
+"e": "hnsw.ef_search sets how many candidates are considered at query time; raising it improves recall at some latency cost and can be changed per session. m is a build-time parameter, probes only applies to IVFFlat, and sequential scans are exact but slow at scale.",
+"r": "pg-vecperf"
+},
+{
+"s": "pidx",
+"q": "Which statement correctly compares pgvector index types on Azure Database for PostgreSQL?",
+"o": [
+"IVFFlat builds faster and uses less memory than HNSW, but trades off recall and speed worse; DiskANN balances both",
+"HNSW builds faster and uses less memory than IVFFlat, and DiskANN needs the most memory of the three to build",
+"IVFFlat has the best recall of the three because its lists are recalculated automatically as data changes",
+"DiskANN only supports exact search, so it's slower than IVFFlat and HNSW for large tables of embeddings"
+],
+"a": [
+0
+],
+"e": "According to the Azure guide, IVFFlat has faster build times and lower memory use than HNSW but lower query performance for a given recall, and DiskANN offers a good balance of highly accurate queries and fast build times. DiskANN is an approximate nearest neighbor algorithm, not exact search.",
+"r": "pg-vecperf"
+},
+{
+"s": "pidx",
+"q": "You are loading 2 million embeddings into a new table. When should you create the IVFFlat index?",
+"o": [
+"After the load, so the build is faster and its lists fit the data",
+"Before the load, so every insert updates the index as it arrives",
+"Never; IVFFlat indexes are created automatically for vector columns",
+"Halfway through the load, so the lists reflect a sample of the data"
+],
+"a": [
+0
+],
+"e": "The guide recommends loading data before indexing whenever possible. For IVFFlat in particular, the lists are computed from the existing data with k-means, so building on an empty table produces poor clusters. Inserting into an existing index is also slower.",
+"r": "pg-vecperf"
+},
+{
+"s": "pidx",
+"q": "You created CREATE INDEX ON docs USING hnsw (embedding vector_cosine_ops). Queries use ORDER BY embedding <-> :q LIMIT 10 and do a sequential scan. Why?",
+"o": [
+"Its operator class is cosine, but <-> is Euclidean; use <=> or vector_l2_ops",
+"HNSW indexes can't be used together with LIMIT in a nearest-neighbor query",
+"The table needs to be vacuumed before a new HNSW index can be used by queries",
+"Cosine operator classes only work with halfvec columns, not with vector columns"
+],
+"a": [
+0
+],
+"e": "An index is only used when the query's distance operator matches the operator class: vector_cosine_ops serves <=>, vector_l2_ops serves <->, and vector_ip_ops serves <#>. LIMIT is the normal pattern for nearest-neighbor queries, and vacuuming doesn't change operator matching.",
+"r": "pg-vecperf"
+},
+{
+"s": "pidx",
+"q": "A partial IVFFlat index was created with WHERE tier = 'premium'. A query filters WHERE tier LIKE 'premium' and doesn't use the index. Why?",
+"o": [
+"The query must use the same predicate form; LIKE doesn't match the = condition",
+"Partial indexes don't work with vector columns, so it can never be used here",
+"The partial index must be rebuilt after every insert for the planner to use it",
+"LIKE disables all indexes in PostgreSQL, including B-tree and vector indexes"
+],
+"a": [
+0
+],
+"e": "The planner uses a partial index only when it can prove the query's WHERE clause implies the index predicate. The guide's example shows WHERE tier = 'premium' using the index and WHERE tier LIKE 'premium' not using it. Partial vector indexes are a valid filtering strategy.",
+"r": "pg-vecperf"
+},
+{
+"s": "pidx",
+"q": "A DiskANN index build is taking a long time on a large table. How can you monitor its progress?",
+"o": [
+"Query pg_stat_progress_create_index",
+"Query pg_stat_statements for the build",
+"Run SHOW azure.extensions repeatedly",
+"Check the PgBouncer log for the session"
+],
+"a": [
+0
+],
+"e": "On PostgreSQL 12 and later, pg_stat_progress_create_index reports index build phases; for HNSW and DiskANN they are initializing and loading tuples. pg_stat_statements records query statistics, azure.extensions lists allowed extensions, and PgBouncer doesn't build indexes.",
+"r": "pg-vecperf"
+},
+{
+"s": "pidx",
+"q": "Your OpenAI embeddings are normalized to length 1. Which distance operator does the Azure guide recommend for the best performance?",
+"o": [
+"Inner product (<#>)",
+"Euclidean distance (<->)",
+"Cosine distance (<=>) is always faster",
+"Manhattan distance"
+],
+"a": [
+0
+],
+"e": "For vectors normalized to length 1, inner product gives the same ranking as cosine similarity and is cheaper to compute, so the guide recommends <#> (with an inner-product operator class). Euclidean distance also ranks the same but isn't the recommended choice, and pgvector has no Manhattan distance operator.",
+"r": "pg-vecperf"
+},
+{
+"s": "pidx",
+"q": "Which DiskANN index parameters and defaults are correct on Azure Database for PostgreSQL?",
+"o": [
+"max_neighbors (32) and l_value_ib (50) at build; diskann.l_value_is at query",
+"lists (default 100) and probes (default 1), like IVFFlat indexes",
+"m (default 16), ef_construction (default 64), and diskann.ef_search (40)",
+"max_neighbors (default 1,000) only, with no query-time parameters"
+],
+"a": [
+0
+],
+"e": "pg_diskann indexes take max_neighbors (default 32) and l_value_ib, the build-time search list size (default 50), and you tune query-time search with diskann.l_value_is. lists and probes belong to IVFFlat, and m and ef_construction belong to HNSW.",
+"r": "pg-vecperf"
+},
+{
+"s": "pcomp",
+"q": "Creating an HNSW index on millions of rows is slow. Which server parameter governs the memory used by CREATE INDEX, and what is its maximum on flexible server?",
+"o": [
+"maintenance_work_mem, which can be set up to 2 GB",
+"work_mem, which can be set up to 64 GB per server",
+"shared_buffers, which must be lowered during builds",
+"max_connections, which must be raised for parallel builds"
+],
+"a": [
+0
+],
+"e": "maintenance_work_mem sets the memory for maintenance operations such as VACUUM, CREATE INDEX, and ALTER TABLE, and the bulk-load guidance notes it can be set to a maximum of 2 GB on flexible server. work_mem applies to query operations like sorts and hashes, and the other two parameters don't speed up an index build.",
+"r": "pg-bulk"
+},
+{
+"s": "pcomp",
+"q": "You want CREATE INDEX on a large table to use several CPU cores. Which parameter controls the number of worker processes for index builds?",
+"o": [
+"max_parallel_maintenance_workers",
+"max_parallel_workers_per_gather",
+"autovacuum_max_workers",
+"max_worker_processes is the only parameter involved"
+],
+"a": [
+0
+],
+"e": "max_parallel_maintenance_workers controls how many parallel workers CREATE INDEX can use, as described in the bulk-load guidance. max_parallel_workers_per_gather is for parallel query execution, and autovacuum workers handle vacuuming. max_worker_processes is an overall ceiling, not the specific control.",
+"r": "pg-bulk"
+},
+{
+"s": "pcomp",
+"q": "A server with many concurrent vector queries runs out of memory. Which server parameters does Microsoft list as having a direct impact on memory consumption?",
+"o": [
+"work_mem, maintenance_work_mem, and shared_buffers",
+"azure.extensions and timezone",
+"log_min_duration_statement and log_line_prefix",
+"ssl_min_protocol_version"
+],
+"a": [
+0
+],
+"e": "The high memory utilization guide lists work_mem, maintenance_work_mem, and shared_buffers as parameters whose configuration affects memory consumption. Extension, time zone, logging, and TLS settings don't drive memory usage in the same way.",
+"r": "pg-highmem"
+},
+{
+"s": "pcomp",
+"q": "You scaled a flexible server to a larger compute size and noticed that the default value of maintenance_work_mem increased. Why?",
+"o": [
+"Its default is derived from the server's memory, which changed",
+"Azure resets all server parameters to random values after scaling",
+"maintenance_work_mem always doubles after every server restart",
+"The value is copied from the client connection string on login"
+],
+"a": [
+0
+],
+"e": "On flexible server, the default maintenance_work_mem depends on the resources allocated to the server and is computed from its memory with a documented formula. Scaling changes the memory, so the default changes. Parameters aren't randomized, and clients can't set server defaults through connection strings.",
+"r": "pg-mem"
+},
+{
+"s": "pcomp",
+"q": "An exact (non-indexed) vector search over a moderately sized table is slow, and EXPLAIN shows few parallel workers. Which parameter can you raise so the planner may use more workers per Gather node?",
+"o": [
+"max_parallel_workers_per_gather",
+"maintenance_work_mem for the session",
+"ivfflat.probes set to the list count",
+"pgbouncer.default_pool_size"
+],
+"a": [
+0
+],
+"e": "The pgvector guide explains that max_parallel_workers_per_gather limits workers per Gather node, and raising it can speed up exact searches, although the planner may still decide not to parallelize. maintenance_work_mem affects index builds, probes affects IVFFlat searches, and pool size affects PgBouncer.",
+"r": "pg-vecperf"
+},
+{
+"s": "pcomp",
+"q": "You will load 50 million rows with embeddings into a new table that will have an HNSW index and foreign keys. Which sequence does Microsoft recommend for the initial load?",
+"o": [
+"Load the data, then build indexes and constraints with high maintenance_work_mem",
+"Create all indexes and constraints first so every inserted row is validated",
+"Set maintenance_work_mem to 0 during the load, then raise it afterwards",
+"Load the rows through PgBouncer with session pooling to batch the inserts"
+],
+"a": [
+0
+],
+"e": "For initial loads, the guidance is to drop or postpone indexes and constraints, load the data, and then re-create them using a high maintenance_work_mem, which speeds up index and foreign key creation. Building indexes first slows every insert, and the pooling mode doesn't change load efficiency.",
+"r": "pg-bulk"
+},
+{
+"s": "pcomp",
+"q": "A team sets work_mem to 1 GB to speed up a reporting query. Shortly after, the server runs out of memory under normal load. What is the most likely explanation?",
+"o": [
+"It applies per sort or hash in every connection, so usage multiplies",
+"It's shared by all connections, so 1 GB is too small for the server",
+"It only affects index builds, which then run out of memory",
+"The server ignores work_mem above 64 MB, so the cause is elsewhere"
+],
+"a": [
+0
+],
+"e": "work_mem applies to each sort or hash operation in each session, so total usage can reach many times the setting when many connections run queries at once. That's why the high-memory guide lists it as a key parameter to review. It isn't shared, it isn't specific to index builds (that's maintenance_work_mem), and it isn't silently capped at 64 MB.",
+"r": "pg-highmem"
+},
+{
+"s": "pcomp",
+"q": "A serverless API opens hundreds of short-lived connections to Azure Database for PostgreSQL, and memory and CPU are high even though queries are simple. What does Microsoft recommend?",
+"o": [
+"Use connection pooling, such as the built-in PgBouncer",
+"Increase max_connections to the maximum allowed",
+"Increase work_mem so each connection uses memory better",
+"Move the database to a larger region with more capacity"
+],
+"a": [
+0
+],
+"e": "Each PostgreSQL connection is a backend process with its own memory, so connection churn and many idle connections waste resources. PgBouncer uses real server connections only while a transaction or query is active and can handle up to 10,000 client connections with low overhead. Raising max_connections or work_mem makes memory pressure worse.",
+"r": "pg-bouncer"
+}
 ]

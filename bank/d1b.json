@@ -1,29 +1,408 @@
 [
-{"s":"app","q":"You deploy a custom Linux container to Azure App Service. The app inside listens on port 8000, and the site returns errors because App Service cannot reach it. What should you configure?","o":["Set the WEBSITES_PORT app setting to 8000","Set the PORT environment variable inside the Dockerfile to 80","Enable Always On","Set WEBSITES_ENABLE_APP_SERVICE_STORAGE to true"],"a":[0],"e":"For custom containers, WEBSITES_PORT tells App Service which container port to route requests to; by default App Service tries to detect ports 80 and 8080. Changing an environment variable inside the image does not change where App Service forwards traffic, Always On keeps the app loaded but does not fix routing, and the storage setting controls the shared /home directory.","r":"app-settings"},
-{"s":"app","q":"A containerized Node.js app on App Service needs a value called DB_HOST. You add DB_HOST as an app setting in the portal. How does the code read it?","o":["As an environment variable named DB_HOST inside the container","From a file at /home/site/appsettings.json that App Service generates","Only through the App Service REST API at runtime","It can't; app settings apply only to code-based apps, not containers"],"a":[0],"e":"App Service injects app settings into the container as environment variables, so the code reads process.env.DB_HOST (or the equivalent in other languages). No settings file is generated for this purpose, no REST call is needed, and custom containers support app settings the same way code-based apps do.","r":"app-container"},
-{"s":"app","q":"Your App Service container needs a database password that is stored as the secret DbPassword in the key vault contoso-kv. You don't want the value stored in app settings. What should you put in the app setting?","o":["@Microsoft.KeyVault(VaultName=contoso-kv;SecretName=DbPassword)","keyvaultref:https://contoso-kv.vault.azure.net/secrets/DbPassword","${secrets.DbPassword}","$(KeyVault:contoso-kv:DbPassword)"],"a":[0],"e":"App Service resolves Key Vault references written as @Microsoft.KeyVault(SecretUri=...) or @Microsoft.KeyVault(VaultName=...;SecretName=...), using the app's managed identity. The keyvaultref: format belongs to Azure Container Apps secrets, and the other two are not recognized syntaxes, so App Service would pass them through as plain text.","r":"app-kv"},
-{"s":"app","q":"You want an App Service app to pull its container image from Azure Container Registry without storing registry credentials. Which two steps are required? Each correct answer presents part of the solution. Choose two.","o":["Enable a managed identity on the app and grant it the AcrPull role on the registry","Set acrUseManagedIdentityCreds to true in the app's site configuration","Enable the registry admin user and copy its password into DOCKER_REGISTRY_SERVER_PASSWORD","Grant the managed identity the Key Vault Secrets User role on the registry"],"a":[0,1],"e":"App Service can authenticate to ACR with a system-assigned or user-assigned managed identity: the identity needs AcrPull on the registry, and the site configuration must tell App Service to use managed identity credentials (acrUseManagedIdentityCreds). The admin user is exactly the stored credential you wanted to avoid, and Key Vault roles have no effect on registry access.","r":"app-container"},
-{"s":"app","q":"An app uses a user-assigned managed identity to pull from ACR, but image pulls fail with an authorization error. The identity has AcrPull, and acrUseManagedIdentityCreds is true. What is the most likely missing setting?","o":["acrUserManagedIdentityID set to the client ID of the user-assigned identity","WEBSITES_PORT set to 443","keyVaultReferenceIdentity set to the system-assigned identity","Always On set to true"],"a":[0],"e":"When acrUseManagedIdentityCreds is true and no user-assigned identity is specified, App Service uses the system-assigned identity. To use a user-assigned identity you must also set acrUserManagedIdentityID to that identity's client ID. The port, Key Vault reference identity, and Always On settings have nothing to do with image pull authentication.","r":"app-container"},
-{"s":"app","q":"An app setting uses @Microsoft.KeyVault(SecretUri=https://contoso-kv.vault.azure.net/secrets/ApiKey/) with no version. The secret is rotated and a new version is created. What happens?","o":["The app picks up the latest version automatically, within 24 hours","The app keeps the old value until the reference is edited to include the new version ID","The app restarts immediately when the new version is created","The reference stops resolving because a version is required"],"a":[0],"e":"If the reference omits the secret version, App Service uses the latest version and refreshes cached Key Vault reference values every 24 hours, so a rotated secret is picked up within that window without a redeploy. A reference that includes a version stays pinned to that version. App Service does not restart on every new version, and versionless references are valid.","r":"app-kv"},
-{"s":"app","q":"Your app has both a system-assigned and a user-assigned managed identity. Key Vault references must be resolved with the user-assigned identity, which is the only one granted access to the vault. What should you configure?","o":["Set the app's keyVaultReferenceIdentity property to the resource ID of the user-assigned identity","Add the client ID of the identity to every Key Vault reference string","Disable the system-assigned identity; App Service then switches automatically","Set acrUserManagedIdentityID to the user-assigned identity"],"a":[0],"e":"Key Vault references use the system-assigned identity by default. To use a user-assigned identity, set the keyVaultReferenceIdentity property (for example with az webapp update --set keyVaultReferenceIdentity=<identity resource ID>). The reference syntax has no client ID field, and acrUserManagedIdentityID only affects image pulls from ACR.","r":"app-kv"},
-{"s":"app","q":"A key vault uses the Azure RBAC permission model. Which role should you assign to an App Service managed identity so that it can resolve Key Vault references for secrets, with least privilege?","o":["Key Vault Secrets User","Key Vault Administrator","Key Vault Secrets Officer","Contributor on the key vault"],"a":[0],"e":"Key Vault Secrets User allows reading secret contents, which is all a Key Vault reference needs. Secrets Officer can also create and delete secrets, Administrator has full data-plane control, and Contributor is a management-plane role that does not grant reading secret values under the RBAC model. Least privilege points to Secrets User.","r":"kv-vm"},
-{"s":"app","q":"On App Service for Linux, your custom container writes temporary files to /home, and you notice that the files are shared between all scaled-out instances. You want each instance to use only its own local storage. What should you do?","o":["Set WEBSITES_ENABLE_APP_SERVICE_STORAGE to false","Set WEBSITES_PORT to 0","Scale in to one instance","Enable a sidecar container"],"a":[0],"e":"For Linux containers, if WEBSITES_ENABLE_APP_SERVICE_STORAGE isn't specified, the /home directory is shared across scaled instances by default; setting it to false disables that sharing. WEBSITES_PORT controls request routing, scaling in removes redundancy rather than changing storage behavior, and a sidecar adds another container without changing /home.","r":"app-settings"},
-{"s":"app","q":"Your team pushes contoso.azurecr.io/web:prod after every release and wants the App Service app to pull and restart with the new image automatically. What should you enable?","o":["Continuous deployment from Azure Container Registry for the app (the registry webhook that notifies App Service)","A timer-triggered ACR task that restarts the web app","A retention policy on the registry","Health check on the App Service app"],"a":[0],"e":"App Service supports CI/CD from Container Registry: when enabled, a webhook on the registry notifies App Service when the configured image tag is pushed, and App Service pulls the new image and restarts. ACR tasks can't restart a web app by themselves, retention policies only clean up untagged manifests, and health check monitors instances without changing their image.","r":"app-tutorial"},
-{"s":"app","q":"A custom container on App Service fails to start, and you need to see its stdout and stderr output, including the startup logs. What should you do?","o":["Enable application logging for the container (file system) in App Service logs, then view the log stream","Open the registry's webhook history","Run kubectl logs against the App Service plan","Query the ContainerAppConsoleLogs table in Log Analytics"],"a":[0],"e":"App Service captures container output once container logging is enabled in App Service logs, and you can then view it through the log stream or download it. Registry webhooks don't record container output, kubectl only works against Kubernetes clusters, and ContainerAppConsoleLogs is the table for Azure Container Apps, not App Service.","r":"app-tutorial"},
-{"s":"app","q":"You converted an App Service app to a sidecar-enabled custom container app. You notice that changes to WEBSITES_PORT and DOCKER_REGISTRY_SERVER_USERNAME no longer have any effect. Why?","o":["Those settings don't apply to sidecar-enabled apps; containers and their registry authentication are configured on the sitecontainers definitions instead","Sidecar apps only read settings from Key Vault","App Service ignores all app settings after a restart","The settings must be prefixed with SIDECAR_"],"a":[0],"e":"For apps that aren't sidecar-enabled, the main container is configured through app settings such as DOCKER_REGISTRY_SERVER_URL, DOCKER_REGISTRY_SERVER_USERNAME, DOCKER_REGISTRY_SERVER_PASSWORD, and WEBSITES_PORT. For sidecar-enabled apps those settings don't apply; each container, its port, and its image-pull authentication are defined as Microsoft.Web/sites/sitecontainers resources.","r":"app-sidecar"},
-{"s":"app","q":"You want an App Service app setting called FeatureColor to take its value from the key App:Color in Azure App Configuration, without changing application code. Which configuration is correct?","o":["Use an App Configuration reference such as @Microsoft.AppConfiguration(Endpoint=https://contoso.azconfig.io; Key=App:Color) and grant the app's identity App Configuration Data Reader","Copy the value from App Configuration into the app setting during each deployment","Use a Key Vault reference that points at the App Configuration endpoint","Grant the app the App Configuration Reader role and read the value with the REST API"],"a":[0],"e":"App Service and Functions support App Configuration references in app settings; they resolve with the app's managed identity, which needs the App Configuration Data Reader data-plane role. Copying values during deployment drifts out of date, Key Vault references only point at Key Vault, and App Configuration Reader is a control-plane role that does not grant access to key-values.","r":"app-appconfig"},
-{"s":"aca","q":"A container app uses the default revision mode. You deploy a new image and the new revision fails its health probes. What happens to production traffic?","o":["Traffic stays on the old revision, because in single revision mode traffic moves only after the new revision is running and healthy","Traffic is split 50/50 between the old and new revisions","Traffic moves to the new revision immediately and the app returns errors","Both revisions are deactivated until you redeploy"],"a":[0],"e":"Single revision mode is the default. New revisions are provisioned and scaled, and traffic is diverted from the old revision only once the new replicas are running; if an update fails, traffic remains on the old revision and old revisions are deprovisioned automatically after a successful switch. Traffic splitting requires multiple revision mode.","r":"aca-rev"},
-{"s":"aca","q":"You want to send 10 percent of requests to a new revision of a container app and keep 90 percent on the current revision. What must you configure?","o":["Set the app to multiple revision mode and assign traffic weights of 90 and 10 to the two revisions","Keep single revision mode and set maxReplicas to 10 on the new revision","Create a second container app and put Azure Front Door in front","Add a revision label called canary; labels automatically receive 10 percent"],"a":[0],"e":"Traffic splitting requires multiple revision mode, and the combined weight of all traffic rules must equal 100 percent. Replica counts don't control traffic share, and labels give a revision its own FQDN without requiring any traffic weight. A second app with Front Door works but is unnecessary when Container Apps supports weighted splitting natively.","r":"aca-traffic"},
-{"s":"aca","q":"Which change to a container app creates a new revision?","o":["Changing a container image or an environment variable in the template section","Adding a new secret to the configuration section","Changing the ingress target port","Switching the revision mode from single to multiple"],"a":[0],"e":"Revision-scope changes are changes to the properties.template section, such as container images, environment variables, scale rules, and the revision suffix, and they create a new revision. Application-scope changes in properties.configuration, such as secrets, ingress, registry credentials, and revision mode, apply to all revisions without creating a new one.","r":"aca-rev"},
-{"s":"aca","q":"In a blue-green rollout, the green revision should receive no production traffic, but testers must call it directly. What should you use?","o":["Assign the label green to the revision and have testers call its label FQDN","Give the green revision a traffic weight of 1 percent","Put the green revision in a different Container Apps environment","Expose the green revision with a NodePort service"],"a":[0],"e":"A revision label gets its own FQDN (app name, three dashes, and label), so testers can reach a specific revision directly while its traffic weight stays at 0 percent. A 1 percent weight would still send real users to it, a separate environment is a separate deployment, and NodePort is a Kubernetes concept that Container Apps doesn't expose.","r":"aca-bg"},
-{"s":"aca","q":"Your blue-green pipeline needs predictable revision names such as myapp--v2-3-0 so it can set traffic weights by name. What should the pipeline set on each deployment?","o":["template.revisionSuffix to a value that identifies the release","configuration.activeRevisionsMode to single","A new secret named after the release","maxInactiveRevisions to 0"],"a":[0],"e":"Setting template.revisionSuffix gives deterministic revision names in the form <app>--<suffix>, which a pipeline can reference when assigning traffic or labels. Single revision mode disables traffic splitting, secrets are application-scope and don't name revisions, and the inactive revision limit only controls how many old revisions are kept.","r":"aca-bg"},
-{"s":"aca","q":"You run az containerapp revision set-mode --mode multiple on an existing app. What is the effect?","o":["The app now allows multiple active revisions, and no new revision is created by this change","A new revision is created and receives 100 percent of traffic","All existing revisions are deleted and recreated","Traffic is automatically split evenly across all revisions"],"a":[0],"e":"Revision mode is an application-scope setting. Changing it with az containerapp revision set-mode controls whether several revisions can be active at once, and Microsoft notes that changing the revision mode doesn't create a new revision. Traffic weights are still yours to configure, and existing revisions are untouched.","r":"aca-revman"},
-{"s":"aca","q":"Two container apps, orders and inventory, run in the same Container Apps environment. Which statement about the environment is correct?","o":["They share the environment's virtual network and write logs to the same Log Analytics workspace","Each app gets its own isolated virtual network","Apps in one environment must use the same container image","Each app must be in a separate resource group"],"a":[0],"e":"An environment is a secure boundary around a group of container apps: apps in the same environment share the same virtual network and send logs to the same logging destination. Each app can use its own images, and resource group placement is independent of environment membership.","r":"aca-env"},
-{"s":"aca","q":"A new workload needs GPU-capable dedicated hardware while other apps in the same environment should keep scale-to-zero serverless billing. Which environment type supports this?","o":["A workload profiles environment, with a Dedicated profile for the GPU app and the Consumption profile for the others","A Consumption-only environment","Two separate AKS clusters","A Consumption-only environment with maxReplicas set to 1"],"a":[0],"e":"Workload profiles environments (the default, v2) support both the Consumption plan and Dedicated workload profiles in the same environment. Consumption-only environments are legacy and run only on-demand Consumption compute, so they can't host dedicated or GPU profiles. AKS isn't required for this scenario.","r":"aca-structure"},
-{"s":"aca","q":"You are creating a workload profiles Container Apps environment in your own virtual network. Which subnet configuration is valid?","o":["A dedicated subnet of /27 or larger, delegated to Microsoft.App/environments","A /29 subnet shared with virtual machines","A /23 subnet that must not be delegated","Any existing subnet; the environment creates its own subnet automatically"],"a":[0],"e":"Workload profiles environments need a dedicated subnet of /27 or larger that is delegated to Microsoft.App/environments. The legacy Consumption-only environment instead requires /23 or larger and must not be delegated. Subnet size can't be changed after the environment is created, so plan it carefully.","r":"aca-vnet"},
-{"s":"aca","q":"A container app must read a queue connection string that is stored in Key Vault, using a user-assigned managed identity. How should you define the secret?","o":["queue-conn=keyvaultref:<KEY_VAULT_SECRET_URI>,identityref:<MANAGED_IDENTITY_RESOURCE_ID>, and reference it from an environment variable with secretRef","@Microsoft.KeyVault(SecretUri=<KEY_VAULT_SECRET_URI>) as an environment variable value","Copy the value into the image at build time","Mount the key vault as an Azure Files volume"],"a":[0],"e":"Container Apps secrets can reference Key Vault with the format <name>=keyvaultref:<secret URI>,identityref:<identity resource ID>, and containers consume the secret through an environment variable with secretRef. The @Microsoft.KeyVault syntax is for App Service and Functions, baking secrets into images is insecure, and Key Vault can't be mounted as an Azure Files share.","r":"aca-secrets"},
-{"s":"aca","q":"The frontend container app must call the internal-only container app named catalog in the same environment. What is the simplest way to address it?","o":["Call it by its app name, for example http://catalog, which resolves inside the environment","Use the public IP address of the catalog replica","Expose catalog with external ingress and call its public FQDN","Create a Kubernetes Service object for catalog"],"a":[0],"e":"Container apps in the same environment can call each other by app name, and the environment's DNS resolves it to the app's internal endpoint. Replica IPs change, making catalog external defeats the internal-only requirement, and Container Apps doesn't let you create Kubernetes Service objects directly.","r":"aca-connect"},
-{"s":"aca","q":"After an incident you must roll a container app back to the previous revision immediately. The app is in multiple revision mode, and both revisions are active. What is the fastest safe action?","o":["Set the previous revision's traffic weight to 100 percent and the faulty revision's to 0 percent","Delete the container app and redeploy the old image","Switch the app to single revision mode","Restart the faulty revision"],"a":[0],"e":"In multiple revision mode you can shift traffic between active revisions instantly by changing weights, which is the built-in rollback mechanism. Deleting and redeploying causes downtime, switching to single mode keeps traffic on the latest revision, and restarting the faulty revision doesn't remove the bad code.","r":"aca-traffic"},
-{"s":"aca","q":"You update the value of a secret that an environment variable references through secretRef. Running replicas still see the old value. Why?","o":["Secret changes are application-scope and don't create a new revision; you must restart the revision or deploy a new revision to pick up the value","Secrets are only read when the environment is recreated","secretRef values are cached for 24 hours like App Service Key Vault references","The secret name must change every time the value changes"],"a":[0],"e":"Secrets live in the application configuration, so updating them doesn't generate a new revision, and existing replicas keep the value they started with until the revision is restarted or a new revision is created. Recreating the environment isn't needed, the 24-hour cache belongs to App Service Key Vault references, and secret names don't need to change.","r":"aca-secrets"},
-{"s":"aca","q":"A revision in multiple revision mode is no longer needed, but you want to keep it available for a quick rollback without it consuming resources. What should you do?","o":["Deactivate the revision with az containerapp revision deactivate","Set its traffic weight to 0 percent and leave it active","Delete the container app","Remove its label"],"a":[0],"e":"Deactivating a revision stops its replicas so it no longer runs or receives traffic, and it can be activated again later. A revision with 0 percent traffic stays active and can keep replicas running, deleting the app removes everything, and removing a label only removes the label FQDN.","r":"aca-revman"}
+{
+"s": "app",
+"q": "You deploy a custom Linux container to Azure App Service. The app inside listens on port 8000, and the site returns errors because App Service cannot reach it. What should you configure?",
+"o": [
+"Set the WEBSITES_PORT app setting to 8000",
+"Set the PORT environment variable inside the Dockerfile to 80",
+"Enable Always On",
+"Set WEBSITES_ENABLE_APP_SERVICE_STORAGE to true"
+],
+"a": [
+0
+],
+"e": "For custom containers, WEBSITES_PORT tells App Service which container port to route requests to; by default App Service tries to detect ports 80 and 8080. Changing an environment variable inside the image does not change where App Service forwards traffic, Always On keeps the app loaded but does not fix routing, and the storage setting controls the shared /home directory.",
+"r": "app-settings"
+},
+{
+"s": "app",
+"q": "A containerized Node.js app on App Service needs a value called DB_HOST. You add DB_HOST as an app setting in the portal. How does the code read it?",
+"o": [
+"As an environment variable named DB_HOST inside the container",
+"From a file at /home/site/appsettings.json that App Service generates",
+"Only through the App Service REST API at runtime",
+"It can't; app settings apply only to code-based apps, not containers"
+],
+"a": [
+0
+],
+"e": "App Service injects app settings into the container as environment variables, so the code reads process.env.DB_HOST (or the equivalent in other languages). No settings file is generated for this purpose, no REST call is needed, and custom containers support app settings the same way code-based apps do.",
+"r": "app-container"
+},
+{
+"s": "app",
+"q": "Your App Service container needs a database password that is stored as the secret DbPassword in the key vault contoso-kv. You don't want the value stored in app settings. What should you put in the app setting?",
+"o": [
+"@Microsoft.KeyVault(VaultName=contoso-kv;SecretName=DbPassword)",
+"keyvaultref:https://contoso-kv.vault.azure.net/secrets/DbPassword",
+"${secrets.DbPassword}",
+"$(KeyVault:contoso-kv:DbPassword)"
+],
+"a": [
+0
+],
+"e": "App Service resolves Key Vault references written as @Microsoft.KeyVault(SecretUri=...) or @Microsoft.KeyVault(VaultName=...;SecretName=...), using the app's managed identity. The keyvaultref: format belongs to Azure Container Apps secrets, and the other two are not recognized syntaxes, so App Service would pass them through as plain text.",
+"r": "app-kv"
+},
+{
+"s": "app",
+"q": "You want an App Service app to pull its container image from Azure Container Registry without storing registry credentials. Which two steps are required? Each correct answer presents part of the solution. Choose two.",
+"o": [
+"Enable a managed identity on the app and grant it the AcrPull role on the registry",
+"Set acrUseManagedIdentityCreds to true in the app's site configuration",
+"Enable the registry admin user and copy its password into DOCKER_REGISTRY_SERVER_PASSWORD",
+"Grant the managed identity the Key Vault Secrets User role on the registry"
+],
+"a": [
+0,
+1
+],
+"e": "App Service can authenticate to ACR with a system-assigned or user-assigned managed identity: the identity needs AcrPull on the registry, and the site configuration must tell App Service to use managed identity credentials (acrUseManagedIdentityCreds). The admin user is exactly the stored credential you wanted to avoid, and Key Vault roles have no effect on registry access.",
+"r": "app-container"
+},
+{
+"s": "app",
+"q": "An app uses a user-assigned managed identity to pull from ACR, but image pulls fail with an authorization error. The identity has AcrPull, and acrUseManagedIdentityCreds is true. What is the most likely missing setting?",
+"o": [
+"acrUserManagedIdentityID set to the identity's client ID",
+"WEBSITES_PORT set to 443 so the image pull uses HTTPS",
+"keyVaultReferenceIdentity set to the user-assigned identity",
+"Always On set to true so the identity token stays valid"
+],
+"a": [
+0
+],
+"e": "When acrUseManagedIdentityCreds is true and no user-assigned identity is specified, App Service uses the system-assigned identity. To use a user-assigned identity you must also set acrUserManagedIdentityID to that identity's client ID. The port, Key Vault reference identity, and Always On settings have nothing to do with image pull authentication.",
+"r": "app-container"
+},
+{
+"s": "app",
+"q": "An app setting uses @Microsoft.KeyVault(SecretUri=https://contoso-kv.vault.azure.net/secrets/ApiKey/) with no version. The secret is rotated and a new version is created. What happens?",
+"o": [
+"The app picks up the latest version automatically, within 24 hours",
+"The app keeps the old value until the reference is edited to include the new version ID",
+"The app restarts immediately when the new version is created",
+"The reference stops resolving because a version is required"
+],
+"a": [
+0
+],
+"e": "If the reference omits the secret version, App Service uses the latest version and refreshes cached Key Vault reference values every 24 hours, so a rotated secret is picked up within that window without a redeploy. A reference that includes a version stays pinned to that version. App Service does not restart on every new version, and versionless references are valid.",
+"r": "app-kv"
+},
+{
+"s": "app",
+"q": "Your app has both a system-assigned and a user-assigned managed identity. Key Vault references must be resolved with the user-assigned identity, which is the only one granted access to the vault. What should you configure?",
+"o": [
+"Set keyVaultReferenceIdentity to the user-assigned identity's resource ID",
+"Add the identity's client ID to every Key Vault reference string in the settings",
+"Disable the system-assigned identity so App Service switches automatically",
+"Set acrUserManagedIdentityID to the client ID of the user-assigned identity"
+],
+"a": [
+0
+],
+"e": "Key Vault references use the system-assigned identity by default. To use a user-assigned identity, set the keyVaultReferenceIdentity property (for example with az webapp update --set keyVaultReferenceIdentity=<identity resource ID>). The reference syntax has no client ID field, and acrUserManagedIdentityID only affects image pulls from ACR.",
+"r": "app-kv"
+},
+{
+"s": "app",
+"q": "A key vault uses the Azure RBAC permission model. Which role should you assign to an App Service managed identity so that it can resolve Key Vault references for secrets, with least privilege?",
+"o": [
+"Key Vault Secrets User",
+"Key Vault Administrator",
+"Key Vault Secrets Officer",
+"Contributor on the key vault"
+],
+"a": [
+0
+],
+"e": "Key Vault Secrets User allows reading secret contents, which is all a Key Vault reference needs. Secrets Officer can also create and delete secrets, Administrator has full data-plane control, and Contributor is a management-plane role that does not grant reading secret values under the RBAC model. Least privilege points to Secrets User.",
+"r": "kv-vm"
+},
+{
+"s": "app",
+"q": "On App Service for Linux, your custom container writes temporary files to /home, and you notice that the files are shared between all scaled-out instances. You want each instance to use only its own local storage. What should you do?",
+"o": [
+"Set WEBSITES_ENABLE_APP_SERVICE_STORAGE to false",
+"Set WEBSITES_PORT to 0 so /home isn't mounted",
+"Scale in to one instance so only one container writes to /home",
+"Enable a sidecar container that owns the /home directory"
+],
+"a": [
+0
+],
+"e": "For Linux containers, if WEBSITES_ENABLE_APP_SERVICE_STORAGE isn't specified, the /home directory is shared across scaled instances by default; setting it to false disables that sharing. WEBSITES_PORT controls request routing, scaling in removes redundancy rather than changing storage behavior, and a sidecar adds another container without changing /home.",
+"r": "app-settings"
+},
+{
+"s": "app",
+"q": "Your team pushes contoso.azurecr.io/web:prod after every release and wants the App Service app to pull and restart with the new image automatically. What should you enable?",
+"o": [
+"Continuous deployment from ACR, which uses a registry webhook to notify App Service",
+"A timer-triggered ACR task that restarts the web app after each push",
+"A retention policy on the registry so App Service always finds only the newest prod image",
+"Health check on the App Service app, which pulls the image again when it changes"
+],
+"a": [
+0
+],
+"e": "App Service supports CI/CD from Container Registry: when enabled, a webhook on the registry notifies App Service when the configured image tag is pushed, and App Service pulls the new image and restarts. ACR tasks can't restart a web app by themselves, retention policies only clean up untagged manifests, and health check monitors instances without changing their image.",
+"r": "app-tutorial"
+},
+{
+"s": "app",
+"q": "A custom container on App Service fails to start, and you need to see its stdout and stderr output, including the startup logs. What should you do?",
+"o": [
+"Turn on container logging (file system) in App Service logs, then open the log stream",
+"Open the registry webhook history, which records the container's startup output",
+"Run kubectl logs against the App Service plan that hosts the container",
+"Query the ContainerAppConsoleLogs_CL table in the Log Analytics workspace linked to the app"
+],
+"a": [
+0
+],
+"e": "App Service captures container output once container logging is enabled in App Service logs, and you can then view it through the log stream or download it. Registry webhooks don't record container output, kubectl only works against Kubernetes clusters, and ContainerAppConsoleLogs is the table for Azure Container Apps, not App Service.",
+"r": "app-tutorial"
+},
+{
+"s": "app",
+"q": "You converted an App Service app to a sidecar-enabled custom container app. You notice that changes to WEBSITES_PORT and DOCKER_REGISTRY_SERVER_USERNAME no longer have any effect. Why?",
+"o": [
+"They don't apply to sidecar apps; each container is configured in its sitecontainers definition",
+"Sidecar-enabled apps read container settings only from Key Vault references, never from app settings",
+"App Service ignores all app settings after a restart until the plan is scaled",
+"The settings must be prefixed with SIDECAR_ for each container in a sidecar-enabled app"
+],
+"a": [
+0
+],
+"e": "For apps that aren't sidecar-enabled, the main container is configured through app settings such as DOCKER_REGISTRY_SERVER_URL, DOCKER_REGISTRY_SERVER_USERNAME, DOCKER_REGISTRY_SERVER_PASSWORD, and WEBSITES_PORT. For sidecar-enabled apps those settings don't apply; each container, its port, and its image-pull authentication are defined as Microsoft.Web/sites/sitecontainers resources.",
+"r": "app-sidecar"
+},
+{
+"s": "app",
+"q": "You want an App Service app setting called FeatureColor to take its value from the key App:Color in Azure App Configuration, without changing application code. Which configuration is correct?",
+"o": [
+"@Microsoft.AppConfiguration(Endpoint=...; Key=App:Color), with App Configuration Data Reader for the app",
+"Copy the value from App Configuration into the app setting in every deployment pipeline run",
+"@Microsoft.KeyVault(VaultName=contoso;SecretName=App-Color), pointing the reference at the App Configuration store",
+"Grant the app the App Configuration Reader role and read the value from the REST API at startup"
+],
+"a": [
+0
+],
+"e": "App Service and Functions support App Configuration references in app settings; they resolve with the app's managed identity, which needs the App Configuration Data Reader data-plane role. Copying values during deployment drifts out of date, Key Vault references only point at Key Vault, and App Configuration Reader is a control-plane role that does not grant access to key-values.",
+"r": "app-appconfig"
+},
+{
+"s": "aca",
+"q": "A container app uses the default revision mode. You deploy a new image and the new revision fails its health probes. What happens to production traffic?",
+"o": [
+"Traffic stays on the old revision until the new one is running and healthy",
+"Traffic is split 50/50 between the old and new revisions while probes retry",
+"Traffic moves to the new revision immediately, and the app starts returning errors",
+"Both revisions are deactivated until you redeploy a working image"
+],
+"a": [
+0
+],
+"e": "Single revision mode is the default. New revisions are provisioned and scaled, and traffic is diverted from the old revision only once the new replicas are running; if an update fails, traffic remains on the old revision and old revisions are deprovisioned automatically after a successful switch. Traffic splitting requires multiple revision mode.",
+"r": "aca-rev"
+},
+{
+"s": "aca",
+"q": "You want to send 10 percent of requests to a new revision of a container app and keep 90 percent on the current revision. What must you configure?",
+"o": [
+"Use multiple revision mode and set traffic weights of 90 and 10",
+"Keep single revision mode and set maxReplicas to 10 on the new revision",
+"Create a second container app and put Azure Front Door in front",
+"Add a revision label called canary; labels get 10 percent of traffic"
+],
+"a": [
+0
+],
+"e": "Traffic splitting requires multiple revision mode, and the combined weight of all traffic rules must equal 100 percent. Replica counts don't control traffic share, and labels give a revision its own FQDN without requiring any traffic weight. A second app with Front Door works but is unnecessary when Container Apps supports weighted splitting natively.",
+"r": "aca-traffic"
+},
+{
+"s": "aca",
+"q": "Which change to a container app creates a new revision?",
+"o": [
+"Changing a container image or an environment variable",
+"Adding a new secret to the configuration section",
+"Changing the ingress target port in the configuration section",
+"Switching the revision mode from single to multiple"
+],
+"a": [
+0
+],
+"e": "Revision-scope changes are changes to the properties.template section, such as container images, environment variables, scale rules, and the revision suffix, and they create a new revision. Application-scope changes in properties.configuration, such as secrets, ingress, registry credentials, and revision mode, apply to all revisions without creating a new one.",
+"r": "aca-rev"
+},
+{
+"s": "aca",
+"q": "In a blue-green rollout, the green revision should receive no production traffic, but testers must call it directly. What should you use?",
+"o": [
+"Label the revision green and have testers call its label FQDN",
+"Give the green revision a traffic weight of 1 percent for testers",
+"Put the green revision in a different Container Apps environment",
+"Expose the green revision through a Kubernetes NodePort service"
+],
+"a": [
+0
+],
+"e": "A revision label gets its own FQDN (app name, three dashes, and label), so testers can reach a specific revision directly while its traffic weight stays at 0 percent. A 1 percent weight would still send real users to it, a separate environment is a separate deployment, and NodePort is a Kubernetes concept that Container Apps doesn't expose.",
+"r": "aca-bg"
+},
+{
+"s": "aca",
+"q": "Your blue-green pipeline needs predictable revision names such as myapp--v2-3-0 so it can set traffic weights by name. What should the pipeline set on each deployment?",
+"o": [
+"template.revisionSuffix to a value that identifies the release",
+"configuration.activeRevisionsMode set to single for every release",
+"A new secret named after the release version",
+"maxInactiveRevisions set to 0 so old names are freed"
+],
+"a": [
+0
+],
+"e": "Setting template.revisionSuffix gives deterministic revision names in the form <app>--<suffix>, which a pipeline can reference when assigning traffic or labels. Single revision mode disables traffic splitting, secrets are application-scope and don't name revisions, and the inactive revision limit only controls how many old revisions are kept.",
+"r": "aca-bg"
+},
+{
+"s": "aca",
+"q": "You run az containerapp revision set-mode --mode multiple on an existing app. What is the effect?",
+"o": [
+"Multiple revisions can be active, and the change itself creates no new revision",
+"A new revision is created and immediately receives 100 percent of the app's traffic",
+"All existing revisions are deleted and recreated in multiple mode",
+"Traffic is automatically split evenly across all active revisions of the app"
+],
+"a": [
+0
+],
+"e": "Revision mode is an application-scope setting. Changing it with az containerapp revision set-mode controls whether several revisions can be active at once, and Microsoft notes that changing the revision mode doesn't create a new revision. Traffic weights are still yours to configure, and existing revisions are untouched.",
+"r": "aca-revman"
+},
+{
+"s": "aca",
+"q": "Two container apps, orders and inventory, run in the same Container Apps environment. Which statement about the environment is correct?",
+"o": [
+"They share the environment's virtual network and Log Analytics workspace",
+"Each app gets its own isolated virtual network inside the environment",
+"Apps in one environment must use the same container image and version",
+"Each app must be in its own resource group, separate from the environment"
+],
+"a": [
+0
+],
+"e": "An environment is a secure boundary around a group of container apps: apps in the same environment share the same virtual network and send logs to the same logging destination. Each app can use its own images, and resource group placement is independent of environment membership.",
+"r": "aca-env"
+},
+{
+"s": "aca",
+"q": "A new workload needs GPU-capable dedicated hardware while other apps in the same environment should keep scale-to-zero serverless billing. Which environment type supports this?",
+"o": [
+"A workload profiles environment: a Dedicated GPU profile plus the Consumption profile",
+"A Consumption-only environment, which assigns dedicated GPU hardware to apps automatically",
+"Two separate AKS clusters, one with GPU nodes and one with spot nodes",
+"A Consumption-only environment with maxReplicas set to 1 for the GPU app"
+],
+"a": [
+0
+],
+"e": "Workload profiles environments (the default, v2) support both the Consumption plan and Dedicated workload profiles in the same environment. Consumption-only environments are legacy and run only on-demand Consumption compute, so they can't host dedicated or GPU profiles. AKS isn't required for this scenario.",
+"r": "aca-structure"
+},
+{
+"s": "aca",
+"q": "You are creating a workload profiles Container Apps environment in your own virtual network. Which subnet configuration is valid?",
+"o": [
+"A dedicated /27 or larger subnet delegated to Microsoft.App/environments",
+"A /29 subnet that is shared with the virtual machines in the network",
+"A /23 or larger subnet that must not be delegated to any service",
+"Any existing subnet; the environment creates its own subnet automatically"
+],
+"a": [
+0
+],
+"e": "Workload profiles environments need a dedicated subnet of /27 or larger that is delegated to Microsoft.App/environments. The legacy Consumption-only environment instead requires /23 or larger and must not be delegated. Subnet size can't be changed after the environment is created, so plan it carefully.",
+"r": "aca-vnet"
+},
+{
+"s": "aca",
+"q": "A container app must read a queue connection string that is stored in Key Vault, using a user-assigned managed identity. How should you define the secret?",
+"o": [
+"keyvaultref:<secret URI>,identityref:<identity ID>, used through secretRef",
+"@Microsoft.KeyVault(SecretUri=<secret URI>) as the environment variable value",
+"Copy the value into the image at build time and read it as a file",
+"Mount the key vault as an Azure Files volume and read the secret from disk"
+],
+"a": [
+0
+],
+"e": "Container Apps secrets can reference Key Vault with the format <name>=keyvaultref:<secret URI>,identityref:<identity resource ID>, and containers consume the secret through an environment variable with secretRef. The @Microsoft.KeyVault syntax is for App Service and Functions, baking secrets into images is insecure, and Key Vault can't be mounted as an Azure Files share.",
+"r": "aca-secrets"
+},
+{
+"s": "aca",
+"q": "The frontend container app must call the internal-only container app named catalog in the same environment. What is the simplest way to address it?",
+"o": [
+"Call it by its app name, such as http://catalog, inside the environment",
+"Use the private IP address of a catalog replica from the environment",
+"Expose catalog with external ingress and call its public FQDN over HTTPS",
+"Create a Kubernetes Service object that points to the catalog pods"
+],
+"a": [
+0
+],
+"e": "Container apps in the same environment can call each other by app name, and the environment's DNS resolves it to the app's internal endpoint. Replica IPs change, making catalog external defeats the internal-only requirement, and Container Apps doesn't let you create Kubernetes Service objects directly.",
+"r": "aca-connect"
+},
+{
+"s": "aca",
+"q": "After an incident you must roll a container app back to the previous revision immediately. The app is in multiple revision mode, and both revisions are active. What is the fastest safe action?",
+"o": [
+"Shift traffic weights: 100 percent to the previous revision, 0 to the faulty one",
+"Delete the container app and redeploy the previous image from the registry",
+"Switch the app to single revision mode so traffic falls back to the older revision",
+"Restart the faulty revision so it reloads the last known-good configuration"
+],
+"a": [
+0
+],
+"e": "In multiple revision mode you can shift traffic between active revisions instantly by changing weights, which is the built-in rollback mechanism. Deleting and redeploying causes downtime, switching to single mode keeps traffic on the latest revision, and restarting the faulty revision doesn't remove the bad code.",
+"r": "aca-traffic"
+},
+{
+"s": "aca",
+"q": "You update the value of a secret that an environment variable references through secretRef. Running replicas still see the old value. Why?",
+"o": [
+"Secrets are application-scope; restart the revision or deploy a new one to load it",
+"Secrets are only read when the Container Apps environment itself is recreated",
+"secretRef values are cached for 24 hours, like App Service Key Vault references",
+"The secret's name must change whenever its value changes, so that replicas reload it"
+],
+"a": [
+0
+],
+"e": "Secrets live in the application configuration, so updating them doesn't generate a new revision, and existing replicas keep the value they started with until the revision is restarted or a new revision is created. Recreating the environment isn't needed, the 24-hour cache belongs to App Service Key Vault references, and secret names don't need to change.",
+"r": "aca-secrets"
+},
+{
+"s": "aca",
+"q": "A revision in multiple revision mode is no longer needed, but you want to keep it available for a quick rollback without it consuming resources. What should you do?",
+"o": [
+"Deactivate it with az containerapp revision deactivate",
+"Set its traffic weight to 0 percent and leave it active",
+"Delete the container app and keep the image in ACR",
+"Remove its label so it stops running"
+],
+"a": [
+0
+],
+"e": "Deactivating a revision stops its replicas so it no longer runs or receives traffic, and it can be activated again later. A revision with 0 percent traffic stays active and can keep replicas running, deleting the app removes everything, and removing a label only removes the label FQDN.",
+"r": "aca-revman"
+}
 ]

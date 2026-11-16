@@ -1,32 +1,452 @@
 [
-{"s":"kv","q":"A deployment pipeline must create and update secrets in a key vault (RBAC model) but should not manage keys, certificates, or vault access. Which role fits with least privilege?","o":["Key Vault Secrets Officer","Key Vault Secrets User","Key Vault Administrator","Key Vault Crypto Officer"],"a":[0],"e":"Key Vault Secrets Officer can perform all actions on secrets, including create, update, and delete, but not on keys or certificates. Secrets User can only read secret contents, Administrator covers every data-plane object, and Crypto Officer manages keys rather than secrets.","r":"kv-vm"},
-{"s":"kv","q":"You store a third-party API key in Key Vault and want it to expire after 180 days so near-expiry events can drive rotation. How can you set this with the Azure CLI?","o":["az keyvault secret set --vault-name <vault> --name MyApiKey --value <value> --expires <date 180 days ahead>","az keyvault secret set --rotation-policy 180d","az keyvault update --retention-days 180","az keyvault secret show --ttl 180"],"a":[0],"e":"The --expires parameter of az keyvault secret set sets the secret's expiration date, which the apps-and-API-keys guidance uses with 180 days; Key Vault then raises SecretNearExpiry about 30 days earlier. Secrets don't have rotation policies, retention days configure soft delete, and show only reads.","r":"kv-apikeys"},
-{"s":"kv","q":"Several services cache a connection string from Key Vault. You want them notified the moment a new version of that secret is created so they can reload it. Which Key Vault event should they subscribe to through Event Grid?","o":["Microsoft.KeyVault.SecretNewVersionCreated","Microsoft.KeyVault.SecretNearExpiry","Microsoft.Storage.BlobCreated","Microsoft.KeyVault.VaultDeleted"],"a":[0],"e":"Key Vault publishes SecretNewVersionCreated when a new version of a secret is created, so subscribers can refresh cached values right away. SecretNearExpiry fires 30 days before expiration, BlobCreated is a Storage event, and vault deletion isn't the signal for a new secret version.","r":"eg-kv"},
-{"s":"appc","q":"A CI/CD pipeline imports key-values into an App Configuration store using its service principal. Which role does it need?","o":["App Configuration Data Owner","App Configuration Data Reader","App Configuration Reader","Key Vault Secrets User"],"a":[0],"e":"Writing, updating, and deleting key-values requires the data-plane App Configuration Data Owner role. Data Reader only reads data, App Configuration Reader is a control-plane role without data access, and Key Vault roles don't apply to App Configuration.","r":"ac-rbac"},
-{"s":"appc","q":"An ASP.NET Core app reads configuration section TestApp:Settings and binds it to a Settings class. How should the keys be named in App Configuration so they map to that section?","o":["With the : delimiter, for example TestApp:Settings:Message and TestApp:Settings:FontSize","As TestApp_Settings_Message using underscores only","As a single key TestApp containing all settings as plain text","With the label Settings and keys Message and FontSize"],"a":[0],"e":"App Configuration keys are free-form strings, and hierarchical names using a delimiter such as : map to .NET configuration sections, so TestApp:Settings:Message binds to the Message property of the TestApp:Settings section. Labels create variants of a key, not hierarchy levels.","r":"ac-kv"},
-{"s":"kql","q":"You want the number of requests in 5-minute buckets over the last day from Application Insights. Which query is correct?","o":["requests | where timestamp > ago(1d) | summarize count() by bin(timestamp, 5m)","requests | summarize count() by timestamp | where timestamp > 1d","requests | take 5m | count","requests | project bin(5m) | count()"],"a":[0],"e":"ago(1d) filters to the last day, and summarize count() by bin(timestamp, 5m) groups rows into 5-minute buckets. Grouping by the raw timestamp creates one group per distinct time, take returns a number of rows rather than a time window, and project doesn't aggregate.","r":"kql-ref"},
-{"s":"kql","q":"A query ends with | render timechart | where count_ > 10 and fails. Why?","o":["render must be the last operator in the query","render only works on string columns","where can't follow summarize","timechart requires a join"],"a":[0],"e":"The render operator tells the client how to visualize results, and it must be the last operator in the query, working on a single tabular result. Move the where clause before render. String columns, summarize ordering, and joins aren't the problem.","r":"kql-render"},
-{"s":"kql","q":"You need the 95th percentile request duration per hour. Which aggregation should you use?","o":["summarize percentile(duration, 95) by bin(timestamp, 1h)","summarize max(duration) by bin(timestamp, 1h)","summarize avg(duration) * 0.95 by bin(timestamp, 1h)","summarize count() by duration"],"a":[0],"e":"percentile(column, 95) returns the value below which 95 percent of samples fall, grouped per hour with bin. max shows only the worst case, scaling an average doesn't produce a percentile, and counting by duration gives a distribution table rather than the 95th percentile.","r":"kql-samples"},
-{"s":"kql","q":"Two tables are joined with StormEvents | join PopulationData on State and no kind is specified. Which join flavor is used?","o":["innerunique, which removes duplicate keys from the left side before matching","inner","leftouter","fullouter"],"a":[0],"e":"The default join flavor in KQL is innerunique: duplicate key values on the left side are reduced to one row before matching, so results can differ from a SQL-style inner join. Specify kind=inner when every left row should be matched.","r":"kql-join"},
-{"s":"kql","q":"You want every request, along with its matching custom event if one exists, and requests without events must still appear. Which join kind should you use?","o":["leftouter","innerunique","inner","rightanti"],"a":[0],"e":"leftouter returns all rows from the left table and only matching rows from the right, filling non-matches with empty values. Inner joins drop requests without matches, and rightanti returns only right-side rows that have no match.","r":"kql-leftouter"},
-{"s":"kql","q":"What is the difference between project and extend in KQL?","o":["project selects (and can rename or compute) only the listed columns, while extend adds new calculated columns and keeps all existing ones","They are identical","extend removes columns and project adds them","project can only be used after summarize"],"a":[0],"e":"project outputs exactly the columns you list, optionally renaming or computing them; extend keeps every existing column and appends new calculated ones. Both can be used anywhere in the pipeline.","r":"kql-ref"},
-{"s":"kql","q":"You reuse the same time window in several parts of a query. How do you define it once?","o":["With a let statement, for example let startTime = ago(14d); and then use startTime in the query","With a variable declared using var","By repeating ago(14d) everywhere; KQL has no variables","With the set operator"],"a":[0],"e":"let binds a name to a scalar or tabular expression for the rest of the query, as in Microsoft's telemetry samples that define the start date, end date, and group interval up front. KQL has no var keyword, and set is used for request properties rather than query variables.","r":"kql-samples"},
-{"s":"kql","q":"You want the number of distinct users per day from customEvents. Which aggregation is correct?","o":["summarize dcount(user_Id) by bin(timestamp, 1d)","summarize count() by user_Id","summarize sum(user_Id) by bin(timestamp, 1d)","distinct user_Id | count by day"],"a":[0],"e":"dcount returns an estimate of the number of distinct values, here unique users per day bucket. count() by user_Id gives events per user, sum makes no sense for IDs, and the last option isn't valid KQL.","r":"kql-samples"},
-{"s":"kql","q":"In a workspace-based Application Insights resource queried from Log Analytics, which table holds the requests your app received?","o":["AppRequests","requests_v2","ContainerLogV2","AzureActivity"],"a":[0],"e":"Application Insights telemetry types map to Log Analytics tables: requests become AppRequests, traces become AppTraces, dependencies become AppDependencies, and so on. ContainerLogV2 holds AKS container logs, and AzureActivity holds management operations.","r":"ai-model"},
-{"s":"kql","q":"You need the 10 operations with the most failed requests in the last 24 hours. Which query is correct?","o":["requests | where timestamp > ago(24h) and success == false | summarize failures = count() by name | top 10 by failures desc","requests | top 10 by success","requests | take 10 | where success == false","requests | summarize count() by success | top 10"],"a":[0],"e":"Filter first to the time window and failed requests, then count per operation name and keep the top 10 by that count. take returns arbitrary rows before filtering, and grouping by success only produces two groups.","r":"kql-agg"},
-{"s":"kql","q":"A chart of hourly request counts has gaps where no requests occurred, and you need zeros there for anomaly detection. Which operator should you use?","o":["make-series with default = 0","summarize count() by bin(timestamp, 1h)","project-away","distinct"],"a":[0],"e":"make-series builds a time series over a fixed range and step and fills empty buckets with the default value you set, which series functions like series_decompose need. summarize only emits buckets that contain data, and the other operators don't create series.","r":"kql-ml"},
-{"s":"kql","q":"You search a high-volume log table for a whole word. Which operator is generally faster: has or contains?","o":["has, because it matches indexed terms, while contains matches any substring","contains, because it uses the index","They always perform the same","Neither; you must use matches regex"],"a":[0],"e":"has looks for a whole term and can use the term index, so it is usually much faster than contains, which scans for any substring. Use contains only when you truly need substring matches, and regular expressions are the slowest choice.","r":"kql-ref"},
-{"s":"kql","q":"You want one query over the KubePodInventory and ContainerLog tables to look for error statuses. Which operator combines rows from several tables?","o":["union","join kind=inner","mv-expand","render"],"a":[0],"e":"union returns all rows from the listed tables in a single result, which suits searching across tables. join matches rows on keys, mv-expand expands arrays into rows, and render visualizes results.","r":"kql-ref"},
-{"s":"kql","q":"A column holds an array of sample times per session, and you need one row per sample. Which operator should you use?","o":["mv-expand","summarize","extend","top"],"a":[0],"e":"mv-expand expands a dynamic array or property bag into multiple rows, one per element, as in the sample that charts concurrent sessions. Because the expanded values are dynamic, you often convert them with functions like todatetime before binning.","r":"kql-samples"},
-{"s":"kql","q":"customDimensions in customEvents contains a JSON property TenantId. How do you group events by it?","o":["extend tenant = tostring(customDimensions.TenantId) | summarize count() by tenant","summarize count() by customDimensions","where customDimensions == TenantId","project TenantId"],"a":[0],"e":"customDimensions is a dynamic column, so you access the property and convert it with tostring before grouping (parse_json is needed only when the value is stored as a string). Grouping by the whole bag treats every combination as different, and TenantId isn't a top-level column.","r":"kql-ref"},
-{"s":"kql","q":"You need requests that took longer than 3 seconds together with the slow dependency calls made during the same operation. Which join key should you use between requests and dependencies?","o":["operation_Id","timestamp","cloud_RoleName","itemCount"],"a":[0],"e":"All telemetry in one distributed operation shares operation_Id, so joining requests and dependencies on it pairs each request with the calls it made. Timestamps rarely match exactly, role name groups by service rather than by operation, and itemCount relates to sampling.","r":"ai-model"},
-{"s":"kql","q":"You chart hail events per day for three states and want each state in its own panel instead of overlapping lines. Which render option does this?","o":["render timechart with (ysplit=panels)","render piechart","render timechart with (kind=stacked) only","render table"],"a":[0],"e":"ysplit=panels draws each series in its own panel of the time chart. A pie chart can't show time, kind=stacked stacks the series in one chart, and table shows rows rather than a chart.","r":"kql-timechart"},
-{"s":"kql","q":"You join StormEvents (column State) with PopulationData, whose matching column is named StateName. How do you write the join condition?","o":["join kind=innerunique PopulationData on $left.State == $right.StateName","join PopulationData on State, StateName","join PopulationData where State = StateName","Rename isn't possible; the columns must have the same name"],"a":[0],"e":"When key columns have different names, KQL uses $left and $right to qualify them in the on clause. A comma-separated list means two keys that exist on both sides, where isn't join syntax, and you can also rename with project if you prefer.","r":"kql-joindata"},
-{"s":"kql","q":"In one summarize, you need both the total number of requests and the number that failed per hour. Which aggregation helps?","o":["summarize total = count(), failed = countif(success == false) by bin(timestamp, 1h)","summarize count() by success, bin(timestamp, 1h) is the only way","summarize sum(success) by bin(timestamp, 1h)","where success == false | summarize count() by bin(timestamp, 1h)"],"a":[0],"e":"countif counts only rows where the predicate is true, so you can compute totals and failures side by side in one pass. Grouping by success splits the data into separate rows, summing a boolean isn't how you count failures, and filtering first loses the total.","r":"kql-agg"},
-{"s":"kql","q":"For each computer, you need only its most recent heartbeat row with all columns. Which aggregation does this?","o":["summarize arg_max(TimeGenerated, *) by Computer","summarize max(TimeGenerated) by Computer","top 1 by TimeGenerated","distinct Computer"],"a":[0],"e":"arg_max(TimeGenerated, *) returns, for each group, the row with the largest TimeGenerated including all its columns. max returns only the timestamp, top 1 returns a single row overall, and distinct returns only computer names.","r":"kql-ref"},
-{"s":"kql","q":"You want the log lines of a container app that mention errors, with the time, app name, revision, and message. Which query targets the right Container Apps table?","o":["ContainerAppConsoleLogs_CL | project TimeGenerated, ContainerAppName_s, RevisionName_s, Log_s | where Log_s contains \"error\"","AppRequests | where Success == false","ContainerLogV2 | where PodName contains \"app\"","AzureActivity | where Level == \"Error\""],"a":[0],"e":"Container Apps writes stdout and stderr to ContainerAppConsoleLogs_CL, with columns such as ContainerAppName_s, RevisionName_s, and Log_s, as in Microsoft's sample. AppRequests holds request telemetry, ContainerLogV2 holds AKS logs, and AzureActivity holds management events.","r":"aca-spring-logs"},
-{"s":"kql","q":"You built a daily time series of billable usage with make-series and want to flag unusual days automatically. Which KQL capability fits?","o":["Series functions such as series_decompose_anomalies applied to the time series","render barchart","The distinct operator","A join with the Heartbeat table"],"a":[0],"e":"KQL includes time series analysis functions that decompose a series into baseline, seasonal, trend, and residual components and detect anomalies, as shown in the Azure Monitor anomaly detection tutorial. Rendering, distinct, or joins don't detect anomalies.","r":"kql-ml"},
-{"s":"kql","q":"Which statement about bin() in KQL is correct?","o":["It rounds values down to multiples of a given size, so summarize ... by bin(timestamp, 1h) groups rows into hourly buckets","It removes null values","It sorts rows by time","It converts strings to datetimes"],"a":[0],"e":"bin(value, roundTo) rounds values into fixed-size buckets, and combined with summarize it groups results by time intervals such as 5m, 1h, or 1d. It doesn't drop nulls, sort, or parse strings.","r":"kql-ref"},
-{"s":"kql","q":"You need a list of the unique combinations of event name and session ID in AppEvents. Which operator returns them?","o":["distinct Name, SessionId","summarize count()","take 100","order by Name"],"a":[0],"e":"distinct returns one row for each unique combination of the listed columns. summarize count() without by returns one total, take returns arbitrary rows, and order by only sorts.","r":"kql-ref"},
-{"s":"kql","q":"A query returns millions of rows and runs slowly. Which change usually helps the most?","o":["Filter early with where clauses, especially on time (for example where TimeGenerated > ago(1h)), before joins and aggregations","Add render at the start of the query","Use contains instead of has","Join every table first and filter at the end"],"a":[0],"e":"Reducing data as early as possible, starting with a time filter, means later operators like join and summarize process far fewer rows. render must be last, contains is usually slower than has, and filtering after joins makes the joins process unneeded rows.","r":"kql-agg"}
+{
+"s": "kv",
+"q": "A deployment pipeline must create and update secrets in a key vault (RBAC model) but should not manage keys, certificates, or vault access. Which role fits with least privilege?",
+"o": [
+"Key Vault Secrets Officer",
+"Key Vault Secrets User",
+"Key Vault Administrator",
+"Key Vault Crypto Officer"
+],
+"a": [
+0
+],
+"e": "Key Vault Secrets Officer can perform all actions on secrets, including create, update, and delete, but not on keys or certificates. Secrets User can only read secret contents, Administrator covers every data-plane object, and Crypto Officer manages keys rather than secrets.",
+"r": "kv-vm"
+},
+{
+"s": "kv",
+"q": "You store a third-party API key in Key Vault and want it to expire after 180 days so near-expiry events can drive rotation. How can you set this with the Azure CLI?",
+"o": [
+"az keyvault secret set ... --name MyApiKey --value <value> --expires <date>",
+"az keyvault secret set ... --name MyApiKey --value <value> --rotation-policy 180d",
+"az keyvault update --name <vault> --retention-days 180 --enable-purge-protection",
+"az keyvault secret show --vault-name <vault> --name MyApiKey --ttl 180"
+],
+"a": [
+0
+],
+"e": "The --expires parameter of az keyvault secret set sets the secret's expiration date, which the apps-and-API-keys guidance uses with 180 days; Key Vault then raises SecretNearExpiry about 30 days earlier. Secrets don't have rotation policies, retention days configure soft delete, and show only reads.",
+"r": "kv-apikeys"
+},
+{
+"s": "kv",
+"q": "Several services cache a connection string from Key Vault. You want them notified the moment a new version of that secret is created so they can reload it. Which Key Vault event should they subscribe to through Event Grid?",
+"o": [
+"Microsoft.KeyVault.SecretNewVersionCreated",
+"Microsoft.KeyVault.SecretNearExpiry",
+"Microsoft.KeyVault.SecretUpdatedVersion",
+"Microsoft.KeyVault.VaultDeleted"
+],
+"a": [
+0
+],
+"e": "Key Vault publishes SecretNewVersionCreated when a new version of a secret is created, so subscribers can refresh cached values right away. SecretNearExpiry fires 30 days before expiration, BlobCreated is a Storage event, and vault deletion isn't the signal for a new secret version.",
+"r": "eg-kv"
+},
+{
+"s": "appc",
+"q": "A CI/CD pipeline imports key-values into an App Configuration store using its service principal. Which role does it need?",
+"o": [
+"App Configuration Data Owner",
+"App Configuration Data Reader",
+"App Configuration Reader",
+"Key Vault Secrets User"
+],
+"a": [
+0
+],
+"e": "Writing, updating, and deleting key-values requires the data-plane App Configuration Data Owner role. Data Reader only reads data, App Configuration Reader is a control-plane role without data access, and Key Vault roles don't apply to App Configuration.",
+"r": "ac-rbac"
+},
+{
+"s": "appc",
+"q": "An ASP.NET Core app reads configuration section TestApp:Settings and binds it to a Settings class. How should the keys be named in App Configuration so they map to that section?",
+"o": [
+"With the : delimiter, such as TestApp:Settings:Message",
+"With underscores only, such as TestApp_Settings_Message",
+"As a single key TestApp holding all settings as plain text",
+"With the label Settings and the keys Message and FontSize"
+],
+"a": [
+0
+],
+"e": "App Configuration keys are free-form strings, and hierarchical names using a delimiter such as : map to .NET configuration sections, so TestApp:Settings:Message binds to the Message property of the TestApp:Settings section. Labels create variants of a key, not hierarchy levels.",
+"r": "ac-kv"
+},
+{
+"s": "kql",
+"q": "You want the number of requests in 5-minute buckets over the last day from Application Insights. Which query is correct?",
+"o": [
+"requests | where timestamp > ago(1d) | summarize count() by bin(timestamp, 5m)",
+"requests | summarize count() by timestamp | where timestamp > ago(1d) | take 5m",
+"requests | where timestamp > ago(1d) | take 5m | summarize count() by timestamp",
+"requests | project bin(5m) | where timestamp > ago(1d) | summarize count()"
+],
+"a": [
+0
+],
+"e": "ago(1d) filters to the last day, and summarize count() by bin(timestamp, 5m) groups rows into 5-minute buckets. Grouping by the raw timestamp creates one group per distinct time, take returns a number of rows rather than a time window, and project doesn't aggregate.",
+"r": "kql-ref"
+},
+{
+"s": "kql",
+"q": "A query ends with | render timechart | where count_ > 10 and fails. Why?",
+"o": [
+"render must be the last operator",
+"render only works on string columns",
+"where can't follow a render operator's chart",
+"timechart always requires a join first"
+],
+"a": [
+0
+],
+"e": "The render operator tells the client how to visualize results, and it must be the last operator in the query, working on a single tabular result. Move the where clause before render. String columns, summarize ordering, and joins aren't the problem.",
+"r": "kql-render"
+},
+{
+"s": "kql",
+"q": "You need the 95th percentile request duration per hour. Which aggregation should you use?",
+"o": [
+"summarize percentile(duration, 95) by bin(timestamp, 1h)",
+"summarize max(duration) by bin(timestamp, 1h)",
+"summarize avg(duration) * 0.95 by bin(timestamp, 1h)",
+"summarize count() by duration"
+],
+"a": [
+0
+],
+"e": "percentile(column, 95) returns the value below which 95 percent of samples fall, grouped per hour with bin. max shows only the worst case, scaling an average doesn't produce a percentile, and counting by duration gives a distribution table rather than the 95th percentile.",
+"r": "kql-samples"
+},
+{
+"s": "kql",
+"q": "Two tables are joined with StormEvents | join PopulationData on State and no kind is specified. Which join flavor is used?",
+"o": [
+"innerunique",
+"inner",
+"leftouter",
+"fullouter"
+],
+"a": [
+0
+],
+"e": "The default join flavor in KQL is innerunique: duplicate key values on the left side are reduced to one row before matching, so results can differ from a SQL-style inner join. Specify kind=inner when every left row should be matched.",
+"r": "kql-join"
+},
+{
+"s": "kql",
+"q": "You want every request, along with its matching custom event if one exists, and requests without events must still appear. Which join kind should you use?",
+"o": [
+"leftouter",
+"innerunique",
+"inner",
+"rightanti"
+],
+"a": [
+0
+],
+"e": "leftouter returns all rows from the left table and only matching rows from the right, filling non-matches with empty values. Inner joins drop requests without matches, and rightanti returns only right-side rows that have no match.",
+"r": "kql-leftouter"
+},
+{
+"s": "kql",
+"q": "What is the difference between project and extend in KQL?",
+"o": [
+"project keeps only the listed columns; extend adds columns and keeps the rest",
+"They are identical, so either one can be used with the same result",
+"extend removes the listed columns, and project adds new calculated ones",
+"project can only be used after summarize, and extend only before it"
+],
+"a": [
+0
+],
+"e": "project outputs exactly the columns you list, optionally renaming or computing them; extend keeps every existing column and appends new calculated ones. Both can be used anywhere in the pipeline.",
+"r": "kql-ref"
+},
+{
+"s": "kql",
+"q": "You reuse the same time window in several parts of a query. How do you define it once?",
+"o": [
+"A let statement, such as let startTime = ago(14d);",
+"A variable declared with var startTime = ago(14d);",
+"Repeat ago(14d) everywhere, because KQL has no variables",
+"The set operator, such as set startTime = ago(14d);"
+],
+"a": [
+0
+],
+"e": "let binds a name to a scalar or tabular expression for the rest of the query, as in Microsoft's telemetry samples that define the start date, end date, and group interval up front. KQL has no var keyword, and set is used for request properties rather than query variables.",
+"r": "kql-samples"
+},
+{
+"s": "kql",
+"q": "You want the number of distinct users per day from customEvents. Which aggregation is correct?",
+"o": [
+"summarize dcount(user_Id) by bin(timestamp, 1d)",
+"summarize count() by user_Id",
+"summarize sum(user_Id) by bin(timestamp, 1d)",
+"distinct user_Id | count by day"
+],
+"a": [
+0
+],
+"e": "dcount returns an estimate of the number of distinct values, here unique users per day bucket. count() by user_Id gives events per user, sum makes no sense for IDs, and the last option isn't valid KQL.",
+"r": "kql-samples"
+},
+{
+"s": "kql",
+"q": "In a workspace-based Application Insights resource queried from Log Analytics, which table holds the requests your app received?",
+"o": [
+"AppRequests",
+"requests_v2",
+"ContainerLogV2",
+"AzureActivity"
+],
+"a": [
+0
+],
+"e": "Application Insights telemetry types map to Log Analytics tables: requests become AppRequests, traces become AppTraces, dependencies become AppDependencies, and so on. ContainerLogV2 holds AKS container logs, and AzureActivity holds management operations.",
+"r": "ai-model"
+},
+{
+"s": "kql",
+"q": "You need the 10 operations with the most failed requests in the last 24 hours. Which query is correct?",
+"o": [
+"requests | where timestamp > ago(24h) and success == false | summarize failures = count() by name | top 10 by failures",
+"requests | where timestamp > ago(24h) | top 10 by success | summarize failures = count() by name",
+"requests | take 10 | where timestamp > ago(24h) and success == false | summarize count() by name",
+"requests | where timestamp > ago(24h) | summarize count() by success | top 10 by count_"
+],
+"a": [
+0
+],
+"e": "Filter first to the time window and failed requests, then count per operation name and keep the top 10 by that count. take returns arbitrary rows before filtering, and grouping by success only produces two groups.",
+"r": "kql-agg"
+},
+{
+"s": "kql",
+"q": "A chart of hourly request counts has gaps where no requests occurred, and you need zeros there for anomaly detection. Which operator should you use?",
+"o": [
+"make-series with default = 0",
+"summarize count() by bin(timestamp, 1h)",
+"project-away",
+"distinct"
+],
+"a": [
+0
+],
+"e": "make-series builds a time series over a fixed range and step and fills empty buckets with the default value you set, which series functions like series_decompose need. summarize only emits buckets that contain data, and the other operators don't create series.",
+"r": "kql-ml"
+},
+{
+"s": "kql",
+"q": "You search a high-volume log table for a whole word. Which operator is generally faster: has or contains?",
+"o": [
+"has, because it matches whole indexed terms",
+"contains, because it uses the term index",
+"They always perform the same on large tables",
+"Neither; use matches regex for whole words"
+],
+"a": [
+0
+],
+"e": "has looks for a whole term and can use the term index, so it is usually much faster than contains, which scans for any substring. Use contains only when you truly need substring matches, and regular expressions are the slowest choice.",
+"r": "kql-ref"
+},
+{
+"s": "kql",
+"q": "You want one query over the KubePodInventory and ContainerLog tables to look for error statuses. Which operator combines rows from several tables?",
+"o": [
+"union",
+"join kind=inner",
+"mv-expand",
+"render"
+],
+"a": [
+0
+],
+"e": "union returns all rows from the listed tables in a single result, which suits searching across tables. join matches rows on keys, mv-expand expands arrays into rows, and render visualizes results.",
+"r": "kql-ref"
+},
+{
+"s": "kql",
+"q": "A column holds an array of sample times per session, and you need one row per sample. Which operator should you use?",
+"o": [
+"mv-expand",
+"summarize",
+"extend",
+"top"
+],
+"a": [
+0
+],
+"e": "mv-expand expands a dynamic array or property bag into multiple rows, one per element, as in the sample that charts concurrent sessions. Because the expanded values are dynamic, you often convert them with functions like todatetime before binning.",
+"r": "kql-samples"
+},
+{
+"s": "kql",
+"q": "customDimensions in customEvents contains a JSON property TenantId. How do you group events by it?",
+"o": [
+"extend tenant = tostring(customDimensions.TenantId) | summarize count() by tenant",
+"summarize count() by customDimensions | where customDimensions has \"TenantId\"",
+"where customDimensions == \"TenantId\" | summarize count() by name",
+"project TenantId | summarize count() by TenantId, customDimensions"
+],
+"a": [
+0
+],
+"e": "customDimensions is a dynamic column, so you access the property and convert it with tostring before grouping (parse_json is needed only when the value is stored as a string). Grouping by the whole bag treats every combination as different, and TenantId isn't a top-level column.",
+"r": "kql-ref"
+},
+{
+"s": "kql",
+"q": "You need requests that took longer than 3 seconds together with the slow dependency calls made during the same operation. Which join key should you use between requests and dependencies?",
+"o": [
+"operation_Id",
+"timestamp",
+"cloud_RoleName",
+"itemCount"
+],
+"a": [
+0
+],
+"e": "All telemetry in one distributed operation shares operation_Id, so joining requests and dependencies on it pairs each request with the calls it made. Timestamps rarely match exactly, role name groups by service rather than by operation, and itemCount relates to sampling.",
+"r": "ai-model"
+},
+{
+"s": "kql",
+"q": "You chart hail events per day for three states and want each state in its own panel instead of overlapping lines. Which render option does this?",
+"o": [
+"render timechart with (ysplit=panels)",
+"render piechart",
+"render timechart with (kind=stacked) only",
+"render table"
+],
+"a": [
+0
+],
+"e": "ysplit=panels draws each series in its own panel of the time chart. A pie chart can't show time, kind=stacked stacks the series in one chart, and table shows rows rather than a chart.",
+"r": "kql-timechart"
+},
+{
+"s": "kql",
+"q": "You join StormEvents (column State) with PopulationData, whose matching column is named StateName. How do you write the join condition?",
+"o": [
+"join kind=innerunique PopulationData on $left.State == $right.StateName",
+"join kind=innerunique PopulationData on State, StateName",
+"join kind=innerunique PopulationData where State == StateName",
+"Not possible; both columns must have the same name to be joined"
+],
+"a": [
+0
+],
+"e": "When key columns have different names, KQL uses $left and $right to qualify them in the on clause. A comma-separated list means two keys that exist on both sides, where isn't join syntax, and you can also rename with project if you prefer.",
+"r": "kql-joindata"
+},
+{
+"s": "kql",
+"q": "In one summarize, you need both the total number of requests and the number that failed per hour. Which aggregation helps?",
+"o": [
+"summarize total = count(), failed = countif(success == false) by bin(timestamp, 1h)",
+"summarize total = count(), failed = count(success == false) by bin(timestamp, 1h)",
+"summarize total = sum(itemCount), failed = sum(success) by bin(timestamp, 1h)",
+"where success == false | summarize total = count(), failed = count() by bin(timestamp, 1h)"
+],
+"a": [
+0
+],
+"e": "countif counts only rows where the predicate is true, so you can compute totals and failures side by side in one pass. Grouping by success splits the data into separate rows, summing a boolean isn't how you count failures, and filtering first loses the total.",
+"r": "kql-agg"
+},
+{
+"s": "kql",
+"q": "For each computer, you need only its most recent heartbeat row with all columns. Which aggregation does this?",
+"o": [
+"summarize arg_max(TimeGenerated, *) by Computer",
+"summarize max(TimeGenerated) by Computer",
+"top 1 by TimeGenerated desc, Computer",
+"distinct Computer, TimeGenerated"
+],
+"a": [
+0
+],
+"e": "arg_max(TimeGenerated, *) returns, for each group, the row with the largest TimeGenerated including all its columns. max returns only the timestamp, top 1 returns a single row overall, and distinct returns only computer names.",
+"r": "kql-ref"
+},
+{
+"s": "kql",
+"q": "You want the log lines of a container app that mention errors, with the time, app name, revision, and message. Which query targets the right Container Apps table?",
+"o": [
+"ContainerAppConsoleLogs_CL | where Log_s contains \"error\" | project TimeGenerated, ContainerAppName_s, RevisionName_s, Log_s",
+"AppRequests | where Success == false | project TimeGenerated, AppRoleName, OperationName, ResultCode",
+"ContainerLogV2 | where LogMessage contains \"error\" | project TimeGenerated, PodName, ContainerName, LogMessage",
+"AzureActivity | where Level == \"Error\" | project TimeGenerated, ResourceGroup, OperationNameValue, Caller"
+],
+"a": [
+0
+],
+"e": "Container Apps writes stdout and stderr to ContainerAppConsoleLogs_CL, with columns such as ContainerAppName_s, RevisionName_s, and Log_s, as in Microsoft's sample. AppRequests holds request telemetry, ContainerLogV2 holds AKS logs, and AzureActivity holds management events.",
+"r": "aca-spring-logs"
+},
+{
+"s": "kql",
+"q": "You built a daily time series of billable usage with make-series and want to flag unusual days automatically. Which KQL capability fits?",
+"o": [
+"series_decompose_anomalies on the series",
+"render anomalychart without any series",
+"The distinct operator on the daily values",
+"A join with the Heartbeat table by day"
+],
+"a": [
+0
+],
+"e": "KQL includes time series analysis functions that decompose a series into baseline, seasonal, trend, and residual components and detect anomalies, as shown in the Azure Monitor anomaly detection tutorial. Rendering, distinct, or joins don't detect anomalies.",
+"r": "kql-ml"
+},
+{
+"s": "kql",
+"q": "Which statement about bin() in KQL is correct?",
+"o": [
+"It rounds values down into fixed-size buckets, such as hours",
+"It removes null values from the column before grouping",
+"It sorts the rows by time before they are summarized",
+"It converts string columns into datetime values"
+],
+"a": [
+0
+],
+"e": "bin(value, roundTo) rounds values into fixed-size buckets, and combined with summarize it groups results by time intervals such as 5m, 1h, or 1d. It doesn't drop nulls, sort, or parse strings.",
+"r": "kql-ref"
+},
+{
+"s": "kql",
+"q": "You need a list of the unique combinations of event name and session ID in AppEvents. Which operator returns them?",
+"o": [
+"distinct Name, SessionId",
+"summarize count() by Name",
+"take 100 | project Name, SessionId",
+"order by Name, SessionId asc"
+],
+"a": [
+0
+],
+"e": "distinct returns one row for each unique combination of the listed columns. summarize count() without by returns one total, take returns arbitrary rows, and order by only sorts.",
+"r": "kql-ref"
+},
+{
+"s": "kql",
+"q": "A query returns millions of rows and runs slowly. Which change usually helps the most?",
+"o": [
+"Filter early with where, especially on time, before joins",
+"Add render at the start so the client draws fewer rows",
+"Use contains instead of has for all string filters",
+"Join every table first, then filter at the very end"
+],
+"a": [
+0
+],
+"e": "Reducing data as early as possible, starting with a time filter, means later operators like join and summarize process far fewer rows. render must be last, contains is usually slower than has, and filtering after joins makes the joins process unneeded rows.",
+"r": "kql-agg"
+}
 ]

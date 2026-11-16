@@ -3,10 +3,10 @@
 "s": "cconn",
 "q": "A .NET job imports 5 million items into a Cosmos DB container and must use the provisioned throughput as efficiently as possible. Which SDK option is designed for this?",
 "o": [
-"Enable bulk mode (AllowBulkExecution = true) and send many concurrent CreateItem or UpsertItem tasks",
-"Insert items one at a time with await on each call",
-"Use a stored procedure for each item",
-"Switch to strong consistency"
+"Enable bulk mode (AllowBulkExecution) and run many concurrent upserts",
+"Insert items one at a time, awaiting each call before the next one",
+"Call a stored procedure once per item to insert it server-side",
+"Switch the account to strong consistency during the import"
 ],
 "a": [
 0
@@ -18,10 +18,10 @@
 "s": "ppool",
 "q": "Twenty instances of a web app each keep a client-side pool of up to 50 PostgreSQL connections. After scaling out, new connections fail because the server's connection limit is reached. What is the best fix?",
 "o": [
-"Route the app through PgBouncer (port 6432) and size the per-instance pools so instances × pool size stays well within limits",
-"Increase work_mem",
-"Create a vector index",
-"Remove client-side pooling and open a connection per query"
+"Use PgBouncer (port 6432) and size pools so instances × pool size stays in limits",
+"Increase work_mem so each backend connection needs less memory on the server",
+"Create a vector index so queries finish faster and release connections sooner",
+"Remove client-side pooling and open a new connection for every query instead"
 ],
 "a": [
 0
@@ -93,10 +93,10 @@
 "s": "sb",
 "q": "A handler sometimes needs 4 minutes to process a message, but the queue's lock duration is 1 minute. Other consumers then receive the same message while it's still being processed. What should you do?",
 "o": [
-"Renew the message lock while processing (for example by configuring automatic lock renewal in the processor)",
-"Switch to receive-and-delete",
-"Increase MaxDeliveryCount to 100",
-"Enable duplicate detection"
+"Renew the lock while processing, for example with automatic lock renewal",
+"Switch the queue to receive-and-delete mode so no lock is needed",
+"Increase MaxDeliveryCount to 100 so redeliveries are allowed",
+"Enable duplicate detection so the second receiver gets nothing"
 ],
 "a": [
 0
@@ -108,10 +108,10 @@
 "s": "sb",
 "q": "A malformed message keeps failing and is retried repeatedly. What does Service Bus do by default, and which setting controls it?",
 "o": [
-"After the delivery count exceeds MaxDeliveryCount (default 10), the message is moved to the dead-letter queue",
-"The message is deleted after 3 failed attempts",
-"The message is retried forever unless you delete it manually",
-"The queue is disabled after 10 failures"
+"It's dead-lettered once its delivery count exceeds MaxDeliveryCount (default 10)",
+"It's deleted after 3 failed attempts, controlled by the queue's DeleteAfterRetries",
+"It's retried forever until you delete it manually, unless TTL is set on the queue",
+"The whole queue is disabled after 10 failures, controlled by MaxDeliveryCount"
 ],
 "a": [
 0
@@ -123,10 +123,10 @@
 "s": "sb",
 "q": "A queue's size keeps growing and senders start getting QuotaExceeded errors, although the main queue is nearly empty. What is a likely cause?",
 "o": [
-"The dead-letter queue is filling up; dead-lettered messages count toward the entity's size and aren't removed automatically",
-"Duplicate detection stores too many message IDs",
-"The lock duration is too short",
-"The queue has too many sessions"
+"The dead-letter queue is filling up, and its messages count toward the size",
+"Duplicate detection is storing too many message IDs in the entity",
+"The lock duration is too short, so messages are stored twice",
+"The queue has too many open sessions holding messages"
 ],
 "a": [
 0
@@ -141,7 +141,7 @@
 "orders/$deadletterqueue",
 "orders-poison",
 "$deadletter/orders",
-"orders/dlq"
+"orders/$deadletter-queue-v2"
 ],
 "a": [
 0
@@ -154,9 +154,9 @@
 "q": "Messages in a queue have a time-to-live of 1 hour, and you need to audit messages that expire before anyone processes them. What should you configure on the queue?",
 "o": [
 "Enable dead-lettering on message expiration",
-"Increase the lock duration",
-"Enable duplicate detection",
-"Set MaxDeliveryCount to 1"
+"Increase the lock duration to 1 hour",
+"Enable duplicate detection with a 1-hour window",
+"Set MaxDeliveryCount to 1 so expiring messages are kept"
 ],
 "a": [
 0
@@ -168,10 +168,10 @@
 "s": "sb",
 "q": "Dead-lettered messages from many queues pile up, and you want them all collected in one place for a single remediation service. Which property helps?",
 "o": [
-"forwardDeadLetteredMessagesTo on each queue or subscription, pointing to a central queue",
-"defaultMessageTimeToLive",
-"enablePartitioning",
-"requiresSession"
+"forwardDeadLetteredMessagesTo, pointing to a central queue",
+"defaultMessageTimeToLive set to the same value on each queue",
+"enablePartitioning so dead letters are merged across queues",
+"requiresSession with one session per source queue"
 ],
 "a": [
 0
@@ -183,10 +183,10 @@
 "s": "sb",
 "q": "Messages in the dead-letter queue are several weeks old. What happens to them if no one processes them?",
 "o": [
-"They stay there; messages in the dead-letter queue don't expire and aren't cleaned up automatically",
-"They are deleted after 14 days",
+"They stay there until something receives them",
+"They are deleted automatically after 14 days",
 "They return to the main queue after their TTL",
-"They move to a dead-letter queue of the dead-letter queue"
+"They move to the DLQ's own dead-letter queue"
 ],
 "a": [
 0
@@ -198,10 +198,10 @@
 "s": "sb",
 "q": "A producer sometimes resends a payment message after a timeout, causing double charges. You want Service Bus to drop the repeated message automatically. What should you do?",
 "o": [
-"Create the queue with duplicate detection enabled and set a stable, unique MessageId on each payment message",
-"Enable sessions and use random SessionId values",
-"Use receive-and-delete mode",
-"Shorten the lock duration"
+"Enable duplicate detection on the queue and set a stable MessageId",
+"Enable sessions and give each resent message a random SessionId",
+"Use receive-and-delete mode so that each message is processed once",
+"Shorten the lock duration so the resent message expires first"
 ],
 "a": [
 0
@@ -243,10 +243,10 @@
 "s": "sb",
 "q": "You want to enable sessions on an existing production queue that was created without them. What must you do?",
 "o": [
-"Create a new queue with sessions enabled, because sessions must be enabled when the entity is created",
-"Run az servicebus queue update --enable-session true",
-"Set SessionId on new messages; the queue enables sessions automatically",
-"Restart the namespace"
+"Create a new session-enabled queue; sessions are set only at creation",
+"Run az servicebus queue update --enable-session true on the queue",
+"Set SessionId on new messages; the queue then enables sessions itself",
+"Restart the namespace after setting requiresSession to true"
 ],
 "a": [
 0
@@ -258,10 +258,10 @@
 "s": "sb",
 "q": "Sessions are enabled on a queue. A legacy sender keeps sending messages without a SessionId. What happens?",
 "o": [
-"Those sends fail, because clients must send messages as part of a session on a session-enabled queue",
-"The messages are delivered to any receiver",
-"The broker assigns a random SessionId",
-"The messages go straight to the dead-letter queue"
+"Those sends fail; a session-enabled queue needs a SessionId on every message",
+"The messages are delivered to any receiver that isn't holding a session",
+"The broker assigns a random SessionId so that the messages can be received",
+"The messages go straight to the queue's dead-letter queue without errors"
 ],
 "a": [
 0
@@ -273,10 +273,10 @@
 "s": "sb",
 "q": "Every subscription on the topic orders receives all messages, but the EU-fulfillment subscription should get only messages where region = 'EU'. What should you configure?",
 "o": [
-"Replace the subscription's default rule with a filter rule such as the SQL filter region = 'EU'",
-"Create a separate topic for EU messages and change all senders",
+"Replace the default rule with a SQL filter such as region = 'EU'",
+"Create a separate topic for EU messages and change all the senders",
 "Filter the messages in the subscriber's code after receiving them",
-"Enable sessions with SessionId = EU"
+"Enable sessions on the subscription with SessionId set to EU"
 ],
 "a": [
 0
@@ -318,10 +318,10 @@
 "s": "sb",
 "q": "Which statement about Service Bus filtering is correct?",
 "o": [
-"Filtering is a feature of topic subscriptions; queues don't support subscription filters",
-"Queues support SQL filters on receive",
-"Filters can only inspect the message body",
-"Each topic can have only one subscription with a filter"
+"Filters belong to topic subscriptions; queues don't support them",
+"Queues support SQL filters that are applied when messages are received",
+"Filters can only inspect the message body, not message properties",
+"Each topic can have only one subscription that uses a filter rule"
 ],
 "a": [
 0
@@ -333,10 +333,10 @@
 "s": "sb",
 "q": "A reminder message must become available to receivers only 24 hours after it is sent. What should the sender do?",
 "o": [
-"Schedule the message with a scheduled enqueue time 24 hours in the future",
-"Set the message time-to-live to 24 hours",
-"Defer the message after receiving it",
-"Set the lock duration to 24 hours"
+"Schedule it with an enqueue time 24 hours from now",
+"Set the message time-to-live to 24 hours from now",
+"Defer the message after receiving it for 24 hours",
+"Set the queue's lock duration to 24 hours"
 ],
 "a": [
 0
@@ -348,10 +348,10 @@
 "s": "sb",
 "q": "A consumer receives a message that can't be processed until a related message arrives. It wants to set the message aside and fetch it later by ID. Which action should it use, and how is the message retrieved later?",
 "o": [
-"Defer the message, and later receive it with its sequence number",
-"Abandon the message, and later receive it by MessageId",
-"Dead-letter it, and later resubmit it",
-"Complete it, and later restore it from a backup"
+"Defer it, then receive it later by its sequence number",
+"Abandon it, then receive it later by its MessageId",
+"Dead-letter it, then resubmit it when the other message arrives",
+"Complete it, then restore it later from the namespace backup"
 ],
 "a": [
 0
@@ -363,10 +363,10 @@
 "s": "sb",
 "q": "Messages arriving in the subscription audit of the topic orders must be moved automatically into the queue audit-processing in the same namespace, with no code. What should you configure?",
 "o": [
-"Auto-forwarding (forwardTo) on the subscription, set to the queue",
-"A SQL filter action",
-"A scheduled message",
-"Duplicate detection on the queue"
+"Auto-forwarding (forwardTo) set to the queue",
+"A SQL filter action that copies to the queue",
+"A scheduled message sent to the queue",
+"Duplicate detection enabled on the queue"
 ],
 "a": [
 0
@@ -378,10 +378,10 @@
 "s": "sb",
 "q": "A startup uses the Basic tier of Service Bus, and the team now wants publish-subscribe with topics. What must change?",
 "o": [
-"Move to at least the Standard tier, because the Basic tier supports queues only",
-"Enable sessions on the Basic namespace",
-"Create a topic with the --basic flag",
-"Use Premium only for queues"
+"Move to Standard or Premium; Basic supports only queues",
+"Enable sessions on the Basic namespace to get pub-sub",
+"Create the topic with the --basic flag in the CLI",
+"Use Premium for topics and keep Basic for the queues"
 ],
 "a": [
 0
@@ -393,9 +393,9 @@
 "s": "sb",
 "q": "Your messages carry document payloads of up to 20 MB. Which Service Bus option supports this without splitting messages?",
 "o": [
-"The Premium tier, which supports large messages (up to 100 MB)",
+"The Premium tier, which supports large messages",
 "The Standard tier, which supports up to 256 MB",
-"The Basic tier with batching",
+"The Basic tier, using batching for large payloads",
 "Any tier, because Service Bus has no size limit"
 ],
 "a": [
@@ -423,10 +423,10 @@
 "s": "sb",
 "q": "A ServiceBusProcessor handler throws an exception for a message. With the default settings of the .NET processor, what happens to that message?",
 "o": [
-"It isn't completed; the message is abandoned and redelivered, and after MaxDeliveryCount it is dead-lettered",
-"It is completed anyway because AutoCompleteMessages is true",
-"It is deleted immediately",
-"It is moved to the dead-letter queue on the first failure"
+"It's abandoned and redelivered, then dead-lettered after MaxDeliveryCount",
+"It's completed anyway, because AutoCompleteMessages is true by default",
+"It's deleted immediately, because the processor uses receive-and-delete",
+"It's moved straight to the dead-letter queue on the first failure"
 ],
 "a": [
 0
@@ -438,10 +438,10 @@
 "s": "sb",
 "q": "You need to send hundreds of small messages efficiently without exceeding the maximum message size. What is the recommended approach in the SDK?",
 "o": [
-"Create a ServiceBusMessageBatch, add messages with TryAddMessage until it's full, and send the batch",
-"Send each message on a new client",
-"Concatenate all payloads into one message regardless of size",
-"Use receive-and-delete mode"
+"Use ServiceBusMessageBatch with TryAddMessage, then send the batch",
+"Send each message on a new client so that sends run in parallel",
+"Concatenate all payloads into one message, regardless of its size",
+"Use receive-and-delete mode on the queue to speed up the sends"
 ],
 "a": [
 0
@@ -453,10 +453,10 @@
 "s": "sb",
 "q": "Peek-lock gives at-least-once delivery, so a consumer can occasionally process the same message twice. What should you do in the consumer?",
 "o": [
-"Make processing idempotent, for example by recording processed MessageIds",
-"Switch to receive-and-delete",
-"Set MaxDeliveryCount to 1",
-"Use a longer TTL"
+"Make processing idempotent, such as by tracking MessageIds",
+"Switch the consumer to receive-and-delete mode instead",
+"Set MaxDeliveryCount to 1 so messages are delivered once",
+"Use a longer time-to-live so duplicates expire first"
 ],
 "a": [
 0
@@ -468,10 +468,10 @@
 "s": "sb",
 "q": "A client sends a request message and needs the reply delivered back to it. Which message properties support this request-response pattern?",
 "o": [
-"ReplyTo (and ReplyToSessionId for session-based replies), with CorrelationId linking the reply to the request",
-"ScheduledEnqueueTime",
-"TimeToLive only",
-"PartitionKey only"
+"ReplyTo (or ReplyToSessionId) plus CorrelationId",
+"ScheduledEnqueueTime plus the request's SessionId",
+"TimeToLive plus the request's sequence number",
+"PartitionKey plus the request's MessageId"
 ],
 "a": [
 0
@@ -483,10 +483,10 @@
 "s": "sb",
 "q": "A consumer uses a high prefetch count, and you notice messages being redelivered and their delivery counts increasing. What is a likely cause?",
 "o": [
-"Prefetched messages are locked while they wait in the client buffer, and their locks can expire before the handler reaches them",
-"Prefetch disables lock renewal on the server",
-"Prefetch converts the queue to receive-and-delete",
-"Prefetch only works with sessions"
+"Prefetched messages are already locked, and locks can expire in the buffer",
+"Prefetch disables lock renewal on the server for every buffered message",
+"Prefetch switches the queue to receive-and-delete for the whole session",
+"Prefetch only works with sessions, so other messages are redelivered"
 ],
 "a": [
 0
@@ -498,10 +498,10 @@
 "s": "sb",
 "q": "A consumer receives a message from queue A and must send a result to queue B. Either both operations succeed or neither does. What can you use?",
 "o": [
-"A Service Bus transaction that groups the complete on queue A and the send to queue B in the same namespace",
-"Two separate operations with retries",
-"Duplicate detection on queue B",
-"Auto-forwarding from A to B"
+"A transaction that groups the complete on A and the send to B",
+"Two separate operations, each retried until it succeeds",
+"Duplicate detection on queue B to undo partial results",
+"Auto-forwarding from queue A to queue B in the namespace"
 ],
 "a": [
 0

@@ -1,40 +1,572 @@
 [
-{"s":"pvec","q":"A table docs has an embedding vector(1536) column. Which query returns the five documents most similar to a query vector :q by cosine distance?","o":["SELECT id, title FROM docs ORDER BY embedding <=> :q LIMIT 5","SELECT id, title FROM docs WHERE embedding = :q LIMIT 5","SELECT id, title FROM docs ORDER BY embedding DESC LIMIT 5","SELECT id, title FROM docs GROUP BY embedding LIMIT 5"],"a":[0],"e":"Nearest-neighbor search in pgvector orders by a distance operator and limits the result: <=> is cosine distance, and smaller distances are more similar. Equality would only match identical vectors, and ordering or grouping by the raw vector has no similarity meaning.","r":"pg-vector"},
-{"s":"pvec","q":"You want every row whose Euclidean distance to a query vector is less than 6, rather than a fixed top-k. Which query is correct?","o":["SELECT * FROM items WHERE embedding <-> '[3,1,2]' < 6","SELECT * FROM items ORDER BY embedding <=> '[3,1,2]' LIMIT 6","SELECT * FROM items WHERE embedding <#> '[3,1,2]' = 6","SELECT * FROM items WHERE vector_dims(embedding) < 6"],"a":[0],"e":"pgvector distance operators return numbers, so you can filter on them; <-> is Euclidean (L2) distance, and the documentation shows exactly this threshold pattern. LIMIT 6 returns six rows regardless of distance, <#> is negative inner product, and vector_dims returns the number of dimensions.","r":"pg-vector"},
-{"s":"pvec","q":"Your search returns the 10 nearest products, but only products in the user's chosen category should be returned. How should you write the query in PostgreSQL?","o":["Add the metadata filter in the WHERE clause together with the ORDER BY distance and LIMIT, for example WHERE category = $1 ORDER BY embedding <=> $2 LIMIT 10","Run the vector search for 10 rows first and remove other categories in the application","Store the category inside the embedding","Create a separate database for each category"],"a":[0],"e":"PostgreSQL lets you combine relational filters with vector ordering in one query, so the database applies the metadata filter as part of retrieval. Filtering after a top-10 search can leave fewer than 10 relevant rows. Embeddings can't encode exact metadata, and a database per category is unnecessary; partial indexes or partitioning can make frequent filters fast.","r":"pg-vecperf"},
-{"s":"pvec","q":"Stored embeddings were generated with text-embedding-3-small. Search quality is poor, and you discover the search API embeds user queries with a different model. What should you do?","o":["Generate query embeddings with the same model (and dimensions) used for the stored embeddings","Switch the distance operator from cosine to Euclidean","Increase hnsw.ef_search","Normalize only the stored vectors"],"a":[0],"e":"Similarity is only meaningful when stored and query vectors come from the same embedding model and dimension space, which is why the semantic search tutorial generates the query embedding the same way as the data embeddings. Changing the operator, search breadth, or normalization doesn't fix vectors from different models.","r":"pg-semantic"},
-{"s":"pvec","q":"You want a single SQL statement that embeds the user's search text with Azure OpenAI and returns the nearest rows, without an application round trip for the embedding. Which approach works on Azure Database for PostgreSQL?","o":["Use azure_openai.create_embeddings from the azure_ai extension inside the ORDER BY expression, cast to vector","Call Azure OpenAI from a PL/pgSQL HTTP request with pg_net","Use PgBouncer to generate the embedding","Store the search text and run LIKE '%text%'"],"a":[0],"e":"The azure_ai extension exposes azure_openai.create_embeddings, so a query can embed the input text and order by distance to the stored vectors in one statement, as shown in the semantic search tutorial. PgBouncer only pools connections, and LIKE is keyword matching, not semantic similarity.","r":"pg-semantic"},
-{"s":"pvec","q":"A cosine distance query returns a distance of 0.18 between two embeddings. What is their cosine similarity?","o":["0.82, because cosine similarity = 1 - cosine distance","0.18, because distance and similarity are the same","-0.18","5.56, the inverse of the distance"],"a":[0],"e":"pgvector's <=> operator returns cosine distance, which is 1 minus cosine similarity. A distance of 0.18 means a similarity of 0.82; smaller distances mean more similar vectors.","r":"pg-vector"},
-{"s":"pvec","q":"Your app already keeps its relational data in Azure Database for PostgreSQL, and you want to add semantic search with the fewest new services. What is the natural choice?","o":["Enable pgvector (and optionally pg_diskann) in the existing database and store embeddings next to the data","Copy all data into a separate search service before you can use embeddings","Store embeddings in Blob storage and scan them from the app","Use Azure Managed Redis as the system of record for the documents"],"a":[0],"e":"Azure Database for PostgreSQL supports built-in vector search through pgvector, with pg_diskann for scalable ANN indexing, so embeddings can live in the same tables and queries can join and filter on existing data. A separate search service or Blob scans add complexity, and Redis is a cache, not a system of record for documents.","r":"vec-choose"},
-{"s":"pvec","q":"To recommend items, you want the centroid (average vector) of all embeddings of items a user liked. Which pgvector feature returns it directly?","o":["The AVG(embedding) aggregate, which returns a vector","vector_norms(embedding)","l2_distance(embedding, embedding)","COUNT(embedding)"],"a":[0],"e":"pgvector supports aggregates such as AVG and SUM on vector columns, and they return a vector. vector_norms returns a vector's Euclidean norm, l2_distance returns a number, and COUNT returns the row count.","r":"pg-vector"},
-{"s":"pvec","q":"After a model change, some inserts fail and you suspect stored vectors have the wrong number of dimensions. Which function checks a vector's dimension count?","o":["vector_dims(embedding)","vector_norms(embedding)","cosine_distance(embedding, embedding)","array_length(embedding)"],"a":[0],"e":"vector_dims returns the number of dimensions of a pgvector value, so you can find rows that don't match the expected size. vector_norms returns the vector's length, and cosine_distance of a vector with itself is 0. array_length works on PostgreSQL arrays, not the vector type.","r":"pg-vector"},
-{"s":"pvec","q":"You use pgvector's <#> operator with normalized embeddings. Why does ORDER BY embedding <#> :q (ascending) return the most similar rows first?","o":["<#> returns the negative inner product, so larger inner products (more similar) produce smaller values","<#> returns cosine similarity","<#> returns Euclidean distance","Ascending order always returns the least similar rows first"],"a":[0],"e":"pgvector's <#> operator returns the negative inner product, so the most similar vectors have the most negative values and sort first in ascending order. This keeps the ORDER BY ... LIMIT pattern consistent with the other distance operators. <=> is cosine distance and <-> is Euclidean distance.","r":"pg-vector"},
-{"s":"pvec","q":"In a retrieval-augmented generation (RAG) app backed by PostgreSQL, what is the database's role when the user asks a question?","o":["Retrieve the most relevant chunks by vector similarity (plus metadata filters), which the app then adds to the prompt sent to the language model","Generate the final answer text","Fine-tune the language model on each question","Store the model weights"],"a":[0],"e":"In RAG, the question is embedded, the vector store returns the nearest relevant content, often filtered by metadata such as tenant or category, and that content grounds the model's answer. The database doesn't generate answers, fine-tune models, or host model weights.","r":"pg-semantic"},
-{"s":"ppool","q":"You want to start using the built-in PgBouncer on an Azure Database for PostgreSQL flexible server. What do you need to do?","o":["Enable PgBouncer on the server (the pgbouncer.enabled server parameter) and point the app at port 6432 on the same host name","Install PgBouncer on a separate VM","Create a new server with a different host name","Change the app to port 5433"],"a":[0],"e":"PgBouncer is an optional, built-in feature that you enable per server, after which clients connect to the same host name on port 6432 instead of 5432. No separate VM or server is needed, and 5433 isn't the PgBouncer port.","r":"pg-bouncer"},
-{"s":"ppool","q":"You try to enable the built-in PgBouncer on a Burstable tier server and can't. Which compute tiers support it?","o":["General Purpose and Memory Optimized","Burstable only","All tiers, including Burstable","Memory Optimized only"],"a":[0],"e":"The PgBouncer documentation states that the built-in PgBouncer is supported on the General Purpose and Memory Optimized compute tiers, in both public and private access networks. To use it, scale the server out of the Burstable tier.","r":"pg-bouncer"},
-{"s":"ppool","q":"Why can the built-in PgBouncer serve up to 10,000 client connections with low overhead?","o":["It uses a real PostgreSQL connection only while a transaction is open or a query is active, and shares server connections between clients","It caches all query results in memory","It spreads connections across several databases","It closes idle clients every second"],"a":[0],"e":"PgBouncer's lightweight, asynchronous model uses PostgreSQL connections only when needed, inside an open transaction or while a query runs, so many client connections share a small number of server connections. It doesn't cache results or distribute queries across databases.","r":"pg-bouncer"},
-{"s":"ppool","q":"An API opens a new PostgreSQL connection for every HTTP request and closes it afterward. Latency is high because of connection setup. What should you do in the application?","o":["Use a client-side connection pool (for example psycopg_pool or HikariCP) so connections are reused, optionally in front of PgBouncer","Open a new connection twice per request to warm it up","Increase work_mem","Use a larger embedding model"],"a":[0],"e":"Each new connection pays for TCP, TLS, and authentication, and PostgreSQL starts a backend process for it. Reusing pooled connections removes that overhead, and PgBouncer is especially useful when connection churn is frequent. work_mem and the embedding model don't affect connection setup.","r":"pg-bouncer"},
-{"s":"ppool","q":"After moving to PgBouncer in transaction pooling mode, a feature that relies on session-level state starts behaving unpredictably. Which code is most likely affected?","o":["Code that sets session variables with SET or uses temporary tables and expects them on later transactions","Simple single-statement SELECT queries","INSERT statements in autocommit mode","Queries that use parameters"],"a":[0],"e":"In transaction pooling, a client gets a server connection only for the length of a transaction, so later transactions may run on a different backend. Session state such as SET values, temporary tables, or session-level advisory locks isn't guaranteed to persist. Stateless statements and parameterized queries work normally.","r":"pg-bouncer"},
-{"s":"ppool","q":"A Python service keeps a pool of PostgreSQL connections and authenticates with Microsoft Entra ID. New connections start failing about an hour after startup. Which Microsoft library is designed to handle this with psycopg?","o":["azure-postgresql-auth, which provides Entra authentication with automatic token management and connection pooling for psycopg2, psycopg3, and SQLAlchemy","azure-storage-blob","azure-keyvault-secrets","azure-monitor-opentelemetry"],"a":[0],"e":"Entra tokens expire (typically after about an hour), so new pooled connections need fresh tokens. The Azure PostgreSQL Auth client library for Python provides Entra ID authentication with automatic token management and connection pooling for psycopg2, psycopg3, and SQLAlchemy. The other libraries serve Blob storage, Key Vault, and telemetry.","r":"pg-auth-lib"},
-{"s":"ppool","q":"The same product-detail queries hit Azure Database for PostgreSQL thousands of times per minute, and the data changes rarely. Which architecture reduces database load the most?","o":["Cache-aside with Azure Managed Redis: read from Redis first and query PostgreSQL only on a cache miss","Increase max_connections","Add more IVFFlat lists","Enable strong consistency"],"a":[0],"e":"Microsoft's caching guidance for PostgreSQL implements cache-aside with Azure Managed Redis so repeated reads are served from memory and PostgreSQL only handles misses. More connections add load, IVFFlat lists only affect vector indexes, and strong consistency is a Cosmos DB concept.","r":"pg-cache"},
-{"s":"rcache","q":"You implement the cache-aside pattern with Azure Managed Redis in front of a database. What happens on a cache miss?","o":["The app reads the item from the database, writes it to Redis (usually with an expiration), and returns it","Redis automatically loads the item from the database","The request fails until a background job fills the cache","The app writes a placeholder value and returns nothing"],"a":[0],"e":"In cache-aside, the application owns the logic: try the cache, and on a miss load from the system of record, store the value in the cache, and return it. Redis doesn't know about your database and doesn't load data on its own.","r":"caching"},
-{"s":"rcache","q":"Cached product prices must never be more than 10 minutes out of date, even if an invalidation message is lost. What should you do when writing them to Redis?","o":["Set an expiration (TTL) of 10 minutes on each key, for example SET key value EX 600","Use NoEviction so values stay forever","Store prices without a TTL and refresh them weekly","Use a longer key name"],"a":[0],"e":"An expiration bounds how long a stale value can survive, so the next read after it expires reloads fresh data. NoEviction controls what happens when memory is full, not freshness, and keys without a TTL can stay stale indefinitely.","r":"caching"},
-{"s":"rcache","q":"When a product is updated in the database, readers must see the new price quickly. Which cache-aside step should the update path perform?","o":["Update the database and then delete (invalidate) the product's cache key so the next read reloads it","Update only the cache and let the database catch up later","Flush the entire cache on every update","Do nothing; TTL alone guarantees immediate consistency"],"a":[0],"e":"Removing the key after updating the system of record forces the next read to fetch the current value, which is the usual cache-aside invalidation step. Writing only to the cache risks losing data, flushing everything causes a stampede of misses, and TTL only bounds staleness rather than removing it immediately.","r":"caching"},
-{"s":"rcache","q":"Which authentication method does Microsoft recommend for applications connecting to Azure Managed Redis?","o":["Microsoft Entra ID (for example a managed identity), which new caches use by default","Access keys stored in app settings","Anonymous access over a private endpoint","A shared password embedded in the container image"],"a":[0],"e":"Azure Managed Redis uses Microsoft Entra ID by default for new caches, and Microsoft recommends it over access keys because keys bring password management and security risks. Anonymous access and embedded passwords aren't acceptable for production.","r":"redis-entra"},
-{"s":"rcache","q":"A client authenticates to Azure Managed Redis with Microsoft Entra tokens. Connections drop roughly every hour. What does Microsoft recommend?","o":["Have the client send a new token at least three minutes before the current one expires","Switch to access keys","Disable TLS","Restart the cache every hour"],"a":[0],"e":"Entra tokens expire, and the guidance is to send a new token at least three minutes before expiry to avoid connection disruption; Microsoft's client extensions handle this automatically. Access keys are less secure, disabling TLS weakens security, and restarting the cache causes outages.","r":"redis-entra"},
-{"s":"rcache","q":"Your team uses a Redis client library that doesn't support the Redis Cluster API, and you need a sharded Azure Managed Redis cache. Which clustering policy should you choose?","o":["Enterprise, because clients connect to a single endpoint and a proxy routes requests to shards","OSS, because it works with any client","Non-clustered, because it supports sharding","Any policy; it can be changed later"],"a":[0],"e":"With the Enterprise policy, clients use one endpoint and an internal proxy routes requests to shards, so any standard Redis client works. The OSS policy requires cluster-aware clients but can give lower latency through direct shard connections, and non-clustered isn't sharded. The clustering policy can't be changed after the cache is created.","r":"redis-cluster"},
-{"s":"rcache","q":"In a cache-aside architecture with Azure Managed Redis and Azure Database for PostgreSQL, which statement about Redis is correct?","o":["Redis holds values the app can re-create from PostgreSQL; it isn't the system of record","Redis is the system of record, and PostgreSQL is the backup","Redis automatically replicates every write back to PostgreSQL","Redis data must never expire"],"a":[0],"e":"In the reference architecture, Managed Redis stores frequently requested values and query results that can be rebuilt from PostgreSQL, which remains the system of record. Redis doesn't write data back to PostgreSQL by itself, and expirations are normal for cached data.","r":"cache-aside"},
-{"s":"rcache","q":"A .NET app uses StackExchange.Redis and fails with AuthenticationFailure after a developer pasted an Entra access token into the Password field. What is the recommended approach?","o":["Use the Microsoft.Azure.StackExchangeRedis extension and configure the connection with a token credential (for example DefaultAzureCredential), which acquires and refreshes tokens","Paste the token into the user name field instead","Use the cache's access key permanently","Disable Entra authentication on the cache"],"a":[0],"e":"Microsoft provides extension libraries such as Microsoft.Azure.StackExchangeRedis that configure StackExchange.Redis with a token credential, handling user identity, token acquisition, and refresh. Setting a raw token manually goes stale quickly, and falling back to access keys or disabling Entra lowers security.","r":"redis-entra"},
-{"s":"rcache","q":"An Azure Managed Redis cache uses the NoEviction policy. What happens when memory is full, and what should you plan for?","o":["Writes that need more memory fail, so plan explicit cleanup (such as TTLs) and capacity alerts","The oldest keys are evicted automatically","The cache scales up automatically to the next SKU","Keys are written to disk instead"],"a":[0],"e":"With NoEviction, Redis doesn't remove keys to free memory, so memory pressure makes write commands fail. The Well-Architected guidance says to plan explicit cleanup and capacity alerts. Automatic eviction only happens with other policies, and the cache doesn't scale or spill to disk on its own.","r":"redis-waf"},
-{"s":"rcache","q":"You want to give a group of 30 developers data access to an Azure Managed Redis cache through Microsoft Entra ID. What limitation applies?","o":["Microsoft Entra groups aren't supported, so you add individual users or service principals","Only one Entra user can be added per cache","Entra authentication only works for managed identities","Groups are supported, but only with access keys enabled"],"a":[0],"e":"The Well-Architected guidance for Azure Managed Redis says to add only the required users or service principals because Microsoft Entra groups aren't supported for data-plane access. Many individual users and service principals can be added, and Entra authentication isn't limited to managed identities.","r":"redis-waf"},
-{"s":"rvec","q":"You plan to use Azure Managed Redis for vector similarity search. When must you enable the required module?","o":["When you create the cache, by enabling the RediSearch module; modules can't be added later","Any time, by running MODULE LOAD","After creation, through a support request","No module is needed; vector search is built into every cache"],"a":[0],"e":"Vector search in Redis requires the RediSearch module, and in Azure Managed Redis modules must be enabled during provisioning; you can't add them afterwards or load them manually. Plan vector search before creating the cache.","r":"redis-vec"},
-{"s":"rvec","q":"Which cache configuration does RediSearch require in Azure Managed Redis?","o":["The Enterprise clustering policy and the NoEviction eviction policy","The OSS clustering policy and the allkeys-lru eviction policy","The non-clustered policy and volatile-ttl eviction","Any clustering policy with any eviction policy"],"a":[0],"e":"RediSearch requires the Enterprise clustering policy and the NoEviction eviction policy, so choosing vector search effectively decides those settings for you. Eviction policies that drop keys would remove indexed documents.","r":"redis-cluster"},
-{"s":"rvec","q":"Which Azure Managed Redis tier can't use RediSearch for vector search?","o":["Flash Optimized","Memory Optimized","Balanced","Compute Optimized"],"a":[0],"e":"RediSearch is supported on the Memory Optimized, Balanced, and Compute Optimized tiers, but not on Flash Optimized.","r":"redis-modules"},
-{"s":"rvec","q":"You are creating a Redis vector index. When should you choose HNSW instead of FLAT?","o":["For larger datasets where low latency matters more than exhaustive precision","When you need exact brute-force results on a small dataset","When vectors are stored as plain strings","When you want the index to store keys on disk"],"a":[0],"e":"FLAT is exact brute-force search, suited to smaller datasets or workloads needing exhaustive search, while HNSW (Hierarchical Navigable Small World) is an approximate nearest neighbor index suited to larger datasets where latency matters more. Data storage format (hash or JSON) doesn't decide the algorithm.","r":"redis-vec"},
-{"s":"rvec","q":"Which distance metrics can a Redis vector index use?","o":["L2, COSINE, and IP (inner product)","Jaccard and Hamming only","Levenshtein","Manhattan only"],"a":[0],"e":"Redis vector indexes support L2 (Euclidean), COSINE, and IP (inner product). The right choice depends on the embedding model and whether vectors are normalized.","r":"redis-vec"},
-{"s":"rvec","q":"In which Redis data structures can you store vectors for RediSearch, and what else should you store with them?","o":["Hashes or JSON documents, with metadata such as document ID, source URL, category, and tenant ID","Only sorted sets, with no metadata","Only lists, with metadata in a separate cache","Only streams"],"a":[0],"e":"Vectors can be stored in hashes or JSON documents, and the guidance is to store metadata alongside each vector, such as document ID, title, source URL, category, timestamp, tenant ID, or access-control fields, so results can be filtered and traced back to sources.","r":"redis-vec"},
-{"s":"rvec","q":"A support bot must find similar FAQ entries only within the user's product line and tenant. Which Redis vector search capability should you use?","o":["Hybrid queries that combine metadata filters (for example TAG or numeric filters) with KNN vector search","A separate Redis cache for every tenant","Plain GET commands on each FAQ key","Pub/Sub channels per product line"],"a":[0],"e":"RediSearch supports hybrid filtering: metadata filters narrow candidates before or during vector comparison, combined with KNN, range, text, numeric, and tag queries. Separate caches per tenant are costly, GET can't rank by similarity, and Pub/Sub is for messaging.","r":"redis-vec"},
-{"s":"rvec","q":"Your chatbot gets many questions that are phrased differently but mean the same thing, and LLM calls are expensive. How can Azure Managed Redis help?","o":["As a semantic cache: store prompt embeddings with responses and reuse a cached response when a new prompt is semantically similar","By caching the exact prompt string only, so paraphrases always hit the cache","By storing the language model weights","By replacing the language model entirely"],"a":[0],"e":"Semantic caching stores prompts, embeddings, and completions, and uses vector search to return a cached response when a new prompt is similar enough, reducing LLM cost and latency. Exact-string caching misses paraphrases, and Redis doesn't host or replace the model.","r":"redis-vec"},
-{"s":"rvec","q":"Which statement about semantic caching with Azure Managed Redis is correct?","o":["It is an application or gateway pattern built on Redis vector search, not a separate managed feature you switch on","It is a checkbox on the cache that works without RediSearch","It requires the OSS clustering policy","It only works with the Flash Optimized tier"],"a":[0],"e":"The semantic cache tutorial explains that semantic caching is implemented in the application (for example with RedisVL) or at a gateway such as Azure API Management, while Managed Redis supplies the endpoint and RediSearch vector search. It therefore needs RediSearch, with Enterprise clustering and NoEviction, and Flash Optimized doesn't support RediSearch.","r":"redis-semcache"},
-{"s":"rvec","q":"You need vector search across caches in two regions with active geo-replication. Which modules can be used together with active geo-replication?","o":["RediSearch and RedisJSON","RedisBloom and RedisTimeSeries","All four modules","No modules can be used with geo-replication"],"a":[0],"e":"Only the RediSearch and RedisJSON modules can be used with active geo-replication, which lets you search JSON and vector data across caches synchronized in an active-active configuration. RedisBloom and RedisTimeSeries aren't supported with it.","r":"redis-modules"}
+{
+"s": "pvec",
+"q": "A table docs has an embedding vector(1536) column. Which query returns the five documents most similar to a query vector :q by cosine distance?",
+"o": [
+"SELECT id, title FROM docs ORDER BY embedding <=> :q LIMIT 5",
+"SELECT id, title FROM docs WHERE embedding = :q LIMIT 5",
+"SELECT id, title FROM docs ORDER BY embedding DESC LIMIT 5",
+"SELECT id, title FROM docs GROUP BY embedding LIMIT 5"
+],
+"a": [
+0
+],
+"e": "Nearest-neighbor search in pgvector orders by a distance operator and limits the result: <=> is cosine distance, and smaller distances are more similar. Equality would only match identical vectors, and ordering or grouping by the raw vector has no similarity meaning.",
+"r": "pg-vector"
+},
+{
+"s": "pvec",
+"q": "You want every row whose Euclidean distance to a query vector is less than 6, rather than a fixed top-k. Which query is correct?",
+"o": [
+"SELECT * FROM items WHERE embedding <-> '[3,1,2]' < 6",
+"SELECT * FROM items ORDER BY embedding <=> '[3,1,2]' LIMIT 6",
+"SELECT * FROM items WHERE embedding <#> '[3,1,2]' = 6",
+"SELECT * FROM items WHERE vector_dims(embedding) < 6"
+],
+"a": [
+0
+],
+"e": "pgvector distance operators return numbers, so you can filter on them; <-> is Euclidean (L2) distance, and the documentation shows exactly this threshold pattern. LIMIT 6 returns six rows regardless of distance, <#> is negative inner product, and vector_dims returns the number of dimensions.",
+"r": "pg-vector"
+},
+{
+"s": "pvec",
+"q": "Your search returns the 10 nearest products, but only products in the user's chosen category should be returned. How should you write the query in PostgreSQL?",
+"o": [
+"Put the filter in the same query: WHERE category = $1 ORDER BY embedding <=> $2 LIMIT 10",
+"Run the vector search for 10 rows first, then remove other categories in the application",
+"Store the category inside the embedding so the distance already reflects the category",
+"Create a separate database for each category and query only the user's database"
+],
+"a": [
+0
+],
+"e": "PostgreSQL lets you combine relational filters with vector ordering in one query, so the database applies the metadata filter as part of retrieval. Filtering after a top-10 search can leave fewer than 10 relevant rows. Embeddings can't encode exact metadata, and a database per category is unnecessary; partial indexes or partitioning can make frequent filters fast.",
+"r": "pg-vecperf"
+},
+{
+"s": "pvec",
+"q": "Stored embeddings were generated with text-embedding-3-small. Search quality is poor, and you discover the search API embeds user queries with a different model. What should you do?",
+"o": [
+"Embed queries with the same model and dimensions as the stored data",
+"Switch the distance operator from cosine to Euclidean for queries",
+"Increase hnsw.ef_search so more candidates are compared per query",
+"Normalize only the stored vectors so both sides use the same scale"
+],
+"a": [
+0
+],
+"e": "Similarity is only meaningful when stored and query vectors come from the same embedding model and dimension space, which is why the semantic search tutorial generates the query embedding the same way as the data embeddings. Changing the operator, search breadth, or normalization doesn't fix vectors from different models.",
+"r": "pg-semantic"
+},
+{
+"s": "pvec",
+"q": "You want a single SQL statement that embeds the user's search text with Azure OpenAI and returns the nearest rows, without an application round trip for the embedding. Which approach works on Azure Database for PostgreSQL?",
+"o": [
+"ORDER BY embedding <=> azure_openai.create_embeddings(...)::vector",
+"Call Azure OpenAI from a PL/pgSQL function with an HTTP request through pg_net",
+"Let PgBouncer generate the embedding as the query passes through the pooler",
+"Store the search text and run WHERE content LIKE '%' || :text || '%' instead"
+],
+"a": [
+0
+],
+"e": "The azure_ai extension exposes azure_openai.create_embeddings, so a query can embed the input text and order by distance to the stored vectors in one statement, as shown in the semantic search tutorial. PgBouncer only pools connections, and LIKE is keyword matching, not semantic similarity.",
+"r": "pg-semantic"
+},
+{
+"s": "pvec",
+"q": "A cosine distance query returns a distance of 0.18 between two embeddings. What is their cosine similarity?",
+"o": [
+"0.82, because cosine similarity = 1 - cosine distance",
+"0.18, because distance and similarity are the same",
+"-0.18",
+"5.56, the inverse of the distance"
+],
+"a": [
+0
+],
+"e": "pgvector's <=> operator returns cosine distance, which is 1 minus cosine similarity. A distance of 0.18 means a similarity of 0.82; smaller distances mean more similar vectors.",
+"r": "pg-vector"
+},
+{
+"s": "pvec",
+"q": "Your app already keeps its relational data in Azure Database for PostgreSQL, and you want to add semantic search with the fewest new services. What is the natural choice?",
+"o": [
+"Enable pgvector (and optionally pg_diskann) in the existing database",
+"Copy all data into a separate search service before using any embeddings",
+"Store the embeddings in Blob storage and scan them from the application",
+"Use Azure Managed Redis as the system of record for the documents"
+],
+"a": [
+0
+],
+"e": "Azure Database for PostgreSQL supports built-in vector search through pgvector, with pg_diskann for scalable ANN indexing, so embeddings can live in the same tables and queries can join and filter on existing data. A separate search service or Blob scans add complexity, and Redis is a cache, not a system of record for documents.",
+"r": "vec-choose"
+},
+{
+"s": "pvec",
+"q": "To recommend items, you want the centroid (average vector) of all embeddings of items a user liked. Which pgvector feature returns it directly?",
+"o": [
+"The AVG(embedding) aggregate",
+"vector_norms(embedding) per row",
+"l2_distance(embedding, embedding)",
+"COUNT(embedding) grouped by user"
+],
+"a": [
+0
+],
+"e": "pgvector supports aggregates such as AVG and SUM on vector columns, and they return a vector. vector_norms returns a vector's Euclidean norm, l2_distance returns a number, and COUNT returns the row count.",
+"r": "pg-vector"
+},
+{
+"s": "pvec",
+"q": "After a model change, some inserts fail and you suspect stored vectors have the wrong number of dimensions. Which function checks a vector's dimension count?",
+"o": [
+"vector_dims(embedding)",
+"vector_norms(embedding)",
+"cosine_distance(embedding, embedding)",
+"array_length(embedding)"
+],
+"a": [
+0
+],
+"e": "vector_dims returns the number of dimensions of a pgvector value, so you can find rows that don't match the expected size. vector_norms returns the vector's length, and cosine_distance of a vector with itself is 0. array_length works on PostgreSQL arrays, not the vector type.",
+"r": "pg-vector"
+},
+{
+"s": "pvec",
+"q": "You use pgvector's <#> operator with normalized embeddings. Why does ORDER BY embedding <#> :q (ascending) return the most similar rows first?",
+"o": [
+"It returns the negative inner product, so more similar means smaller",
+"It returns cosine similarity, so ascending order puts the best rows first",
+"It returns Euclidean distance, which is the same ranking for any vectors",
+"Ascending order always returns the least similar rows first with any operator"
+],
+"a": [
+0
+],
+"e": "pgvector's <#> operator returns the negative inner product, so the most similar vectors have the most negative values and sort first in ascending order. This keeps the ORDER BY ... LIMIT pattern consistent with the other distance operators. <=> is cosine distance and <-> is Euclidean distance.",
+"r": "pg-vector"
+},
+{
+"s": "pvec",
+"q": "In a retrieval-augmented generation (RAG) app backed by PostgreSQL, what is the database's role when the user asks a question?",
+"o": [
+"Retrieve the most relevant chunks, by similarity and filters, for the prompt",
+"Generate the final answer text from the stored chunks with SQL functions",
+"Fine-tune the language model on each question and its retrieved chunks",
+"Store the model weights and run inference close to the data for speed"
+],
+"a": [
+0
+],
+"e": "In RAG, the question is embedded, the vector store returns the nearest relevant content, often filtered by metadata such as tenant or category, and that content grounds the model's answer. The database doesn't generate answers, fine-tune models, or host model weights.",
+"r": "pg-semantic"
+},
+{
+"s": "ppool",
+"q": "You want to start using the built-in PgBouncer on an Azure Database for PostgreSQL flexible server. What do you need to do?",
+"o": [
+"Turn on pgbouncer.enabled and connect to port 6432 on the same host",
+"Install PgBouncer on a separate VM and point the app at that VM",
+"Create a new server with a different host name that includes PgBouncer",
+"Change the app's connection string to port 5433 on the same host"
+],
+"a": [
+0
+],
+"e": "PgBouncer is an optional, built-in feature that you enable per server, after which clients connect to the same host name on port 6432 instead of 5432. No separate VM or server is needed, and 5433 isn't the PgBouncer port.",
+"r": "pg-bouncer"
+},
+{
+"s": "ppool",
+"q": "You try to enable the built-in PgBouncer on a Burstable tier server and can't. Which compute tiers support it?",
+"o": [
+"General Purpose and Memory Optimized",
+"Burstable only, for small workloads",
+"All tiers, including Burstable",
+"Memory Optimized only, for large servers"
+],
+"a": [
+0
+],
+"e": "The PgBouncer documentation states that the built-in PgBouncer is supported on the General Purpose and Memory Optimized compute tiers, in both public and private access networks. To use it, scale the server out of the Burstable tier.",
+"r": "pg-bouncer"
+},
+{
+"s": "ppool",
+"q": "Why can the built-in PgBouncer serve up to 10,000 client connections with low overhead?",
+"o": [
+"Server connections are used only during a transaction and shared between clients",
+"It caches all query results in memory, so most queries never reach the server",
+"It spreads client connections across several databases on the same server",
+"It closes idle client connections every second to free server resources"
+],
+"a": [
+0
+],
+"e": "PgBouncer's lightweight, asynchronous model uses PostgreSQL connections only when needed, inside an open transaction or while a query runs, so many client connections share a small number of server connections. It doesn't cache results or distribute queries across databases.",
+"r": "pg-bouncer"
+},
+{
+"s": "ppool",
+"q": "An API opens a new PostgreSQL connection for every HTTP request and closes it afterward. Latency is high because of connection setup. What should you do in the application?",
+"o": [
+"Reuse pooled connections with a client pool (psycopg_pool, HikariCP)",
+"Open a new connection twice per request so the second one is warm",
+"Increase work_mem so each new connection is set up faster",
+"Use a smaller embedding model so each request finishes sooner"
+],
+"a": [
+0
+],
+"e": "Each new connection pays for TCP, TLS, and authentication, and PostgreSQL starts a backend process for it. Reusing pooled connections removes that overhead, and PgBouncer is especially useful when connection churn is frequent. work_mem and the embedding model don't affect connection setup.",
+"r": "pg-bouncer"
+},
+{
+"s": "ppool",
+"q": "After moving to PgBouncer in transaction pooling mode, a feature that relies on session-level state starts behaving unpredictably. Which code is most likely affected?",
+"o": [
+"Code that relies on SET variables or temporary tables across transactions",
+"Simple single-statement SELECT queries that run inside one transaction",
+"INSERT statements in autocommit mode that each run as their own transaction",
+"Queries that use bind parameters instead of literal values in the SQL text"
+],
+"a": [
+0
+],
+"e": "In transaction pooling, a client gets a server connection only for the length of a transaction, so later transactions may run on a different backend. Session state such as SET values, temporary tables, or session-level advisory locks isn't guaranteed to persist. Stateless statements and parameterized queries work normally.",
+"r": "pg-bouncer"
+},
+{
+"s": "ppool",
+"q": "A Python service keeps a pool of PostgreSQL connections and authenticates with Microsoft Entra ID. New connections start failing about an hour after startup. Which Microsoft library is designed to handle this with psycopg?",
+"o": [
+"azure-postgresql-auth (token refresh and pooling for psycopg)",
+"azure-storage-blob with a token cache stored in a container",
+"azure-keyvault-secrets to store and rotate the database password",
+"azure-monitor-opentelemetry to detect and reopen failed connections"
+],
+"a": [
+0
+],
+"e": "Entra tokens expire (typically after about an hour), so new pooled connections need fresh tokens. The Azure PostgreSQL Auth client library for Python provides Entra ID authentication with automatic token management and connection pooling for psycopg2, psycopg3, and SQLAlchemy. The other libraries serve Blob storage, Key Vault, and telemetry.",
+"r": "pg-auth-lib"
+},
+{
+"s": "ppool",
+"q": "The same product-detail queries hit Azure Database for PostgreSQL thousands of times per minute, and the data changes rarely. Which architecture reduces database load the most?",
+"o": [
+"Cache-aside with Azure Managed Redis, querying PostgreSQL only on misses",
+"Increase max_connections so that the repeated queries run in parallel",
+"Add more IVFFlat lists so that repeated product lookups use the index",
+"Enable strong consistency so that repeated reads are served faster"
+],
+"a": [
+0
+],
+"e": "Microsoft's caching guidance for PostgreSQL implements cache-aside with Azure Managed Redis so repeated reads are served from memory and PostgreSQL only handles misses. More connections add load, IVFFlat lists only affect vector indexes, and strong consistency is a Cosmos DB concept.",
+"r": "pg-cache"
+},
+{
+"s": "rcache",
+"q": "You implement the cache-aside pattern with Azure Managed Redis in front of a database. What happens on a cache miss?",
+"o": [
+"The app loads it from the database, stores it in Redis with a TTL, and returns it",
+"Redis loads the item from the database automatically and returns it to the app",
+"The request fails until a background job fills the cache with the missing item",
+"The app writes a placeholder value to Redis and returns an empty response"
+],
+"a": [
+0
+],
+"e": "In cache-aside, the application owns the logic: try the cache, and on a miss load from the system of record, store the value in the cache, and return it. Redis doesn't know about your database and doesn't load data on its own.",
+"r": "caching"
+},
+{
+"s": "rcache",
+"q": "Cached product prices must never be more than 10 minutes out of date, even if an invalidation message is lost. What should you do when writing them to Redis?",
+"o": [
+"Set a 10-minute TTL on each key, for example SET key value EX 600",
+"Use the NoEviction policy so cached values stay in memory forever",
+"Store prices without a TTL and refresh the whole cache every week",
+"Use longer key names that include the date the price was cached"
+],
+"a": [
+0
+],
+"e": "An expiration bounds how long a stale value can survive, so the next read after it expires reloads fresh data. NoEviction controls what happens when memory is full, not freshness, and keys without a TTL can stay stale indefinitely.",
+"r": "caching"
+},
+{
+"s": "rcache",
+"q": "When a product is updated in the database, readers must see the new price quickly. Which cache-aside step should the update path perform?",
+"o": [
+"Update the database, then delete the product's cache key",
+"Update only the cache and let the database catch up later",
+"Flush the entire cache on every product update",
+"Do nothing; the TTL alone gives immediate consistency"
+],
+"a": [
+0
+],
+"e": "Removing the key after updating the system of record forces the next read to fetch the current value, which is the usual cache-aside invalidation step. Writing only to the cache risks losing data, flushing everything causes a stampede of misses, and TTL only bounds staleness rather than removing it immediately.",
+"r": "caching"
+},
+{
+"s": "rcache",
+"q": "Which authentication method does Microsoft recommend for applications connecting to Azure Managed Redis?",
+"o": [
+"Microsoft Entra ID, such as a managed identity",
+"Access keys stored in the app settings",
+"Anonymous access over a private endpoint",
+"A shared password embedded in the image"
+],
+"a": [
+0
+],
+"e": "Azure Managed Redis uses Microsoft Entra ID by default for new caches, and Microsoft recommends it over access keys because keys bring password management and security risks. Anonymous access and embedded passwords aren't acceptable for production.",
+"r": "redis-entra"
+},
+{
+"s": "rcache",
+"q": "A client authenticates to Azure Managed Redis with Microsoft Entra tokens. Connections drop roughly every hour. What does Microsoft recommend?",
+"o": [
+"Send a new token at least three minutes before the old one expires",
+"Switch to access keys, which never expire and need no refresh",
+"Disable TLS so that connections can be re-established faster",
+"Restart the cache every hour so all clients reconnect together"
+],
+"a": [
+0
+],
+"e": "Entra tokens expire, and the guidance is to send a new token at least three minutes before expiry to avoid connection disruption; Microsoft's client extensions handle this automatically. Access keys are less secure, disabling TLS weakens security, and restarting the cache causes outages.",
+"r": "redis-entra"
+},
+{
+"s": "rcache",
+"q": "Your team uses a Redis client library that doesn't support the Redis Cluster API, and you need a sharded Azure Managed Redis cache. Which clustering policy should you choose?",
+"o": [
+"Enterprise: one endpoint, with a proxy that routes to shards",
+"OSS, because it works with any standard Redis client library",
+"Non-clustered, because it shards data across nodes automatically",
+"Any policy for now, because it can be changed after creation"
+],
+"a": [
+0
+],
+"e": "With the Enterprise policy, clients use one endpoint and an internal proxy routes requests to shards, so any standard Redis client works. The OSS policy requires cluster-aware clients but can give lower latency through direct shard connections, and non-clustered isn't sharded. The clustering policy can't be changed after the cache is created.",
+"r": "redis-cluster"
+},
+{
+"s": "rcache",
+"q": "In a cache-aside architecture with Azure Managed Redis and Azure Database for PostgreSQL, which statement about Redis is correct?",
+"o": [
+"Redis holds values the app can rebuild from PostgreSQL",
+"Redis is the system of record, and PostgreSQL is the backup",
+"Redis replicates every write back to PostgreSQL automatically",
+"Redis data must never expire, or PostgreSQL gets overloaded"
+],
+"a": [
+0
+],
+"e": "In the reference architecture, Managed Redis stores frequently requested values and query results that can be rebuilt from PostgreSQL, which remains the system of record. Redis doesn't write data back to PostgreSQL by itself, and expirations are normal for cached data.",
+"r": "cache-aside"
+},
+{
+"s": "rcache",
+"q": "A .NET app uses StackExchange.Redis and fails with AuthenticationFailure after a developer pasted an Entra access token into the Password field. What is the recommended approach?",
+"o": [
+"Use Microsoft.Azure.StackExchangeRedis with a token credential that refreshes tokens",
+"Paste the access token into the user name field and the object ID as the password",
+"Use the cache's access key permanently and remove Entra authentication from the code",
+"Disable Entra authentication on the cache so that StackExchange.Redis can connect"
+],
+"a": [
+0
+],
+"e": "Microsoft provides extension libraries such as Microsoft.Azure.StackExchangeRedis that configure StackExchange.Redis with a token credential, handling user identity, token acquisition, and refresh. Setting a raw token manually goes stale quickly, and falling back to access keys or disabling Entra lowers security.",
+"r": "redis-entra"
+},
+{
+"s": "rcache",
+"q": "An Azure Managed Redis cache uses the NoEviction policy. What happens when memory is full, and what should you plan for?",
+"o": [
+"Writes fail, so plan TTL-based cleanup and capacity alerts",
+"The oldest keys are evicted automatically to make room",
+"The cache scales up automatically to the next SKU",
+"Keys are written to disk until memory is available again"
+],
+"a": [
+0
+],
+"e": "With NoEviction, Redis doesn't remove keys to free memory, so memory pressure makes write commands fail. The Well-Architected guidance says to plan explicit cleanup and capacity alerts. Automatic eviction only happens with other policies, and the cache doesn't scale or spill to disk on its own.",
+"r": "redis-waf"
+},
+{
+"s": "rcache",
+"q": "You want to give a group of 30 developers data access to an Azure Managed Redis cache through Microsoft Entra ID. What limitation applies?",
+"o": [
+"Groups aren't supported; add individual users or service principals",
+"Only one Entra user can be added per cache, so share a single account",
+"Entra authentication only works for managed identities, not for people",
+"Groups are supported, but only when access keys are also enabled"
+],
+"a": [
+0
+],
+"e": "The Well-Architected guidance for Azure Managed Redis says to add only the required users or service principals because Microsoft Entra groups aren't supported for data-plane access. Many individual users and service principals can be added, and Entra authentication isn't limited to managed identities.",
+"r": "redis-waf"
+},
+{
+"s": "rvec",
+"q": "You plan to use Azure Managed Redis for vector similarity search. When must you enable the required module?",
+"o": [
+"At creation, by enabling RediSearch; it can't be added later",
+"Any time, by running MODULE LOAD from a client connection",
+"After creation, by asking support to install the module",
+"Never; vector search is built into every Managed Redis cache"
+],
+"a": [
+0
+],
+"e": "Vector search in Redis requires the RediSearch module, and in Azure Managed Redis modules must be enabled during provisioning; you can't add them afterwards or load them manually. Plan vector search before creating the cache.",
+"r": "redis-vec"
+},
+{
+"s": "rvec",
+"q": "Which cache configuration does RediSearch require in Azure Managed Redis?",
+"o": [
+"The Enterprise clustering policy and the NoEviction eviction policy",
+"The OSS clustering policy and the allkeys-lru eviction policy",
+"The non-clustered policy and volatile-ttl eviction",
+"Any clustering policy with any eviction policy"
+],
+"a": [
+0
+],
+"e": "RediSearch requires the Enterprise clustering policy and the NoEviction eviction policy, so choosing vector search effectively decides those settings for you. Eviction policies that drop keys would remove indexed documents.",
+"r": "redis-cluster"
+},
+{
+"s": "rvec",
+"q": "Which Azure Managed Redis tier can't use RediSearch for vector search?",
+"o": [
+"Flash Optimized",
+"Memory Optimized",
+"Balanced",
+"Compute Optimized"
+],
+"a": [
+0
+],
+"e": "RediSearch is supported on the Memory Optimized, Balanced, and Compute Optimized tiers, but not on Flash Optimized.",
+"r": "redis-modules"
+},
+{
+"s": "rvec",
+"q": "You are creating a Redis vector index. When should you choose HNSW instead of FLAT?",
+"o": [
+"For larger datasets, when latency matters more than exact results",
+"When you need exact brute-force results on a small dataset",
+"When vectors are stored as plain strings in hashes",
+"When you want the index to store its keys on disk"
+],
+"a": [
+0
+],
+"e": "FLAT is exact brute-force search, suited to smaller datasets or workloads needing exhaustive search, while HNSW (Hierarchical Navigable Small World) is an approximate nearest neighbor index suited to larger datasets where latency matters more. Data storage format (hash or JSON) doesn't decide the algorithm.",
+"r": "redis-vec"
+},
+{
+"s": "rvec",
+"q": "Which distance metrics can a Redis vector index use?",
+"o": [
+"L2, COSINE, and IP (inner product)",
+"Jaccard, Hamming, and Tanimoto only",
+"Levenshtein and COSINE for text vectors",
+"Manhattan and L2 only, without COSINE"
+],
+"a": [
+0
+],
+"e": "Redis vector indexes support L2 (Euclidean), COSINE, and IP (inner product). The right choice depends on the embedding model and whether vectors are normalized.",
+"r": "redis-vec"
+},
+{
+"s": "rvec",
+"q": "In which Redis data structures can you store vectors for RediSearch, and what else should you store with them?",
+"o": [
+"Hashes or JSON, with metadata such as ID, source, and tenant",
+"Only sorted sets, with no metadata stored alongside them",
+"Only lists, with metadata kept in a separate cache",
+"Only streams, with metadata kept in the stream entries"
+],
+"a": [
+0
+],
+"e": "Vectors can be stored in hashes or JSON documents, and the guidance is to store metadata alongside each vector, such as document ID, title, source URL, category, timestamp, tenant ID, or access-control fields, so results can be filtered and traced back to sources.",
+"r": "redis-vec"
+},
+{
+"s": "rvec",
+"q": "A support bot must find similar FAQ entries only within the user's product line and tenant. Which Redis vector search capability should you use?",
+"o": [
+"Hybrid queries: TAG or numeric filters combined with KNN",
+"A separate Redis cache for every tenant and product line",
+"Plain GET commands on each FAQ key, filtered in the app",
+"Pub/Sub channels for each product line and tenant"
+],
+"a": [
+0
+],
+"e": "RediSearch supports hybrid filtering: metadata filters narrow candidates before or during vector comparison, combined with KNN, range, text, numeric, and tag queries. Separate caches per tenant are costly, GET can't rank by similarity, and Pub/Sub is for messaging.",
+"r": "redis-vec"
+},
+{
+"s": "rvec",
+"q": "Your chatbot gets many questions that are phrased differently but mean the same thing, and LLM calls are expensive. How can Azure Managed Redis help?",
+"o": [
+"As a semantic cache that reuses answers to similar prompts",
+"By caching exact prompt strings, so paraphrases always hit the cache",
+"By storing the language model's weights in memory for faster inference",
+"By replacing the language model with stored answers for every topic"
+],
+"a": [
+0
+],
+"e": "Semantic caching stores prompts, embeddings, and completions, and uses vector search to return a cached response when a new prompt is similar enough, reducing LLM cost and latency. Exact-string caching misses paraphrases, and Redis doesn't host or replace the model.",
+"r": "redis-vec"
+},
+{
+"s": "rvec",
+"q": "Which statement about semantic caching with Azure Managed Redis is correct?",
+"o": [
+"It's an app or gateway pattern built on Redis vector search",
+"It's a checkbox on the cache that works without RediSearch",
+"It requires the OSS clustering policy to route prompts",
+"It only works with the Flash Optimized tier of Managed Redis"
+],
+"a": [
+0
+],
+"e": "The semantic cache tutorial explains that semantic caching is implemented in the application (for example with RedisVL) or at a gateway such as Azure API Management, while Managed Redis supplies the endpoint and RediSearch vector search. It therefore needs RediSearch, with Enterprise clustering and NoEviction, and Flash Optimized doesn't support RediSearch.",
+"r": "redis-semcache"
+},
+{
+"s": "rvec",
+"q": "You need vector search across caches in two regions with active geo-replication. Which modules can be used together with active geo-replication?",
+"o": [
+"RediSearch and RedisJSON",
+"RedisBloom and RedisTimeSeries",
+"All four modules",
+"No modules can be used with geo-replication"
+],
+"a": [
+0
+],
+"e": "Only the RediSearch and RedisJSON modules can be used with active geo-replication, which lets you search JSON and vector data across caches synchronized in an active-active configuration. RedisBloom and RedisTimeSeries aren't supported with it.",
+"r": "redis-modules"
+}
 ]

@@ -1,5 +1,5 @@
 {
-"version": "3bdf262c180b",
+"version": "470c5deb971c",
 "count": 400,
 "questions": [
 {
@@ -46,19 +46,19 @@
 "options": [
 {
 "key": "A",
-"text": "Keep using :latest but restart all pods after every push"
+"text": "Keep using :latest everywhere but restart every pod in the cluster after each new push"
 },
 {
 "key": "B",
-"text": "Delete untagged manifests after each push so old layers cannot be pulled"
+"text": "Delete untagged manifests after each push so that nodes can no longer pull old layers"
 },
 {
 "key": "C",
-"text": "Use stable tags such as :1.0 for deployments and unique tags for base images"
+"text": "Use stable tags such as :1.0 for deployments and reserve unique tags for base images only"
 },
 {
 "key": "D",
-"text": "Deploy images with unique tags (for example a build ID or commit SHA) and reserve stable tags for base images"
+"text": "Deploy with unique tags such as a build ID or commit SHA; keep stable tags for base images"
 }
 ],
 "correct": [
@@ -145,19 +145,19 @@
 "options": [
 {
 "key": "A",
-"text": "The registry retention policy for untagged manifests"
+"text": "The registry's retention policy for untagged manifests, with retention set to 30 days"
 },
 {
 "key": "B",
-"text": "Image locking with --delete-enabled true"
+"text": "Image locking on the repository with --delete-enabled true and a 30-day expiry"
 },
 {
 "key": "C",
-"text": "az acr repository delete run manually from Cloud Shell each morning"
+"text": "az acr repository delete, run manually from Cloud Shell at 01:00 each morning"
 },
 {
 "key": "D",
-"text": "An ACR task created with a --schedule cron expression that runs the acr purge command with --filter and --ago 30d"
+"text": "A scheduled ACR task (--schedule cron) that runs acr purge with --filter and --ago 30d"
 }
 ],
 "correct": [
@@ -178,19 +178,19 @@
 "options": [
 {
 "key": "A",
-"text": "Purged images can be restored for 90 days, which keeps storage usage high"
+"text": "Purged images stay recoverable for 90 days, so storage usage won't actually drop"
 },
 {
 "key": "B",
-"text": "acr purge cannot run inside an ACR task"
+"text": "acr purge can't run inside an ACR task, so the scheduled job will fail every night"
 },
 {
 "key": "C",
-"text": "Images referenced only by digest may be deleted, and later pulls by that digest will fail"
+"text": "Images referenced only by digest can be deleted, so later pulls by digest fail"
 },
 {
 "key": "D",
-"text": "--untagged deletes every tag in the registry, including locked tags"
+"text": "--untagged deletes every tag in the registry, including tags on locked images"
 }
 ],
 "correct": [
@@ -252,7 +252,7 @@
 },
 {
 "key": "C",
-"text": "Owner to the pipeline identity and Reader to the AKS kubelet identity"
+"text": "Owner to the pipeline identity and Reader to the AKS kubelet (node) identity"
 },
 {
 "key": "D",
@@ -277,19 +277,19 @@
 "options": [
 {
 "key": "A",
-"text": "Run az acr build with the --no-push flag"
+"text": "Run az acr build with the --no-push flag so the registry registers the local image"
 },
 {
 "key": "B",
-"text": "Set the image label registry=contoso in the Dockerfile"
+"text": "Add the label registry=contoso.azurecr.io to the image in the Dockerfile"
 },
 {
 "key": "C",
-"text": "Tag it with the registry login server, for example contoso.azurecr.io/orders-api:v1"
+"text": "Tag it with the login server name, such as contoso.azurecr.io/orders-api:v1"
 },
 {
 "key": "D",
-"text": "Rename the registry to orders-api so the names match"
+"text": "Rename the registry to orders-api so the registry and image names match"
 }
 ],
 "correct": [
@@ -343,19 +343,19 @@
 "options": [
 {
 "key": "A",
-"text": "az acr import --name contoso --source docker.io/library/node:20-alpine --image base/node:20-alpine"
+"text": "az acr import --name contoso --source docker.io/library/node:20-alpine"
 },
 {
 "key": "B",
-"text": "az acr task logs --registry contoso"
+"text": "az acr build --registry contoso --image node:20-alpine --file Dockerfile.node ."
 },
 {
 "key": "C",
-"text": "docker pull node:20-alpine followed by docker push from a developer laptop"
+"text": "docker pull node:20-alpine on a developer laptop, then docker push to contoso.azurecr.io"
 },
 {
 "key": "D",
-"text": "az acr repository update --name contoso --image node:20-alpine"
+"text": "az acr repository update --name contoso --image node:20-alpine --write-enabled true"
 }
 ],
 "correct": [
@@ -376,19 +376,19 @@
 "options": [
 {
 "key": "A",
-"text": "The image becomes untagged and is removed later by the retention policy"
+"text": "The image becomes untagged and is removed later by the registry's retention policy"
 },
 {
 "key": "B",
-"text": "Only the 1.7 tag is removed and latest keeps working"
+"text": "Only the 1.7 tag is removed; the manifest stays and latest keeps working"
 },
 {
 "key": "C",
-"text": "Nothing is deleted because the image has more than one tag"
+"text": "Nothing is deleted, because the manifest still has another tag (latest)"
 },
 {
 "key": "D",
-"text": "The manifest, its unique layers, and every tag pointing to it, including latest, are deleted"
+"text": "The manifest, its unique layers, and all its tags, including latest, are deleted"
 }
 ],
 "correct": [
@@ -409,19 +409,19 @@
 "options": [
 {
 "key": "A",
-"text": "Zone redundancy is a Premium-only feature that must be enabled at creation"
+"text": "Zone redundancy is a Premium-only feature, and it must be enabled when the registry is created"
 },
 {
 "key": "B",
-"text": "Basic, Standard, and Premium expose the same programmatic capabilities and data-plane APIs, and all have zone redundancy enabled by default in supported regions"
+"text": "All three tiers share the same data-plane APIs and have zone redundancy by default where supported"
 },
 {
 "key": "C",
-"text": "Only Standard and Premium support webhooks"
+"text": "Webhooks are only available in the Standard and Premium tiers, not in the Basic tier"
 },
 {
 "key": "D",
-"text": "Only Premium supports Microsoft Entra authentication"
+"text": "Only the Premium tier supports Microsoft Entra authentication; Basic and Standard need the admin user"
 }
 ],
 "correct": [
@@ -475,19 +475,19 @@
 "options": [
 {
 "key": "A",
-"text": "A webhook on the base repository that deletes dependent images"
+"text": "A webhook on the base repository that deletes every dependent application image"
 },
 {
 "key": "B",
-"text": "A quick task (az acr build) run by each developer after patch day"
+"text": "A quick task (az acr build) that each developer runs manually after patch day"
 },
 {
 "key": "C",
-"text": "A task with a base image update trigger, keeping the base image on a stable tag"
+"text": "A task with a base image update trigger, with the base image on a stable tag"
 },
 {
 "key": "D",
-"text": "A retention policy on the base repository"
+"text": "A retention policy on the base repository with a short retention period"
 }
 ],
 "correct": [
@@ -541,19 +541,19 @@
 "options": [
 {
 "key": "A",
-"text": "az acr task create with --context pointing to the repository and branch, a Dockerfile, and a Git access token so ACR can register the commit trigger"
+"text": "az acr task create with a Git --context, a Dockerfile, and a Git access token"
 },
 {
 "key": "B",
-"text": "A webhook on the registry that listens for git push events"
+"text": "A registry webhook on contoso that listens for git push events from GitHub"
 },
 {
 "key": "C",
-"text": "az acr build run from a developer laptop after every commit"
+"text": "az acr build, run from a developer laptop after every commit to the main branch"
 },
 {
 "key": "D",
-"text": "A timer-triggered task that runs every minute"
+"text": "A timer-triggered ACR task that runs every minute and checks the repository"
 }
 ],
 "correct": [
@@ -706,19 +706,19 @@
 "options": [
 {
 "key": "A",
-"text": "Enable the admin user on contoso"
+"text": "Enable the admin user on contoso so that tasks can sign in to any registry"
 },
 {
 "key": "B",
-"text": "Add fabrikam as a geo-replica of contoso"
+"text": "Add fabrikam as a geo-replica of contoso so both registries share access"
 },
 {
 "key": "C",
-"text": "Lock the base image in fabrikam with --write-enabled false"
+"text": "Lock the base image in fabrikam with --write-enabled false so it can be read"
 },
 {
 "key": "D",
-"text": "Add a custom registry credential to the task with az acr task credential add"
+"text": "Add a credential for fabrikam to the task with az acr task credential add"
 }
 ],
 "correct": [
@@ -739,19 +739,19 @@
 "options": [
 {
 "key": "A",
-"text": "Set the task timeout to the maximum value"
+"text": "Set the task timeout to the maximum value so throttled pulls can finish"
 },
 {
 "key": "B",
-"text": "Switch every Dockerfile to FROM node:latest"
+"text": "Switch every Dockerfile to FROM node:latest so triggers track the newest image"
 },
 {
 "key": "C",
-"text": "Disable the base image trigger and rebuild weekly by hand"
+"text": "Disable the base image trigger and rebuild all images weekly by hand instead"
 },
 {
 "key": "D",
-"text": "Keep a copy of the base image in an Azure container registry and reference that copy in your Dockerfiles"
+"text": "Copy the base image into an Azure container registry and build FROM that copy"
 }
 ],
 "correct": [
@@ -780,7 +780,7 @@
 },
 {
 "key": "C",
-"text": "A quick task created with az acr build --no-push"
+"text": "A quick task created with az acr build --no-push, then a manual push"
 },
 {
 "key": "D",
@@ -971,19 +971,19 @@
 "options": [
 {
 "key": "A",
-"text": "acrUserManagedIdentityID set to the client ID of the user-assigned identity"
+"text": "acrUserManagedIdentityID set to the identity's client ID"
 },
 {
 "key": "B",
-"text": "WEBSITES_PORT set to 443"
+"text": "WEBSITES_PORT set to 443 so the image pull uses HTTPS"
 },
 {
 "key": "C",
-"text": "keyVaultReferenceIdentity set to the system-assigned identity"
+"text": "keyVaultReferenceIdentity set to the user-assigned identity"
 },
 {
 "key": "D",
-"text": "Always On set to true"
+"text": "Always On set to true so the identity token stays valid"
 }
 ],
 "correct": [
@@ -1037,19 +1037,19 @@
 "options": [
 {
 "key": "A",
-"text": "Set acrUserManagedIdentityID to the user-assigned identity"
+"text": "Set acrUserManagedIdentityID to the client ID of the user-assigned identity"
 },
 {
 "key": "B",
-"text": "Add the client ID of the identity to every Key Vault reference string"
+"text": "Add the identity's client ID to every Key Vault reference string in the settings"
 },
 {
 "key": "C",
-"text": "Disable the system-assigned identity; App Service then switches automatically"
+"text": "Disable the system-assigned identity so App Service switches automatically"
 },
 {
 "key": "D",
-"text": "Set the app's keyVaultReferenceIdentity property to the resource ID of the user-assigned identity"
+"text": "Set keyVaultReferenceIdentity to the user-assigned identity's resource ID"
 }
 ],
 "correct": [
@@ -1103,15 +1103,15 @@
 "options": [
 {
 "key": "A",
-"text": "Set WEBSITES_PORT to 0"
+"text": "Set WEBSITES_PORT to 0 so /home isn't mounted"
 },
 {
 "key": "B",
-"text": "Scale in to one instance"
+"text": "Scale in to one instance so only one container writes to /home"
 },
 {
 "key": "C",
-"text": "Enable a sidecar container"
+"text": "Enable a sidecar container that owns the /home directory"
 },
 {
 "key": "D",
@@ -1136,19 +1136,19 @@
 "options": [
 {
 "key": "A",
-"text": "A retention policy on the registry"
+"text": "A retention policy on the registry so App Service always finds only the newest prod image"
 },
 {
 "key": "B",
-"text": "A timer-triggered ACR task that restarts the web app"
+"text": "A timer-triggered ACR task that restarts the web app after each push"
 },
 {
 "key": "C",
-"text": "Continuous deployment from Azure Container Registry for the app (the registry webhook that notifies App Service)"
+"text": "Continuous deployment from ACR, which uses a registry webhook to notify App Service"
 },
 {
 "key": "D",
-"text": "Health check on the App Service app"
+"text": "Health check on the App Service app, which pulls the image again when it changes"
 }
 ],
 "correct": [
@@ -1169,19 +1169,19 @@
 "options": [
 {
 "key": "A",
-"text": "Query the ContainerAppConsoleLogs table in Log Analytics"
+"text": "Query the ContainerAppConsoleLogs_CL table in the Log Analytics workspace linked to the app"
 },
 {
 "key": "B",
-"text": "Open the registry's webhook history"
+"text": "Open the registry webhook history, which records the container's startup output"
 },
 {
 "key": "C",
-"text": "Run kubectl logs against the App Service plan"
+"text": "Run kubectl logs against the App Service plan that hosts the container"
 },
 {
 "key": "D",
-"text": "Enable application logging for the container (file system) in App Service logs, then view the log stream"
+"text": "Turn on container logging (file system) in App Service logs, then open the log stream"
 }
 ],
 "correct": [
@@ -1202,19 +1202,19 @@
 "options": [
 {
 "key": "A",
-"text": "Sidecar apps only read settings from Key Vault"
+"text": "Sidecar-enabled apps read container settings only from Key Vault references, never from app settings"
 },
 {
 "key": "B",
-"text": "Those settings don't apply to sidecar-enabled apps; containers and their registry authentication are configured on the sitecontainers definitions instead"
+"text": "They don't apply to sidecar apps; each container is configured in its sitecontainers definition"
 },
 {
 "key": "C",
-"text": "App Service ignores all app settings after a restart"
+"text": "App Service ignores all app settings after a restart until the plan is scaled"
 },
 {
 "key": "D",
-"text": "The settings must be prefixed with SIDECAR_"
+"text": "The settings must be prefixed with SIDECAR_ for each container in a sidecar-enabled app"
 }
 ],
 "correct": [
@@ -1235,19 +1235,19 @@
 "options": [
 {
 "key": "A",
-"text": "Use a Key Vault reference that points at the App Configuration endpoint"
+"text": "@Microsoft.KeyVault(VaultName=contoso;SecretName=App-Color), pointing the reference at the App Configuration store"
 },
 {
 "key": "B",
-"text": "Copy the value from App Configuration into the app setting during each deployment"
+"text": "Copy the value from App Configuration into the app setting in every deployment pipeline run"
 },
 {
 "key": "C",
-"text": "Grant the app the App Configuration Reader role and read the value with the REST API"
+"text": "Grant the app the App Configuration Reader role and read the value from the REST API at startup"
 },
 {
 "key": "D",
-"text": "Use an App Configuration reference such as @Microsoft.AppConfiguration(Endpoint=https://contoso.azconfig.io; Key=App:Color) and grant the app's identity App Configuration Data Reader"
+"text": "@Microsoft.AppConfiguration(Endpoint=...; Key=App:Color), with App Configuration Data Reader for the app"
 }
 ],
 "correct": [
@@ -1268,19 +1268,19 @@
 "options": [
 {
 "key": "A",
-"text": "Traffic stays on the old revision, because in single revision mode traffic moves only after the new revision is running and healthy"
+"text": "Traffic stays on the old revision until the new one is running and healthy"
 },
 {
 "key": "B",
-"text": "Both revisions are deactivated until you redeploy"
+"text": "Both revisions are deactivated until you redeploy a working image"
 },
 {
 "key": "C",
-"text": "Traffic is split 50/50 between the old and new revisions"
+"text": "Traffic is split 50/50 between the old and new revisions while probes retry"
 },
 {
 "key": "D",
-"text": "Traffic moves to the new revision immediately and the app returns errors"
+"text": "Traffic moves to the new revision immediately, and the app starts returning errors"
 }
 ],
 "correct": [
@@ -1305,7 +1305,7 @@
 },
 {
 "key": "B",
-"text": "Set the app to multiple revision mode and assign traffic weights of 90 and 10 to the two revisions"
+"text": "Use multiple revision mode and set traffic weights of 90 and 10"
 },
 {
 "key": "C",
@@ -1313,7 +1313,7 @@
 },
 {
 "key": "D",
-"text": "Add a revision label called canary; labels automatically receive 10 percent"
+"text": "Add a revision label called canary; labels get 10 percent of traffic"
 }
 ],
 "correct": [
@@ -1338,7 +1338,7 @@
 },
 {
 "key": "B",
-"text": "Changing a container image or an environment variable in the template section"
+"text": "Changing a container image or an environment variable"
 },
 {
 "key": "C",
@@ -1346,7 +1346,7 @@
 },
 {
 "key": "D",
-"text": "Changing the ingress target port"
+"text": "Changing the ingress target port in the configuration section"
 }
 ],
 "correct": [
@@ -1367,7 +1367,7 @@
 "options": [
 {
 "key": "A",
-"text": "Give the green revision a traffic weight of 1 percent"
+"text": "Give the green revision a traffic weight of 1 percent for testers"
 },
 {
 "key": "B",
@@ -1375,11 +1375,11 @@
 },
 {
 "key": "C",
-"text": "Assign the label green to the revision and have testers call its label FQDN"
+"text": "Label the revision green and have testers call its label FQDN"
 },
 {
 "key": "D",
-"text": "Expose the green revision with a NodePort service"
+"text": "Expose the green revision through a Kubernetes NodePort service"
 }
 ],
 "correct": [
@@ -1400,11 +1400,11 @@
 "options": [
 {
 "key": "A",
-"text": "maxInactiveRevisions to 0"
+"text": "maxInactiveRevisions set to 0 so old names are freed"
 },
 {
 "key": "B",
-"text": "A new secret named after the release"
+"text": "A new secret named after the release version"
 },
 {
 "key": "C",
@@ -1412,7 +1412,7 @@
 },
 {
 "key": "D",
-"text": "configuration.activeRevisionsMode to single"
+"text": "configuration.activeRevisionsMode set to single for every release"
 }
 ],
 "correct": [
@@ -1433,19 +1433,19 @@
 "options": [
 {
 "key": "A",
-"text": "The app now allows multiple active revisions, and no new revision is created by this change"
+"text": "Multiple revisions can be active, and the change itself creates no new revision"
 },
 {
 "key": "B",
-"text": "A new revision is created and receives 100 percent of traffic"
+"text": "A new revision is created and immediately receives 100 percent of the app's traffic"
 },
 {
 "key": "C",
-"text": "Traffic is automatically split evenly across all revisions"
+"text": "Traffic is automatically split evenly across all active revisions of the app"
 },
 {
 "key": "D",
-"text": "All existing revisions are deleted and recreated"
+"text": "All existing revisions are deleted and recreated in multiple mode"
 }
 ],
 "correct": [
@@ -1466,19 +1466,19 @@
 "options": [
 {
 "key": "A",
-"text": "Apps in one environment must use the same container image"
+"text": "Apps in one environment must use the same container image and version"
 },
 {
 "key": "B",
-"text": "They share the environment's virtual network and write logs to the same Log Analytics workspace"
+"text": "They share the environment's virtual network and Log Analytics workspace"
 },
 {
 "key": "C",
-"text": "Each app must be in a separate resource group"
+"text": "Each app must be in its own resource group, separate from the environment"
 },
 {
 "key": "D",
-"text": "Each app gets its own isolated virtual network"
+"text": "Each app gets its own isolated virtual network inside the environment"
 }
 ],
 "correct": [
@@ -1499,19 +1499,19 @@
 "options": [
 {
 "key": "A",
-"text": "Two separate AKS clusters"
+"text": "Two separate AKS clusters, one with GPU nodes and one with spot nodes"
 },
 {
 "key": "B",
-"text": "A Consumption-only environment with maxReplicas set to 1"
+"text": "A Consumption-only environment with maxReplicas set to 1 for the GPU app"
 },
 {
 "key": "C",
-"text": "A workload profiles environment, with a Dedicated profile for the GPU app and the Consumption profile for the others"
+"text": "A workload profiles environment: a Dedicated GPU profile plus the Consumption profile"
 },
 {
 "key": "D",
-"text": "A Consumption-only environment"
+"text": "A Consumption-only environment, which assigns dedicated GPU hardware to apps automatically"
 }
 ],
 "correct": [
@@ -1532,11 +1532,11 @@
 "options": [
 {
 "key": "A",
-"text": "A /29 subnet shared with virtual machines"
+"text": "A /29 subnet that is shared with the virtual machines in the network"
 },
 {
 "key": "B",
-"text": "A dedicated subnet of /27 or larger, delegated to Microsoft.App/environments"
+"text": "A dedicated /27 or larger subnet delegated to Microsoft.App/environments"
 },
 {
 "key": "C",
@@ -1544,7 +1544,7 @@
 },
 {
 "key": "D",
-"text": "A /23 subnet that must not be delegated"
+"text": "A /23 or larger subnet that must not be delegated to any service"
 }
 ],
 "correct": [
@@ -1565,19 +1565,19 @@
 "options": [
 {
 "key": "A",
-"text": "@Microsoft.KeyVault(SecretUri=<KEY_VAULT_SECRET_URI>) as an environment variable value"
+"text": "@Microsoft.KeyVault(SecretUri=<secret URI>) as the environment variable value"
 },
 {
 "key": "B",
-"text": "Mount the key vault as an Azure Files volume"
+"text": "Mount the key vault as an Azure Files volume and read the secret from disk"
 },
 {
 "key": "C",
-"text": "queue-conn=keyvaultref:<KEY_VAULT_SECRET_URI>,identityref:<MANAGED_IDENTITY_RESOURCE_ID>, and reference it from an environment variable with secretRef"
+"text": "keyvaultref:<secret URI>,identityref:<identity ID>, used through secretRef"
 },
 {
 "key": "D",
-"text": "Copy the value into the image at build time"
+"text": "Copy the value into the image at build time and read it as a file"
 }
 ],
 "correct": [
@@ -1598,19 +1598,19 @@
 "options": [
 {
 "key": "A",
-"text": "Expose catalog with external ingress and call its public FQDN"
+"text": "Expose catalog with external ingress and call its public FQDN over HTTPS"
 },
 {
 "key": "B",
-"text": "Use the public IP address of the catalog replica"
+"text": "Use the private IP address of a catalog replica from the environment"
 },
 {
 "key": "C",
-"text": "Call it by its app name, for example http://catalog, which resolves inside the environment"
+"text": "Call it by its app name, such as http://catalog, inside the environment"
 },
 {
 "key": "D",
-"text": "Create a Kubernetes Service object for catalog"
+"text": "Create a Kubernetes Service object that points to the catalog pods"
 }
 ],
 "correct": [
@@ -1631,19 +1631,19 @@
 "options": [
 {
 "key": "A",
-"text": "Set the previous revision's traffic weight to 100 percent and the faulty revision's to 0 percent"
+"text": "Shift traffic weights: 100 percent to the previous revision, 0 to the faulty one"
 },
 {
 "key": "B",
-"text": "Restart the faulty revision"
+"text": "Restart the faulty revision so it reloads the last known-good configuration"
 },
 {
 "key": "C",
-"text": "Delete the container app and redeploy the old image"
+"text": "Delete the container app and redeploy the previous image from the registry"
 },
 {
 "key": "D",
-"text": "Switch the app to single revision mode"
+"text": "Switch the app to single revision mode so traffic falls back to the older revision"
 }
 ],
 "correct": [
@@ -1664,19 +1664,19 @@
 "options": [
 {
 "key": "A",
-"text": "The secret name must change every time the value changes"
+"text": "The secret's name must change whenever its value changes, so that replicas reload it"
 },
 {
 "key": "B",
-"text": "Secret changes are application-scope and don't create a new revision; you must restart the revision or deploy a new revision to pick up the value"
+"text": "Secrets are application-scope; restart the revision or deploy a new one to load it"
 },
 {
 "key": "C",
-"text": "secretRef values are cached for 24 hours like App Service Key Vault references"
+"text": "secretRef values are cached for 24 hours, like App Service Key Vault references"
 },
 {
 "key": "D",
-"text": "Secrets are only read when the environment is recreated"
+"text": "Secrets are only read when the Container Apps environment itself is recreated"
 }
 ],
 "correct": [
@@ -1697,11 +1697,11 @@
 "options": [
 {
 "key": "A",
-"text": "Delete the container app"
+"text": "Delete the container app and keep the image in ACR"
 },
 {
 "key": "B",
-"text": "Deactivate the revision with az containerapp revision deactivate"
+"text": "Deactivate it with az containerapp revision deactivate"
 },
 {
 "key": "C",
@@ -1709,7 +1709,7 @@
 },
 {
 "key": "D",
-"text": "Remove its label"
+"text": "Remove its label so it stops running"
 }
 ],
 "correct": [
@@ -1730,19 +1730,19 @@
 "options": [
 {
 "key": "A",
-"text": "The default HTTP rule with a minimum of 0 and a maximum of 10 replicas per revision"
+"text": "The default HTTP rule: 0 to 10 replicas per revision"
 },
 {
 "key": "B",
-"text": "A minimum of 1 and a maximum of 100 replicas"
+"text": "A minimum of 1 and a maximum of 100 replicas per revision"
 },
 {
 "key": "C",
-"text": "No scaling until you add a KEDA rule"
+"text": "No scaling at all until you add a KEDA scale rule"
 },
 {
 "key": "D",
-"text": "A fixed single replica that never scales"
+"text": "A fixed single replica that never scales in or out"
 }
 ],
 "correct": [
@@ -1763,19 +1763,19 @@
 "options": [
 {
 "key": "A",
-"text": "When CPU reaches 80 percent"
+"text": "When average CPU usage reaches 80 percent"
 },
 {
 "key": "B",
-"text": "About 10 concurrent requests per replica, the default"
+"text": "About 10 concurrent requests per replica (the default)"
 },
 {
 "key": "C",
-"text": "About 100 concurrent requests per replica"
+"text": "About 100 concurrent requests per replica (the default)"
 },
 {
 "key": "D",
-"text": "When memory reaches 80 percent"
+"text": "When average memory usage reaches 80 percent"
 }
 ],
 "correct": [
@@ -1796,19 +1796,19 @@
 "options": [
 {
 "key": "A",
-"text": "KEDA polls the queue only once every 5 minutes"
+"text": "KEDA polls the Service Bus queue only once every 5 minutes"
 },
 {
 "key": "B",
-"text": "Service Bus keeps messages locked for 5 minutes"
+"text": "Service Bus keeps the last messages locked for 5 minutes"
 },
 {
 "key": "C",
-"text": "Custom rules have a 300-second cool-down period that applies when scaling in from the final replica to 0"
+"text": "A 300-second cool-down applies when scaling from the last replica to 0"
 },
 {
 "key": "D",
-"text": "Scale-to-zero is not supported for Service Bus rules"
+"text": "Scale-to-zero isn't supported for Service Bus scale rules"
 }
 ],
 "correct": [
@@ -1829,19 +1829,19 @@
 "options": [
 {
 "key": "A",
-"text": "--scale-rule-type cpu --scale-rule-metadata \"value=5\""
+"text": "--scale-rule-type cpu --scale-rule-metadata \"type=Utilization\" \"value=5\" --scale-rule-auth \"connection=sb-conn\""
 },
 {
 "key": "B",
-"text": "--scale-rule-http-concurrency 5 --secrets sb-conn"
+"text": "--scale-rule-type http --scale-rule-http-concurrency 5 --secrets \"sb-conn=<connection string>\" --scale-rule-name orders"
 },
 {
 "key": "C",
-"text": "--scale-rule-type azure-servicebus --scale-rule-metadata \"queueName=orders\" \"namespace=contoso-sb\" \"messageCount=5\" --scale-rule-auth \"connection=sb-conn\""
+"text": "--scale-rule-type azure-servicebus --scale-rule-metadata \"queueName=orders\" \"messageCount=5\" --scale-rule-auth \"connection=sb-conn\""
 },
 {
 "key": "D",
-"text": "--scale-rule-type servicebus-queue --scale-rule-auth \"sb-conn\""
+"text": "--scale-rule-type servicebus-queue --scale-rule-metadata \"queue=orders\" \"count=5\" --scale-rule-auth \"sb-conn\""
 }
 ],
 "correct": [
@@ -1866,15 +1866,15 @@
 },
 {
 "key": "B",
-"text": "Give the identity Contributor on the container app"
+"text": "Give the identity Contributor on the container app and save the rule again"
 },
 {
 "key": "C",
-"text": "Configure the rule with the CLI (--scale-rule-identity) or with Bicep/ARM (identity in the custom rule), because the portal doesn't support managed identity for scale rules"
+"text": "Use the CLI (--scale-rule-identity) or Bicep/ARM; the portal doesn't offer it"
 },
 {
 "key": "D",
-"text": "Create the rule as an HTTP rule instead"
+"text": "Create it as an HTTP rule, which supports managed identity in the portal"
 }
 ],
 "correct": [
@@ -1895,19 +1895,19 @@
 "options": [
 {
 "key": "A",
-"text": "The app can scale to zero and never restart, because nothing will trigger it to scale out again"
+"text": "It can scale to zero and nothing will ever start it again"
 },
 {
 "key": "B",
-"text": "The app will scale to 1,000 replicas"
+"text": "It will scale out to 1,000 replicas and stay there"
 },
 {
 "key": "C",
-"text": "The app can't be deployed without ingress"
+"text": "It can't be deployed at all without ingress enabled"
 },
 {
 "key": "D",
-"text": "Revisions will be deactivated every night"
+"text": "Its revisions will be deactivated automatically every night"
 }
 ],
 "correct": [
@@ -1928,19 +1928,19 @@
 "options": [
 {
 "key": "A",
-"text": "CPU rules only work with multiple revision mode"
+"text": "CPU rules only scale in when the app uses multiple revision mode"
 },
 {
 "key": "B",
-"text": "CPU and memory scale rules don't allow a container app to scale to zero"
+"text": "CPU and memory rules can't scale a container app to zero"
 },
 {
 "key": "C",
-"text": "CPU rules require a Dedicated workload profile"
+"text": "CPU rules require a Dedicated workload profile to scale in"
 },
 {
 "key": "D",
-"text": "The cool-down period for CPU rules is 24 hours"
+"text": "The cool-down period for CPU rules is 24 hours by default"
 }
 ],
 "correct": [
@@ -1961,19 +1961,19 @@
 "options": [
 {
 "key": "A",
-"text": "5, because messageCount is the replica limit"
+"text": "5, because messageCount sets the maximum number of replicas"
 },
 {
 "key": "B",
-"text": "100, one replica per message"
+"text": "100, because KEDA starts one replica for every queued message"
 },
 {
 "key": "C",
-"text": "10, because the desired count of ceil(100 / 5) = 20 is capped by maxReplicas"
+"text": "10, because ceil(100 / 5) = 20 is capped by maxReplicas"
 },
 {
 "key": "D",
-"text": "20, because maxReplicas is a soft limit"
+"text": "20, because maxReplicas is only a soft limit for KEDA rules"
 }
 ],
 "correct": [
@@ -2064,15 +2064,15 @@
 },
 {
 "key": "B",
-"text": "A memory rule"
+"text": "A memory rule that tracks the size of the queue"
 },
 {
 "key": "C",
-"text": "A TCP rule on port 443"
+"text": "A TCP rule on port 443 that counts storage connections"
 },
 {
 "key": "D",
-"text": "A custom rule of type azure-queue with queueName and queueLength metadata"
+"text": "A custom azure-queue rule with queueName and queueLength"
 }
 ],
 "correct": [
@@ -2097,7 +2097,7 @@
 },
 {
 "key": "B",
-"text": "Use a TCP rule for all HTTP APIs"
+"text": "Use a TCP rule for all HTTP APIs because it reacts faster"
 },
 {
 "key": "C",
@@ -2105,7 +2105,7 @@
 },
 {
 "key": "D",
-"text": "Always combine CPU and memory rules for APIs"
+"text": "Always combine CPU and memory rules for public APIs to be safe"
 }
 ],
 "correct": [
@@ -2159,7 +2159,7 @@
 "options": [
 {
 "key": "A",
-"text": "az aks create --manifest store.yaml"
+"text": "az aks create --resource-group rg --name aks1 --manifest store.yaml --generate-ssh-keys"
 },
 {
 "key": "B",
@@ -2167,11 +2167,11 @@
 },
 {
 "key": "C",
-"text": "kubectl run -f store.yaml without credentials"
+"text": "kubectl run store --image=store.yaml --restart=Never, without fetching credentials"
 },
 {
 "key": "D",
-"text": "az acr build --file store.yaml"
+"text": "az acr build --registry contoso --file store.yaml --image store:v1 ."
 }
 ],
 "correct": [
@@ -2192,19 +2192,19 @@
 "options": [
 {
 "key": "A",
-"text": "Set replicas to 0"
+"text": "Set replicas to 0, apply the manifest, then scale it back up"
 },
 {
 "key": "B",
-"text": "Delete the selector; Kubernetes infers it"
+"text": "Delete the selector; Kubernetes infers it from the template labels"
 },
 {
 "key": "C",
-"text": "Add a Service of type LoadBalancer"
+"text": "Add a Service of type LoadBalancer with the same label selector"
 },
 {
 "key": "D",
-"text": "Make spec.selector.matchLabels match the labels in spec.template.metadata.labels"
+"text": "Make spec.selector.matchLabels match spec.template.metadata.labels"
 }
 ],
 "correct": [
@@ -2262,15 +2262,15 @@
 },
 {
 "key": "B",
-"text": "The registry resource ID"
+"text": "The registry resource ID followed by the repository and tag"
 },
 {
 "key": "C",
-"text": "docker.io/store-front:v1"
+"text": "docker.io/store-front:v1, because AKS proxies pulls through Docker Hub"
 },
 {
 "key": "D",
-"text": "The full name including the ACR login server: contoso.azurecr.io/store-front:v1"
+"text": "The full name with the login server: contoso.azurecr.io/store-front:v1"
 }
 ],
 "correct": [
@@ -2291,11 +2291,11 @@
 "options": [
 {
 "key": "A",
-"text": "Make the registry public"
+"text": "Make the registry public so that the nodes don't need any credentials"
 },
 {
 "key": "B",
-"text": "Run az aks update --name aks1 --resource-group rg --attach-acr <registry>, which grants AcrPull to the kubelet identity"
+"text": "az aks update -n aks1 -g rg --attach-acr <registry> (grants AcrPull to the kubelet identity)"
 },
 {
 "key": "C",
@@ -2303,7 +2303,7 @@
 },
 {
 "key": "D",
-"text": "Enable the registry admin user and create an imagePullSecret with its password"
+"text": "Enable the registry admin user and create an imagePullSecret with its password in every namespace"
 }
 ],
 "correct": [
@@ -2324,7 +2324,7 @@
 "options": [
 {
 "key": "A",
-"text": "Manually assign the Container Registry Repository Reader role to the kubelet managed identity"
+"text": "Assign Container Registry Repository Reader to the kubelet identity"
 },
 {
 "key": "B",
@@ -2332,11 +2332,11 @@
 },
 {
 "key": "C",
-"text": "Switch the AKS cluster to use a service principal"
+"text": "Switch the AKS cluster to use a service principal for pulls"
 },
 {
 "key": "D",
-"text": "Run --attach-acr again with the --force flag"
+"text": "Run az aks update --attach-acr again with the --force flag"
 }
 ],
 "correct": [
@@ -2369,7 +2369,7 @@
 },
 {
 "key": "D",
-"text": "replicas: 1"
+"text": "replicas: 1 on each Linux node"
 }
 ],
 "correct": [
@@ -2394,11 +2394,11 @@
 },
 {
 "key": "B",
-"text": "kubectl apply -f manifest.yaml --cluster aks-store-demo"
+"text": "kubectl apply -f manifest.yaml --cluster aks-store-demo --context aks-store-demo"
 },
 {
 "key": "C",
-"text": "az aks nodepool add --name aks-store-demo"
+"text": "az aks nodepool add --name aksstoredemo, then kubectl apply -f manifest.yaml"
 },
 {
 "key": "D",
@@ -2423,19 +2423,19 @@
 "options": [
 {
 "key": "A",
-"text": "A second Deployment is created alongside the first"
+"text": "A second Deployment running v2 is created alongside the first one"
 },
 {
 "key": "B",
-"text": "All pods are deleted at once and recreated"
+"text": "All pods are deleted at once and recreated with the v2 image"
 },
 {
 "key": "C",
-"text": "The Deployment performs a rolling update, replacing pods gradually with pods that run v2"
+"text": "A rolling update gradually replaces the pods with pods running v2"
 },
 {
 "key": "D",
-"text": "Nothing changes until you delete the Deployment"
+"text": "Nothing changes until you delete and recreate the Deployment"
 }
 ],
 "correct": [
@@ -2464,11 +2464,11 @@
 },
 {
 "key": "C",
-"text": "The liveness probe path is wrong"
+"text": "The liveness probe path returns errors"
 },
 {
 "key": "D",
-"text": "The container exceeds its memory limit, so the limit or the app's memory usage must be adjusted"
+"text": "The container exceeds its memory limit"
 }
 ],
 "correct": [
@@ -2489,19 +2489,19 @@
 "options": [
 {
 "key": "A",
-"text": "The container is running but not ready, typically because its readiness probe is failing, so it is removed from the Service endpoints"
+"text": "Its readiness probe is failing, so it's removed from the Service endpoints"
 },
 {
 "key": "B",
-"text": "The image can't be pulled"
+"text": "The image can't be pulled, so the container never actually started"
 },
 {
 "key": "C",
-"text": "The node is out of disk space"
+"text": "The node is out of disk space, so the kubelet stops routing traffic"
 },
 {
 "key": "D",
-"text": "The pod has been evicted"
+"text": "The pod has been evicted, but kubectl still shows the old status"
 }
 ],
 "correct": [
@@ -2522,15 +2522,15 @@
 "options": [
 {
 "key": "A",
-"text": "Pass it as a command-line argument in the manifest"
+"text": "Pass it as a command-line argument in the Deployment manifest"
 },
 {
 "key": "B",
-"text": "Store it in a Kubernetes Secret and reference it from the container env with secretKeyRef (or mount it as a volume)"
+"text": "Store it in a Kubernetes Secret and reference it with secretKeyRef"
 },
 {
 "key": "C",
-"text": "Hard-code it in the container image"
+"text": "Hard-code it in the container image during the build pipeline"
 },
 {
 "key": "D",
@@ -2555,19 +2555,19 @@
 "options": [
 {
 "key": "A",
-"text": "The cluster has no Linux node pool"
+"text": "The cluster has no Linux node pool to host the load balancer's IP"
 },
 {
 "key": "B",
-"text": "The Deployment failed to pull its image"
+"text": "The Deployment failed to pull its image, so the Service has no endpoints"
 },
 {
 "key": "C",
-"text": "The Service type must be ClusterIP for AKS"
+"text": "The Service type must be ClusterIP on AKS, so the IP will never appear"
 },
 {
 "key": "D",
-"text": "Azure is still provisioning the public IP for the load balancer; wait and watch the service until the IP appears"
+"text": "Azure is still provisioning the load balancer's public IP; keep watching"
 }
 ],
 "correct": [
@@ -2588,19 +2588,19 @@
 "options": [
 {
 "key": "A",
-"text": "Run kubectl logs <pod>"
+"text": "Run kubectl logs on the pod to read the pull error"
 },
 {
 "key": "B",
-"text": "Delete and recreate the namespace"
+"text": "Delete and recreate the namespace, then redeploy"
 },
 {
 "key": "C",
-"text": "Run kubectl describe pod <pod> -n <namespace> and read the Events section"
+"text": "Run kubectl describe pod and read the Events section"
 },
 {
 "key": "D",
-"text": "Restart the AKS cluster"
+"text": "Restart the AKS cluster to clear the image cache"
 }
 ],
 "correct": [
@@ -2621,15 +2621,15 @@
 "options": [
 {
 "key": "A",
-"text": "az acr check-health --name contoso only from your laptop"
+"text": "az acr check-health --name contoso --yes, run from your own laptop"
 },
 {
 "key": "B",
-"text": "az acr task logs --registry contoso"
+"text": "az acr task logs --registry contoso --name pull-check"
 },
 {
 "key": "C",
-"text": "kubectl get nodes"
+"text": "kubectl get nodes -o wide to see each node's registry connectivity"
 },
 {
 "key": "D",
@@ -2720,19 +2720,19 @@
 "options": [
 {
 "key": "A",
-"text": "AzureActivity and Heartbeat"
+"text": "AzureActivity and Heartbeat in the workspace"
 },
 {
 "key": "B",
-"text": "ContainerAppConsoleLogs_CL for stdout/stderr and ContainerAppSystemLogs_CL for system events"
+"text": "ContainerAppConsoleLogs_CL and ContainerAppSystemLogs_CL"
 },
 {
 "key": "C",
-"text": "ContainerLogV2 and KubeEvents"
+"text": "ContainerLogV2 and KubeEvents from Container insights"
 },
 {
 "key": "D",
-"text": "AppRequests and AppDependencies"
+"text": "AppRequests and AppDependencies in Application Insights"
 }
 ],
 "correct": [
@@ -2753,19 +2753,19 @@
 "options": [
 {
 "key": "A",
-"text": "Delete the revision"
+"text": "Delete the revision and create a new one with logging enabled"
 },
 {
 "key": "B",
-"text": "Switch to the Logs blade; it streams logs from scaled-to-zero revisions"
+"text": "Switch to the Logs blade, which streams logs from scaled-to-zero revisions"
 },
 {
 "key": "C",
-"text": "Disable ingress"
+"text": "Disable ingress so the platform keeps the revision running"
 },
 {
 "key": "D",
-"text": "Make the revision run a replica, for example by sending a request or setting the minimum replicas to 1"
+"text": "Get a replica running, for example with a request or minReplicas 1"
 }
 ],
 "correct": [
@@ -2786,19 +2786,19 @@
 "options": [
 {
 "key": "A",
-"text": "That the probe port matches the port the app listens on and the ingress targetPort"
+"text": "That the probe port matches the app's port and the ingress targetPort"
 },
 {
 "key": "B",
-"text": "That the registry is geo-replicated"
+"text": "That the container registry is geo-replicated to the region"
 },
 {
 "key": "C",
-"text": "That the app is in multiple revision mode"
+"text": "That the app is configured for multiple revision mode"
 },
 {
 "key": "D",
-"text": "That the Log Analytics workspace exists"
+"text": "That the Log Analytics workspace for the environment exists"
 }
 ],
 "correct": [
@@ -2819,19 +2819,19 @@
 "options": [
 {
 "key": "A",
-"text": "When ingress is enabled and no probes are defined, Container Apps applies default probes against the target port"
+"text": "With ingress on and no probes defined, default probes target the ingress port"
 },
 {
 "key": "B",
-"text": "Container Apps always runs a probe on port 80 regardless of ingress"
+"text": "Container Apps always runs a probe on port 80, whatever the ingress settings"
 },
 {
 "key": "C",
-"text": "The container image contains a HEALTHCHECK that Container Apps converts to a liveness probe"
+"text": "The image's Dockerfile HEALTHCHECK is converted into a liveness probe"
 },
 {
 "key": "D",
-"text": "Probes are created by the KEDA scaler"
+"text": "Probes are created by the KEDA scaler that controls the app's replicas"
 }
 ],
 "correct": [
@@ -2918,19 +2918,19 @@
 "options": [
 {
 "key": "A",
-"text": "Revision labels"
+"text": "A revision label that exposes the shell"
 },
 {
 "key": "B",
-"text": "Azure Monitor metrics"
+"text": "Azure Monitor metrics for the replica"
 },
 {
 "key": "C",
-"text": "The container console (for example az containerapp exec)"
+"text": "The container console (az containerapp exec)"
 },
 {
 "key": "D",
-"text": "Log stream"
+"text": "Log stream with debug logging turned on"
 }
 ],
 "correct": [
@@ -2951,19 +2951,19 @@
 "options": [
 {
 "key": "A",
-"text": "Check the public DNS records first"
+"text": "At the edge: check the public DNS records and the domain first"
 },
 {
 "key": "B",
-"text": "Recreate the cluster's load balancer"
+"text": "At the load balancer: recreate it and check its public IP"
 },
 {
 "key": "C",
-"text": "Check that the pod is running and the app inside it responds, using kubectl get pods and kubectl describe pod"
+"text": "Inside the cluster: check the pod is Running and the app responds"
 },
 {
 "key": "D",
-"text": "Check the Azure subscription quota"
+"text": "At the subscription: check the networking quota for the region"
 }
 ],
 "correct": [
@@ -2984,19 +2984,19 @@
 "options": [
 {
 "key": "A",
-"text": "Use a single CosmosClient instance for the lifetime of the application"
+"text": "Use one CosmosClient instance for the application's lifetime"
 },
 {
 "key": "B",
-"text": "Increase the container's RU/s"
+"text": "Increase the container's RU/s so that connections are reused"
 },
 {
 "key": "C",
-"text": "Switch to strong consistency"
+"text": "Switch the account to strong consistency to reduce retries"
 },
 {
 "key": "D",
-"text": "Dispose each CosmosClient immediately after the query"
+"text": "Dispose each CosmosClient immediately after its query finishes"
 }
 ],
 "correct": [
@@ -3083,19 +3083,19 @@
 "options": [
 {
 "key": "A",
-"text": "Use a stored procedure for every query"
+"text": "Use a stored procedure for every query so the input is validated"
 },
 {
 "key": "B",
-"text": "Download all items and filter in memory"
+"text": "Download all items with a point read loop and filter them in memory"
 },
 {
 "key": "C",
-"text": "Use a parameterized query, for example SELECT * FROM c WHERE c.city = @city with the value passed as a parameter"
+"text": "A parameterized query: WHERE c.city = @city, with @city passed as a parameter"
 },
 {
 "key": "D",
-"text": "Concatenate the user value into the query string"
+"text": "Concatenate the user's value into the query string after escaping quotes"
 }
 ],
 "correct": [
@@ -3116,19 +3116,19 @@
 "options": [
 {
 "key": "A",
-"text": "Bounded staleness consistency"
+"text": "Bounded staleness consistency on the query request options"
 },
 {
 "key": "B",
-"text": "The change feed processor"
+"text": "The change feed processor with a small lease container"
 },
 {
 "key": "C",
-"text": "Optimistic Direct Execution (EnableOptimisticDirectExecution in QueryRequestOptions)"
+"text": "Optimistic Direct Execution (EnableOptimisticDirectExecution)"
 },
 {
 "key": "D",
-"text": "Bulk execution mode"
+"text": "Bulk execution mode (AllowBulkExecution in CosmosClientOptions)"
 }
 ],
 "correct": [
@@ -3149,19 +3149,19 @@
 "options": [
 {
 "key": "A",
-"text": "EnableContentResponseOnWrite"
+"text": "EnableContentResponseOnWrite set to false for reads"
 },
 {
 "key": "B",
-"text": "The partition key path"
+"text": "The partition key path, set to the region name"
 },
 {
 "key": "C",
-"text": "ApplicationPreferredRegions (preferred regions) with Central US first"
+"text": "ApplicationPreferredRegions, with Central US first"
 },
 {
 "key": "D",
-"text": "A larger MaxItemCount"
+"text": "A larger MaxItemCount on the query request options"
 }
 ],
 "correct": [
@@ -3182,15 +3182,15 @@
 "options": [
 {
 "key": "A",
-"text": "Use strong consistency"
+"text": "Use strong consistency so that writes return smaller response bodies"
 },
 {
 "key": "B",
-"text": "Add a composite index"
+"text": "Add a composite index so that inserts skip the item serialization"
 },
 {
 "key": "C",
-"text": "Create a new client for each write"
+"text": "Create a new client for each write so that responses aren't buffered"
 },
 {
 "key": "D",
@@ -3215,19 +3215,19 @@
 "options": [
 {
 "key": "A",
-"text": "The request rate exceeded the provisioned RU/s; let the SDK retry after the indicated delay and, if 429s persist, increase throughput or reduce RU consumption"
+"text": "Provisioned RU/s were exceeded; let the SDK retry, then add RU/s or cut RU usage"
 },
 {
 "key": "B",
-"text": "The partition key is invalid; recreate the container"
+"text": "The partition key value is invalid for the item, so the container must be recreated"
 },
 {
 "key": "C",
-"text": "The account has hit its storage limit; delete data"
+"text": "The account has reached its storage limit, so old data must be deleted first"
 },
 {
 "key": "D",
-"text": "The client is using the wrong region; switch to Gateway mode"
+"text": "The client is connected to the wrong region and must switch to Gateway mode"
 }
 ],
 "correct": [
@@ -3248,19 +3248,19 @@
 "options": [
 {
 "key": "A",
-"text": "Partition keys must be numeric"
+"text": "Partition keys must be numeric, so a string deviceId causes hot partitions over time"
 },
 {
 "key": "B",
-"text": "A single logical partition can store at most 20 GB, so use a hierarchical partition key such as deviceId then a time value"
+"text": "A logical partition holds at most 20 GB; use a hierarchical key (deviceId, then time)"
 },
 {
 "key": "C",
-"text": "Logical partitions are limited to 1,000 items; add more containers"
+"text": "Logical partitions are limited to 1,000 items each, so add more containers per device"
 },
 {
 "key": "D",
-"text": "Each device needs its own database"
+"text": "Each device needs its own database, because containers can't exceed 20 devices"
 }
 ],
 "correct": [
@@ -3281,19 +3281,19 @@
 "options": [
 {
 "key": "A",
-"text": "Use a stored procedure for each item"
+"text": "Call a stored procedure once per item to insert it server-side"
 },
 {
 "key": "B",
-"text": "Switch to strong consistency"
+"text": "Switch the account to strong consistency during the import"
 },
 {
 "key": "C",
-"text": "Enable bulk mode (AllowBulkExecution = true) and send many concurrent CreateItem or UpsertItem tasks"
+"text": "Enable bulk mode (AllowBulkExecution) and run many concurrent upserts"
 },
 {
 "key": "D",
-"text": "Insert items one at a time with await on each call"
+"text": "Insert items one at a time, awaiting each call before the next one"
 }
 ],
 "correct": [
@@ -3314,19 +3314,19 @@
 "options": [
 {
 "key": "A",
-"text": "Switch the indexing mode to lazy"
+"text": "Switch the indexing mode to lazy for the description path"
 },
 {
 "key": "B",
-"text": "Add a composite index on description"
+"text": "Add a composite index on /description to speed up writes"
 },
 {
 "key": "C",
-"text": "Add /description/* (or /description/?) to excludedPaths while keeping /* included"
+"text": "Add /description/? to excludedPaths and keep /* included"
 },
 {
 "key": "D",
-"text": "Exclude /* and include only /description/?"
+"text": "Exclude /* and include only /description/? in the policy"
 }
 ],
 "correct": [
@@ -3347,19 +3347,19 @@
 "options": [
 {
 "key": "A",
-"text": "A composite index on /lastName ASC and /firstName ASC"
+"text": "A composite index on /lastName ASC, /firstName ASC"
 },
 {
 "key": "B",
-"text": "A vector index"
+"text": "A vector index on the combined name properties"
 },
 {
 "key": "C",
-"text": "A spatial index"
+"text": "A spatial index on the lastName and firstName paths"
 },
 {
 "key": "D",
-"text": "A range index on /lastName only"
+"text": "A range index on /lastName and another on /firstName"
 }
 ],
 "correct": [
@@ -3380,19 +3380,19 @@
 "options": [
 {
 "key": "A",
-"text": "Add a composite index on (category, price) and include both properties in the ORDER BY clause"
+"text": "A composite index on (category, price), used in the ORDER BY"
 },
 {
 "key": "B",
-"text": "Remove the WHERE clause and filter in the client"
+"text": "Remove the WHERE clause and filter the results in the client"
 },
 {
 "key": "C",
-"text": "Increase the page size to 10,000"
+"text": "Increase the page size (MaxItemCount) to 10,000 items per page"
 },
 {
 "key": "D",
-"text": "Switch to eventual consistency"
+"text": "Switch the account to eventual consistency for this query"
 }
 ],
 "correct": [
@@ -3413,15 +3413,15 @@
 "options": [
 {
 "key": "A",
-"text": "indexingMode consistent, no included paths, and /* as the only excluded path"
+"text": "indexingMode consistent, no included paths, and /* excluded"
 },
 {
 "key": "B",
-"text": "indexingMode none with TTL enabled"
+"text": "indexingMode none, with time-to-live enabled on the container"
 },
 {
 "key": "C",
-"text": "Exclude only /_etag/?"
+"text": "Exclude only /_etag/? and keep all other paths included"
 },
 {
 "key": "D",
@@ -3446,19 +3446,19 @@
 "options": [
 {
 "key": "A",
-"text": "Partition key filters never use the index"
+"text": "Partition key filters never use the index, so they always scan every item"
 },
 {
 "key": "B",
-"text": "The _ts property is no longer indexed"
+"text": "The _ts system property is no longer indexed, so every query becomes slower"
 },
 {
 "key": "C",
-"text": "With the exclude-root strategy, the partition key path isn't indexed unless you include it explicitly"
+"text": "With /* excluded, the partition key path is only indexed if you include it"
 },
 {
 "key": "D",
-"text": "Opt-in policies disable point reads"
+"text": "Opt-in indexing policies disable point reads on the container's items"
 }
 ],
 "correct": [
@@ -3479,19 +3479,19 @@
 "options": [
 {
 "key": "A",
-"text": "Strong and bounded staleness reads cost about twice the RUs of the more relaxed levels"
+"text": "Strong and bounded staleness reads cost about twice as many RUs"
 },
 {
 "key": "B",
-"text": "Session consistency doubles read cost"
+"text": "Session consistency doubles read cost compared with strong"
 },
 {
 "key": "C",
-"text": "Only writes are affected by consistency"
+"text": "Consistency only affects the RU charge of writes, never of reads"
 },
 {
 "key": "D",
-"text": "Strong reads cost the same as eventual reads"
+"text": "Strong reads cost the same as eventual reads; only latency changes"
 }
 ],
 "correct": [
@@ -3512,19 +3512,19 @@
 "options": [
 {
 "key": "A",
-"text": "Nothing; reads are eventual by default"
+"text": "Nothing; reads are eventually consistent by default, so it may be stale"
 },
 {
 "key": "B",
-"text": "Every client in every region sees the update instantly"
+"text": "Every client in every region sees the update instantly with Session"
 },
 {
 "key": "C",
-"text": "Session consistency guarantees read-your-writes, monotonic reads, and monotonic writes within the client session"
+"text": "Session consistency guarantees this client reads its own write"
 },
 {
 "key": "D",
-"text": "The read is served from the integrated cache only"
+"text": "The read is served only from the integrated cache, so it may be stale"
 }
 ],
 "correct": [
@@ -3545,15 +3545,15 @@
 "options": [
 {
 "key": "A",
-"text": "Yes, to any level including strong"
+"text": "Yes, to any level, including strong, through request options"
 },
 {
 "key": "B",
-"text": "Yes, but only for writes"
+"text": "Yes, but only for write operations, not for reads"
 },
 {
 "key": "C",
-"text": "Yes, but only to an equal or weaker level, such as eventual or consistent prefix"
+"text": "Yes, but only to an equal or weaker level, such as eventual"
 },
 {
 "key": "D",
@@ -3611,19 +3611,19 @@
 "options": [
 {
 "key": "A",
-"text": "A property used in the filter isn't indexed, so many documents are loaded and filtered after retrieval"
+"text": "A filtered property isn't indexed, so documents are loaded and then filtered"
 },
 {
 "key": "B",
-"text": "The container uses session consistency"
+"text": "The container uses session consistency, which retrieves extra documents"
 },
 {
 "key": "C",
-"text": "The client uses Direct mode"
+"text": "The client uses Direct mode, which reads every document in the partition"
 },
 {
 "key": "D",
-"text": "The query uses a parameter"
+"text": "The query uses a parameter, which prevents the engine from using an index"
 }
 ],
 "correct": [
@@ -3644,19 +3644,19 @@
 "options": [
 {
 "key": "A",
-"text": "The Cosmos DB integrated cache through a dedicated gateway"
+"text": "The integrated cache through a dedicated gateway"
 },
 {
 "key": "B",
-"text": "The change feed processor"
+"text": "The change feed processor with an in-memory copy"
 },
 {
 "key": "C",
-"text": "Strong consistency"
+"text": "Strong consistency on a single-region account"
 },
 {
 "key": "D",
-"text": "A composite index"
+"text": "A composite index on the most-read properties"
 }
 ],
 "correct": [
@@ -3710,19 +3710,19 @@
 "options": [
 {
 "key": "A",
-"text": "A composite index on the embedding path"
+"text": "A composite index on the embedding path in ascending and descending order"
 },
 {
 "key": "B",
-"text": "A vector index (for example diskANN) on the embedding path in the indexing policy"
+"text": "A vector index such as diskANN on the embedding path in the indexing policy"
 },
 {
 "key": "C",
-"text": "A vector embedding policy that defines the path, data type, distance function, and dimensions"
+"text": "A vector embedding policy with the path, data type, distance function, and dimensions"
 },
 {
 "key": "D",
-"text": "A unique key on the embedding path"
+"text": "A unique key policy on the embedding path so duplicate vectors are rejected"
 }
 ],
 "correct": [
@@ -3744,19 +3744,19 @@
 "options": [
 {
 "key": "A",
-"text": "SELECT TOP 5 c.title FROM c WHERE CONTAINS(c.embedding, @embedding)"
+"text": "SELECT TOP 5 c.title, ST_DISTANCE(c.embedding, @embedding) AS d FROM c ORDER BY d"
 },
 {
 "key": "B",
-"text": "SELECT TOP 5 c.title, VectorDistance(c.embedding, @embedding) AS score FROM c ORDER BY VectorDistance(c.embedding, @embedding)"
+"text": "SELECT TOP 5 c.title FROM c ORDER BY VectorDistance(c.embedding, @embedding)"
 },
 {
 "key": "C",
-"text": "SELECT TOP 5 c.title FROM c WHERE c.embedding = @embedding"
+"text": "SELECT TOP 5 c.title FROM c WHERE c.embedding = @embedding ORDER BY c._ts DESC"
 },
 {
 "key": "D",
-"text": "SELECT TOP 5 c.title FROM c ORDER BY c.embedding DESC"
+"text": "SELECT TOP 5 c.title FROM c WHERE ARRAY_CONTAINS(c.embedding, @embedding, true)"
 }
 ],
 "correct": [
@@ -3777,19 +3777,19 @@
 "options": [
 {
 "key": "A",
-"text": "Only flat, after reducing dimensions to 2,048"
+"text": "Only flat, after reducing dimensions to 1,024"
 },
 {
 "key": "B",
-"text": "A composite index"
+"text": "A composite index on the embedding path"
 },
 {
 "key": "C",
-"text": "quantizedFlat or diskANN, which support up to 4,096 dimensions"
+"text": "quantizedFlat or diskANN, up to 4,096 dimensions"
 },
 {
 "key": "D",
-"text": "A spatial index"
+"text": "A spatial index with a bounding box"
 }
 ],
 "correct": [
@@ -3876,19 +3876,19 @@
 "options": [
 {
 "key": "A",
-"text": "A quantizedFlat index without any shard key"
+"text": "quantizedFlat without any vector index shard key"
 },
 {
 "key": "B",
-"text": "A diskANN index with vectorIndexShardKey set to the partition key path"
+"text": "diskANN with vectorIndexShardKey set to the partition key"
 },
 {
 "key": "C",
-"text": "A flat index"
+"text": "A flat index, so every tenant gets exact results"
 },
 {
 "key": "D",
-"text": "A separate container per vector"
+"text": "A separate container for each tenant's vectors"
 }
 ],
 "correct": [
@@ -3909,19 +3909,19 @@
 "options": [
 {
 "key": "A",
-"text": "Remove the vector embedding policy"
+"text": "Remove the vector embedding policy from the container"
 },
 {
 "key": "B",
-"text": "Switch to strong consistency"
+"text": "Switch the account to strong consistency for writes"
 },
 {
 "key": "C",
-"text": "Add the vector path /embedding/* to excludedPaths so it isn't also indexed as a regular property"
+"text": "Add /embedding/* to excludedPaths so it isn't indexed twice"
 },
 {
 "key": "D",
-"text": "Add a composite index on /embedding"
+"text": "Add a composite index on /embedding to group the values"
 }
 ],
 "correct": [
@@ -4008,11 +4008,11 @@
 "options": [
 {
 "key": "A",
-"text": "Store the category inside the embedding vector"
+"text": "Store the category inside the embedding vector so the similarity covers it"
 },
 {
 "key": "B",
-"text": "Create one container per category"
+"text": "Create one container per category and run the vector query in each of them"
 },
 {
 "key": "C",
@@ -4020,7 +4020,7 @@
 },
 {
 "key": "D",
-"text": "Combine a WHERE filter with vector ordering: SELECT TOP 10 ... FROM c WHERE c.category = @category ORDER BY VectorDistance(c.embedding, @q)"
+"text": "Filter in the same query: WHERE c.category = @cat ORDER BY VectorDistance(...)"
 }
 ],
 "correct": [
@@ -4074,19 +4074,19 @@
 "options": [
 {
 "key": "A",
-"text": "The monitored container, the lease container, the host (compute instance), and the delegate (your code)"
+"text": "Monitored container, lease container, host, and delegate"
 },
 {
 "key": "B",
-"text": "The source container, the dead-letter queue, the scheduler, and the trigger"
+"text": "Source container, dead-letter queue, scheduler, and trigger"
 },
 {
 "key": "C",
-"text": "The lease container, a Service Bus queue, a timer, and an estimator"
+"text": "Lease container, Service Bus queue, timer, and estimator"
 },
 {
 "key": "D",
-"text": "The monitored container, an Event Grid topic, a webhook, and a function"
+"text": "Monitored container, Event Grid topic, webhook, and function"
 }
 ],
 "correct": [
@@ -4107,19 +4107,19 @@
 "options": [
 {
 "key": "A",
-"text": "A different processor name on each host"
+"text": "A different processor name on each host so each gets its own leases"
 },
 {
 "key": "B",
-"text": "A different lease container on each host"
+"text": "A different lease container on each host so their work doesn't overlap"
 },
 {
 "key": "C",
-"text": "Same processor name and lease container, and a different instance name on each host"
+"text": "The same processor name and lease container, with unique instance names"
 },
 {
 "key": "D",
-"text": "Only one instance can run; the others must be standby"
+"text": "Only one instance can run at a time; the others wait as standby hosts"
 }
 ],
 "correct": [
@@ -4140,19 +4140,19 @@
 "options": [
 {
 "key": "A",
-"text": "No; every processor needs its own lease container"
+"text": "No; every processor needs its own lease container to track progress"
 },
 {
 "key": "B",
-"text": "Yes; use a different processor name for each job so their leases don't collide"
+"text": "Yes; give each job its own processor name so leases don't collide"
 },
 {
 "key": "C",
-"text": "Yes, but only if both jobs run on the same host"
+"text": "Yes, but only if both jobs run on the same host with one instance name"
 },
 {
 "key": "D",
-"text": "No; a container's change feed can be read by only one processor"
+"text": "No; a container's change feed can only be read by a single processor"
 }
 ],
 "correct": [
@@ -4173,19 +4173,19 @@
 "options": [
 {
 "key": "A",
-"text": "The Azure Activity log"
+"text": "The Azure Activity log for the account"
 },
 {
 "key": "B",
-"text": "The change feed estimator, which compares the leases' state with the latest changes"
+"text": "The change feed estimator"
 },
 {
 "key": "C",
-"text": "Cosmos DB query metrics"
+"text": "Cosmos DB query metrics for the lease container"
 },
 {
 "key": "D",
-"text": "A composite index"
+"text": "A composite index on the _lsn property"
 }
 ],
 "correct": [
@@ -4239,19 +4239,19 @@
 "options": [
 {
 "key": "A",
-"text": "No; continuation tokens and leases both act as bookmarks, but they can't be converted into each other"
+"text": "No; continuation tokens and leases can't be converted into each other"
 },
 {
 "key": "B",
-"text": "Yes; the SDK converts it automatically on startup"
+"text": "Yes; the SDK converts the token automatically when the processor starts"
 },
 {
 "key": "C",
-"text": "Only if both use the same processor name"
+"text": "Only if the pull model and the processor use the same processor name"
 },
 {
 "key": "D",
-"text": "Yes; paste the token into the lease container"
+"text": "Yes; paste the continuation token into a document in the lease container"
 }
 ],
 "correct": [
@@ -4272,19 +4272,19 @@
 "options": [
 {
 "key": "A",
-"text": "Use strong consistency"
+"text": "Use strong consistency so delete operations appear in the feed"
 },
 {
 "key": "B",
-"text": "Read the change feed from the beginning every hour"
+"text": "Read the change feed from the beginning every hour to find gaps"
 },
 {
 "key": "C",
-"text": "Enable a composite index on _ts"
+"text": "Enable a composite index on _ts so deletes are recorded in order"
 },
 {
 "key": "D",
-"text": "Use a soft-delete flag (for example isDeleted: true) and set a TTL so the item is removed after the consumer sees the update"
+"text": "Soft-delete: set isDeleted: true, and let TTL remove the item later"
 }
 ],
 "correct": [
@@ -4305,15 +4305,15 @@
 "options": [
 {
 "key": "A",
-"text": "Failed batches are retried, so changes can be delivered more than once; make processing idempotent"
+"text": "Failed batches are retried, so make your processing idempotent"
 },
 {
 "key": "B",
-"text": "Each change is delivered exactly once even if the delegate fails"
+"text": "Each change is delivered exactly once, even if the delegate fails"
 },
 {
 "key": "C",
-"text": "The processor stops permanently on the first error"
+"text": "The processor stops permanently on the first unhandled error"
 },
 {
 "key": "D",
@@ -4342,15 +4342,15 @@
 },
 {
 "key": "B",
-"text": "Only in an Azure Storage account"
+"text": "Only in an Azure Storage account next to the host"
 },
 {
 "key": "C",
-"text": "Only in Azure Table storage"
+"text": "Only in Azure Table storage with the same region"
 },
 {
 "key": "D",
-"text": "In the same Cosmos DB account as the monitored container or in a separate account"
+"text": "In the monitored container's account or in a separate account"
 }
 ],
 "correct": [
@@ -4371,19 +4371,19 @@
 "options": [
 {
 "key": "A",
-"text": "Nothing; the trigger keeps its state in memory"
+"text": "Nothing; the trigger keeps its progress in memory on each instance"
 },
 {
 "key": "B",
-"text": "A Blob container to store leases"
+"text": "A Blob container in the function app's storage account for the leases"
 },
 {
 "key": "C",
-"text": "A lease container, which you either create yourself or let the trigger create (CreateLeaseContainerIfNotExists)"
+"text": "A lease container: an existing one, or created via CreateLeaseContainerIfNotExists"
 },
 {
 "key": "D",
-"text": "A Service Bus queue to store checkpoints"
+"text": "A Service Bus queue where the trigger stores its checkpoints between runs"
 }
 ],
 "correct": [
@@ -4404,19 +4404,19 @@
 "options": [
 {
 "key": "A",
-"text": "It uses the storage account key of the server"
+"text": "It signs in with the storage account key that belongs to the server"
 },
 {
 "key": "B",
-"text": "It reads the server admin password from an environment variable"
+"text": "It reads the server admin password from an environment variable at startup"
 },
 {
 "key": "C",
-"text": "It calls the PostgreSQL REST API to create a temporary password"
+"text": "It calls the PostgreSQL REST API to create a temporary one-hour password"
 },
 {
 "key": "D",
-"text": "It uses azure-identity (for example DefaultAzureCredential) to get an access token for Azure Database for PostgreSQL and passes the token as the password"
+"text": "It gets an Entra access token with azure-identity and sends it as the password"
 }
 ],
 "correct": [
@@ -4437,19 +4437,19 @@
 "options": [
 {
 "key": "A",
-"text": "The server must use port 6432"
+"text": "The server must be reached on port 6432 for token-based authentication"
 },
 {
 "key": "B",
-"text": "A database role for the managed identity hasn't been created and granted privileges by a Microsoft Entra administrator of the server"
+"text": "No database role was created for the identity by an Entra admin of the server"
 },
 {
 "key": "C",
-"text": "The managed identity needs the Key Vault Secrets User role"
+"text": "The managed identity also needs the Key Vault Secrets User role on the server"
 },
 {
 "key": "D",
-"text": "The app must also send the admin password"
+"text": "The app must also send the server admin password along with the access token"
 }
 ],
 "correct": [
@@ -4470,19 +4470,19 @@
 "options": [
 {
 "key": "A",
-"text": "The token is checked when the connection opens, so the open connection keeps working, but new connections need a fresh token"
+"text": "It keeps working; tokens are only checked when a connection opens"
 },
 {
 "key": "B",
-"text": "Queries on the connection start failing with permission errors"
+"text": "Its queries start failing with permission-denied errors"
 },
 {
 "key": "C",
-"text": "The server automatically refreshes the token for the client"
+"text": "The server refreshes the token for the client automatically"
 },
 {
 "key": "D",
-"text": "The connection is closed exactly when the token expires"
+"text": "It is closed by the server exactly when the token expires"
 }
 ],
 "correct": [
@@ -4503,19 +4503,19 @@
 "options": [
 {
 "key": "A",
-"text": "Escape quotes manually in the user string"
+"text": "Escape single quotes in user before building the f-string"
 },
 {
 "key": "B",
-"text": "Use a stored procedure for every query"
+"text": "Wrap every query in a stored procedure that takes text input"
 },
 {
 "key": "C",
-"text": "Pass values as query parameters, for example cursor.execute(\"SELECT * FROM docs WHERE owner = %s\", (user,))"
+"text": "cursor.execute(\"SELECT * FROM docs WHERE owner = %s\", (user,))"
 },
 {
 "key": "D",
-"text": "Switch to the pgbouncer port"
+"text": "Connect through the PgBouncer port so input is sanitized"
 }
 ],
 "correct": [
@@ -4536,19 +4536,19 @@
 "options": [
 {
 "key": "A",
-"text": "psycopg writes rows to a temporary table first"
+"text": "psycopg writes rows to a temporary table until the script exits"
 },
 {
 "key": "B",
-"text": "The transaction was never committed, so the changes weren't made durable or visible"
+"text": "The transaction was never committed, so other sessions can't see it"
 },
 {
 "key": "C",
-"text": "Inserts require port 6432"
+"text": "Inserts only succeed through the PgBouncer port 6432 on Azure"
 },
 {
 "key": "D",
-"text": "Azure Database for PostgreSQL delays inserts by one hour"
+"text": "Azure Database for PostgreSQL delays inserts by up to one hour"
 }
 ],
 "correct": [
@@ -4569,11 +4569,11 @@
 "options": [
 {
 "key": "A",
-"text": "spring.datasource.password=managed-identity"
+"text": "spring.datasource.password=${AZURE_MANAGED_IDENTITY}"
 },
 {
 "key": "B",
-"text": "spring.jpa.hibernate.ddl-auto=update"
+"text": "spring.jpa.hibernate.ddl-auto=update with azure-identity"
 },
 {
 "key": "C",
@@ -4581,7 +4581,7 @@
 },
 {
 "key": "D",
-"text": "server.port=6432"
+"text": "server.port=6432 with spring.datasource.username set"
 }
 ],
 "correct": [
@@ -4668,15 +4668,15 @@
 "options": [
 {
 "key": "A",
-"text": "Set the server parameter azure.extensions to the identity name"
+"text": "Set the server parameter azure.extensions to the identity's name"
 },
 {
 "key": "B",
-"text": "Set ManagedIdentityClientId to the identity's client ID in DefaultAzureCredentialOptions"
+"text": "Set ManagedIdentityClientId in DefaultAzureCredentialOptions"
 },
 {
 "key": "C",
-"text": "Nothing; DefaultAzureCredential always uses user-assigned identities first"
+"text": "Nothing; DefaultAzureCredential always tries user-assigned identities first"
 },
 {
 "key": "D",
@@ -4734,19 +4734,19 @@
 "options": [
 {
 "key": "A",
-"text": "Open a support ticket to enable the extension"
+"text": "Open a support ticket so Microsoft enables the extension on the server"
 },
 {
 "key": "B",
-"text": "Add vector to the allowlist in the azure.extensions server parameter, then run CREATE EXTENSION in each database that needs it"
+"text": "Allowlist vector in azure.extensions, then CREATE EXTENSION per database"
 },
 {
 "key": "C",
-"text": "Restart the server in single-user mode"
+"text": "Restart the server in single-user mode and load the vector library"
 },
 {
 "key": "D",
-"text": "Install the extension binaries with apt-get"
+"text": "Install the extension binaries with apt-get on the server's host VM"
 }
 ],
 "correct": [
@@ -4767,19 +4767,19 @@
 "options": [
 {
 "key": "A",
-"text": "With an explicit dimension, for example embedding vector(1536)"
+"text": "As embedding vector(1536)"
 },
 {
 "key": "B",
-"text": "As embedding text"
+"text": "As embedding text holding the JSON array"
 },
 {
 "key": "C",
-"text": "As embedding jsonb"
+"text": "As embedding jsonb with a dimensions key"
 },
 {
 "key": "D",
-"text": "As embedding float8[]"
+"text": "As embedding float8[] with a CHECK on length"
 }
 ],
 "correct": [
@@ -4800,19 +4800,19 @@
 "options": [
 {
 "key": "A",
-"text": "Store embeddings in a separate database"
+"text": "Embeddings stored in a separate database that is joined at query time"
 },
 {
 "key": "B",
-"text": "Store a single embedding of the whole row in a JSON column"
+"text": "A single embedding of the whole row, stored in a JSON column"
 },
 {
 "key": "C",
-"text": "Create a separate vector column for each data field involved in the search and store each field's embedding there"
+"text": "A separate vector column for each searched field, holding its embedding"
 },
 {
 "key": "D",
-"text": "Concatenate all vectors into one text column"
+"text": "All vectors concatenated into one text column for each product"
 }
 ],
 "correct": [
@@ -4833,19 +4833,19 @@
 "options": [
 {
 "key": "A",
-"text": "The azure_ai extension's azure_openai schema, which can call Azure OpenAI to create embeddings from SQL"
+"text": "azure_openai.create_embeddings from the azure_ai extension"
 },
 {
 "key": "B",
-"text": "The pg_cron extension alone"
+"text": "The pg_cron extension alone, without other extensions"
 },
 {
 "key": "C",
-"text": "PgBouncer"
+"text": "PgBouncer, which calls Azure OpenAI for new rows"
 },
 {
 "key": "D",
-"text": "The pg_stat_statements extension"
+"text": "The pg_stat_statements extension with a scheduled job"
 }
 ],
 "correct": [
@@ -4899,19 +4899,19 @@
 "options": [
 {
 "key": "A",
-"text": "Partition the table by date range and create the vector index on the partitioned table so each partition gets its own index"
+"text": "Range-partition the table by date and index the partitioned table"
 },
 {
 "key": "B",
-"text": "Use a single unpartitioned table with no date column"
+"text": "Use a single unpartitioned table and drop the date column"
 },
 {
 "key": "C",
-"text": "Add a text column with the month name"
+"text": "Add a text column with the month name and filter on that column"
 },
 {
 "key": "D",
-"text": "Store each month in a separate database"
+"text": "Store each month's documents in a separate database on the server"
 }
 ],
 "correct": [
@@ -4932,19 +4932,19 @@
 "options": [
 {
 "key": "A",
-"text": "HNSW automatically reduces the vectors to 2,000 dimensions"
+"text": "HNSW automatically reduces the vectors to 2,000 dimensions when indexing"
 },
 {
 "key": "B",
-"text": "The insert fails because vector supports at most 1,024 dimensions"
+"text": "The insert fails because the vector type supports at most 1,024 dimensions"
 },
 {
 "key": "C",
-"text": "The vectors can be stored, but IVFFlat and HNSW indexes support at most 2,000 dimensions, so the column can't be indexed with them"
+"text": "They store fine, but IVFFlat and HNSW can't index over 2,000 dimensions"
 },
 {
 "key": "D",
-"text": "IVFFlat supports up to 16,000 dimensions"
+"text": "They store and index fine, because IVFFlat supports up to 16,000 dimensions"
 }
 ],
 "correct": [
@@ -5031,7 +5031,7 @@
 "options": [
 {
 "key": "A",
-"text": "SET hnsw.ef_search = 100;"
+"text": "SET hnsw.ef_search = 100; at the start of the session"
 },
 {
 "key": "B",
@@ -5039,11 +5039,11 @@
 },
 {
 "key": "C",
-"text": "ALTER INDEX ... SET (lists = 1)"
+"text": "ALTER INDEX docs_idx SET (lists = 1); then reindex"
 },
 {
 "key": "D",
-"text": "REINDEX the table every query"
+"text": "REINDEX the table before each query in the transaction"
 }
 ],
 "correct": [
@@ -5064,19 +5064,19 @@
 "options": [
 {
 "key": "A",
-"text": "Sequential scans are always faster for vectors"
+"text": "Sequential scans are always faster than indexes for vectors"
 },
 {
 "key": "B",
-"text": "The index became corrupted"
+"text": "The index became corrupted after probes was set so high"
 },
 {
 "key": "C",
-"text": "probes can't exceed 10"
+"text": "ivfflat.probes can't exceed 10, so the setting was rejected"
 },
 {
 "key": "D",
-"text": "Searching all lists is an exact search, so the planner doesn't use the index"
+"text": "Searching every list is exact search, so the index isn't used"
 }
 ],
 "correct": [
@@ -5130,15 +5130,15 @@
 "options": [
 {
 "key": "A",
-"text": "Increase hnsw.ef_search, for example SET hnsw.ef_search = 100"
+"text": "SET hnsw.ef_search = 100 (a larger value than the default)"
 },
 {
 "key": "B",
-"text": "Decrease m"
+"text": "Decrease m on the existing index to keep more neighbors"
 },
 {
 "key": "C",
-"text": "Increase ivfflat.probes"
+"text": "Increase ivfflat.probes so more lists are searched"
 },
 {
 "key": "D",
@@ -5163,19 +5163,19 @@
 "options": [
 {
 "key": "A",
-"text": "HNSW builds faster and uses less memory than IVFFlat"
+"text": "HNSW builds faster and uses less memory than IVFFlat, and DiskANN needs the most memory of the three to build"
 },
 {
 "key": "B",
-"text": "IVFFlat builds faster and uses less memory than HNSW but has a worse speed-recall trade-off, while DiskANN balances accuracy and fast builds"
+"text": "IVFFlat builds faster and uses less memory than HNSW, but trades off recall and speed worse; DiskANN balances both"
 },
 {
 "key": "C",
-"text": "DiskANN only supports exact search"
+"text": "DiskANN only supports exact search, so it's slower than IVFFlat and HNSW for large tables of embeddings"
 },
 {
 "key": "D",
-"text": "IVFFlat has the best recall of the three"
+"text": "IVFFlat has the best recall of the three because its lists are recalculated automatically as data changes"
 }
 ],
 "correct": [
@@ -5196,19 +5196,19 @@
 "options": [
 {
 "key": "A",
-"text": "Halfway through the load"
+"text": "Halfway through the load, so the lists reflect a sample of the data"
 },
 {
 "key": "B",
-"text": "Never; IVFFlat indexes build themselves"
+"text": "Never; IVFFlat indexes are created automatically for vector columns"
 },
 {
 "key": "C",
-"text": "After loading the data, because the build is faster and the resulting layout is better"
+"text": "After the load, so the build is faster and its lists fit the data"
 },
 {
 "key": "D",
-"text": "Before loading, so every insert updates the index"
+"text": "Before the load, so every insert updates the index as it arrives"
 }
 ],
 "correct": [
@@ -5229,19 +5229,19 @@
 "options": [
 {
 "key": "A",
-"text": "The index operator class (cosine) doesn't match the query operator (<-> is Euclidean distance); use <=> or build the index with vector_l2_ops"
+"text": "Its operator class is cosine, but <-> is Euclidean; use <=> or vector_l2_ops"
 },
 {
 "key": "B",
-"text": "HNSW indexes can't be used with LIMIT"
+"text": "HNSW indexes can't be used together with LIMIT in a nearest-neighbor query"
 },
 {
 "key": "C",
-"text": "Cosine indexes only work with halfvec"
+"text": "Cosine operator classes only work with halfvec columns, not with vector columns"
 },
 {
 "key": "D",
-"text": "The table needs to be vacuumed first"
+"text": "The table needs to be vacuumed before a new HNSW index can be used by queries"
 }
 ],
 "correct": [
@@ -5262,19 +5262,19 @@
 "options": [
 {
 "key": "A",
-"text": "LIKE disables all indexes in PostgreSQL"
+"text": "LIKE disables all indexes in PostgreSQL, including B-tree and vector indexes"
 },
 {
 "key": "B",
-"text": "The query's predicate must match the partial index's predicate form; LIKE doesn't match the = condition"
+"text": "The query must use the same predicate form; LIKE doesn't match the = condition"
 },
 {
 "key": "C",
-"text": "Partial indexes don't work with vectors"
+"text": "Partial indexes don't work with vector columns, so it can never be used here"
 },
 {
 "key": "D",
-"text": "The index must be rebuilt after every insert"
+"text": "The partial index must be rebuilt after every insert for the planner to use it"
 }
 ],
 "correct": [
@@ -5295,7 +5295,7 @@
 "options": [
 {
 "key": "A",
-"text": "Check the PgBouncer log"
+"text": "Check the PgBouncer log for the session"
 },
 {
 "key": "B",
@@ -5303,11 +5303,11 @@
 },
 {
 "key": "C",
-"text": "Query pg_stat_statements"
+"text": "Query pg_stat_statements for the build"
 },
 {
 "key": "D",
-"text": "Run SHOW azure.extensions"
+"text": "Run SHOW azure.extensions repeatedly"
 }
 ],
 "correct": [
@@ -5361,19 +5361,19 @@
 "options": [
 {
 "key": "A",
-"text": "lists (default 100) and probes (default 1)"
+"text": "lists (default 100) and probes (default 1), like IVFFlat indexes"
 },
 {
 "key": "B",
-"text": "max_neighbors (default 1,000) only"
+"text": "max_neighbors (default 1,000) only, with no query-time parameters"
 },
 {
 "key": "C",
-"text": "m (default 16) and ef_construction (default 64)"
+"text": "m (default 16), ef_construction (default 64), and diskann.ef_search (40)"
 },
 {
 "key": "D",
-"text": "max_neighbors (default 32) and l_value_ib (default 50) at build time, and diskann.l_value_is at query time"
+"text": "max_neighbors (32) and l_value_ib (50) at build; diskann.l_value_is at query"
 }
 ],
 "correct": [
@@ -5398,15 +5398,15 @@
 },
 {
 "key": "B",
-"text": "max_connections, which must be raised"
+"text": "max_connections, which must be raised for parallel builds"
 },
 {
 "key": "C",
-"text": "work_mem, which can be set up to 64 GB"
+"text": "work_mem, which can be set up to 64 GB per server"
 },
 {
 "key": "D",
-"text": "shared_buffers, which must be lowered"
+"text": "shared_buffers, which must be lowered during builds"
 }
 ],
 "correct": [
@@ -5493,19 +5493,19 @@
 "options": [
 {
 "key": "A",
-"text": "The value is copied from the client's connection string"
+"text": "The value is copied from the client connection string on login"
 },
 {
 "key": "B",
-"text": "Its default is calculated from the memory allocated to the server, so it changes when you change the compute size"
+"text": "Its default is derived from the server's memory, which changed"
 },
 {
 "key": "C",
-"text": "maintenance_work_mem always doubles after a restart"
+"text": "maintenance_work_mem always doubles after every server restart"
 },
 {
 "key": "D",
-"text": "Azure resets all parameters to random values after scaling"
+"text": "Azure resets all server parameters to random values after scaling"
 }
 ],
 "correct": [
@@ -5526,7 +5526,7 @@
 "options": [
 {
 "key": "A",
-"text": "ivfflat.probes"
+"text": "ivfflat.probes set to the list count"
 },
 {
 "key": "B",
@@ -5534,7 +5534,7 @@
 },
 {
 "key": "C",
-"text": "maintenance_work_mem"
+"text": "maintenance_work_mem for the session"
 },
 {
 "key": "D",
@@ -5559,19 +5559,19 @@
 "options": [
 {
 "key": "A",
-"text": "Disable maintenance_work_mem during the load"
+"text": "Set maintenance_work_mem to 0 during the load, then raise it afterwards"
 },
 {
 "key": "B",
-"text": "Create all indexes first so that inserts are validated"
+"text": "Create all indexes and constraints first so every inserted row is validated"
 },
 {
 "key": "C",
-"text": "Load the data first, then create indexes and constraints with a high maintenance_work_mem"
+"text": "Load the data, then build indexes and constraints with high maintenance_work_mem"
 },
 {
 "key": "D",
-"text": "Load through PgBouncer with session pooling"
+"text": "Load the rows through PgBouncer with session pooling to batch the inserts"
 }
 ],
 "correct": [
@@ -5592,19 +5592,19 @@
 "options": [
 {
 "key": "A",
-"text": "work_mem is allocated per sort or hash operation in each connection, so many concurrent connections can multiply it far beyond available memory"
+"text": "It applies per sort or hash in every connection, so usage multiplies"
 },
 {
 "key": "B",
-"text": "work_mem is shared by all connections, so 1 GB is too small"
+"text": "It's shared by all connections, so 1 GB is too small for the server"
 },
 {
 "key": "C",
-"text": "The server ignores work_mem above 64 MB"
+"text": "The server ignores work_mem above 64 MB, so the cause is elsewhere"
 },
 {
 "key": "D",
-"text": "work_mem only affects index builds"
+"text": "It only affects index builds, which then run out of memory"
 }
 ],
 "correct": [
@@ -5625,11 +5625,11 @@
 "options": [
 {
 "key": "A",
-"text": "Increase work_mem"
+"text": "Increase work_mem so each connection uses memory better"
 },
 {
 "key": "B",
-"text": "Move the database to a larger region"
+"text": "Move the database to a larger region with more capacity"
 },
 {
 "key": "C",
@@ -5637,7 +5637,7 @@
 },
 {
 "key": "D",
-"text": "Use connection pooling, for example the built-in PgBouncer, to reduce the number of backend connections"
+"text": "Use connection pooling, such as the built-in PgBouncer"
 }
 ],
 "correct": [
@@ -5724,19 +5724,19 @@
 "options": [
 {
 "key": "A",
-"text": "Add the metadata filter in the WHERE clause together with the ORDER BY distance and LIMIT, for example WHERE category = $1 ORDER BY embedding <=> $2 LIMIT 10"
+"text": "Put the filter in the same query: WHERE category = $1 ORDER BY embedding <=> $2 LIMIT 10"
 },
 {
 "key": "B",
-"text": "Store the category inside the embedding"
+"text": "Store the category inside the embedding so the distance already reflects the category"
 },
 {
 "key": "C",
-"text": "Create a separate database for each category"
+"text": "Create a separate database for each category and query only the user's database"
 },
 {
 "key": "D",
-"text": "Run the vector search for 10 rows first and remove other categories in the application"
+"text": "Run the vector search for 10 rows first, then remove other categories in the application"
 }
 ],
 "correct": [
@@ -5757,19 +5757,19 @@
 "options": [
 {
 "key": "A",
-"text": "Normalize only the stored vectors"
+"text": "Normalize only the stored vectors so both sides use the same scale"
 },
 {
 "key": "B",
-"text": "Increase hnsw.ef_search"
+"text": "Increase hnsw.ef_search so more candidates are compared per query"
 },
 {
 "key": "C",
-"text": "Generate query embeddings with the same model (and dimensions) used for the stored embeddings"
+"text": "Embed queries with the same model and dimensions as the stored data"
 },
 {
 "key": "D",
-"text": "Switch the distance operator from cosine to Euclidean"
+"text": "Switch the distance operator from cosine to Euclidean for queries"
 }
 ],
 "correct": [
@@ -5790,19 +5790,19 @@
 "options": [
 {
 "key": "A",
-"text": "Use PgBouncer to generate the embedding"
+"text": "Let PgBouncer generate the embedding as the query passes through the pooler"
 },
 {
 "key": "B",
-"text": "Use azure_openai.create_embeddings from the azure_ai extension inside the ORDER BY expression, cast to vector"
+"text": "ORDER BY embedding <=> azure_openai.create_embeddings(...)::vector"
 },
 {
 "key": "C",
-"text": "Store the search text and run LIKE '%text%'"
+"text": "Store the search text and run WHERE content LIKE '%' || :text || '%' instead"
 },
 {
 "key": "D",
-"text": "Call Azure OpenAI from a PL/pgSQL HTTP request with pg_net"
+"text": "Call Azure OpenAI from a PL/pgSQL function with an HTTP request through pg_net"
 }
 ],
 "correct": [
@@ -5856,15 +5856,15 @@
 "options": [
 {
 "key": "A",
-"text": "Store embeddings in Blob storage and scan them from the app"
+"text": "Store the embeddings in Blob storage and scan them from the application"
 },
 {
 "key": "B",
-"text": "Enable pgvector (and optionally pg_diskann) in the existing database and store embeddings next to the data"
+"text": "Enable pgvector (and optionally pg_diskann) in the existing database"
 },
 {
 "key": "C",
-"text": "Copy all data into a separate search service before you can use embeddings"
+"text": "Copy all data into a separate search service before using any embeddings"
 },
 {
 "key": "D",
@@ -5889,7 +5889,7 @@
 "options": [
 {
 "key": "A",
-"text": "vector_norms(embedding)"
+"text": "vector_norms(embedding) per row"
 },
 {
 "key": "B",
@@ -5897,11 +5897,11 @@
 },
 {
 "key": "C",
-"text": "COUNT(embedding)"
+"text": "COUNT(embedding) grouped by user"
 },
 {
 "key": "D",
-"text": "The AVG(embedding) aggregate, which returns a vector"
+"text": "The AVG(embedding) aggregate"
 }
 ],
 "correct": [
@@ -5955,19 +5955,19 @@
 "options": [
 {
 "key": "A",
-"text": "<#> returns Euclidean distance"
+"text": "It returns Euclidean distance, which is the same ranking for any vectors"
 },
 {
 "key": "B",
-"text": "Ascending order always returns the least similar rows first"
+"text": "Ascending order always returns the least similar rows first with any operator"
 },
 {
 "key": "C",
-"text": "<#> returns cosine similarity"
+"text": "It returns cosine similarity, so ascending order puts the best rows first"
 },
 {
 "key": "D",
-"text": "<#> returns the negative inner product, so larger inner products (more similar) produce smaller values"
+"text": "It returns the negative inner product, so more similar means smaller"
 }
 ],
 "correct": [
@@ -5988,19 +5988,19 @@
 "options": [
 {
 "key": "A",
-"text": "Generate the final answer text"
+"text": "Generate the final answer text from the stored chunks with SQL functions"
 },
 {
 "key": "B",
-"text": "Store the model weights"
+"text": "Store the model weights and run inference close to the data for speed"
 },
 {
 "key": "C",
-"text": "Fine-tune the language model on each question"
+"text": "Fine-tune the language model on each question and its retrieved chunks"
 },
 {
 "key": "D",
-"text": "Retrieve the most relevant chunks by vector similarity (plus metadata filters), which the app then adds to the prompt sent to the language model"
+"text": "Retrieve the most relevant chunks, by similarity and filters, for the prompt"
 }
 ],
 "correct": [
@@ -6021,19 +6021,19 @@
 "options": [
 {
 "key": "A",
-"text": "Create a new server with a different host name"
+"text": "Create a new server with a different host name that includes PgBouncer"
 },
 {
 "key": "B",
-"text": "Enable PgBouncer on the server (the pgbouncer.enabled server parameter) and point the app at port 6432 on the same host name"
+"text": "Turn on pgbouncer.enabled and connect to port 6432 on the same host"
 },
 {
 "key": "C",
-"text": "Change the app to port 5433"
+"text": "Change the app's connection string to port 5433 on the same host"
 },
 {
 "key": "D",
-"text": "Install PgBouncer on a separate VM"
+"text": "Install PgBouncer on a separate VM and point the app at that VM"
 }
 ],
 "correct": [
@@ -6058,11 +6058,11 @@
 },
 {
 "key": "B",
-"text": "Burstable only"
+"text": "Burstable only, for small workloads"
 },
 {
 "key": "C",
-"text": "Memory Optimized only"
+"text": "Memory Optimized only, for large servers"
 },
 {
 "key": "D",
@@ -6087,19 +6087,19 @@
 "options": [
 {
 "key": "A",
-"text": "It spreads connections across several databases"
+"text": "It spreads client connections across several databases on the same server"
 },
 {
 "key": "B",
-"text": "It closes idle clients every second"
+"text": "It closes idle client connections every second to free server resources"
 },
 {
 "key": "C",
-"text": "It uses a real PostgreSQL connection only while a transaction is open or a query is active, and shares server connections between clients"
+"text": "Server connections are used only during a transaction and shared between clients"
 },
 {
 "key": "D",
-"text": "It caches all query results in memory"
+"text": "It caches all query results in memory, so most queries never reach the server"
 }
 ],
 "correct": [
@@ -6120,19 +6120,19 @@
 "options": [
 {
 "key": "A",
-"text": "Use a client-side connection pool (for example psycopg_pool or HikariCP) so connections are reused, optionally in front of PgBouncer"
+"text": "Reuse pooled connections with a client pool (psycopg_pool, HikariCP)"
 },
 {
 "key": "B",
-"text": "Use a larger embedding model"
+"text": "Use a smaller embedding model so each request finishes sooner"
 },
 {
 "key": "C",
-"text": "Increase work_mem"
+"text": "Increase work_mem so each new connection is set up faster"
 },
 {
 "key": "D",
-"text": "Open a new connection twice per request to warm it up"
+"text": "Open a new connection twice per request so the second one is warm"
 }
 ],
 "correct": [
@@ -6153,19 +6153,19 @@
 "options": [
 {
 "key": "A",
-"text": "INSERT statements in autocommit mode"
+"text": "INSERT statements in autocommit mode that each run as their own transaction"
 },
 {
 "key": "B",
-"text": "Code that sets session variables with SET or uses temporary tables and expects them on later transactions"
+"text": "Code that relies on SET variables or temporary tables across transactions"
 },
 {
 "key": "C",
-"text": "Simple single-statement SELECT queries"
+"text": "Simple single-statement SELECT queries that run inside one transaction"
 },
 {
 "key": "D",
-"text": "Queries that use parameters"
+"text": "Queries that use bind parameters instead of literal values in the SQL text"
 }
 ],
 "correct": [
@@ -6186,19 +6186,19 @@
 "options": [
 {
 "key": "A",
-"text": "azure-postgresql-auth, which provides Entra authentication with automatic token management and connection pooling for psycopg2, psycopg3, and SQLAlchemy"
+"text": "azure-postgresql-auth (token refresh and pooling for psycopg)"
 },
 {
 "key": "B",
-"text": "azure-keyvault-secrets"
+"text": "azure-keyvault-secrets to store and rotate the database password"
 },
 {
 "key": "C",
-"text": "azure-monitor-opentelemetry"
+"text": "azure-monitor-opentelemetry to detect and reopen failed connections"
 },
 {
 "key": "D",
-"text": "azure-storage-blob"
+"text": "azure-storage-blob with a token cache stored in a container"
 }
 ],
 "correct": [
@@ -6219,19 +6219,19 @@
 "options": [
 {
 "key": "A",
-"text": "Enable strong consistency"
+"text": "Enable strong consistency so that repeated reads are served faster"
 },
 {
 "key": "B",
-"text": "Cache-aside with Azure Managed Redis: read from Redis first and query PostgreSQL only on a cache miss"
+"text": "Cache-aside with Azure Managed Redis, querying PostgreSQL only on misses"
 },
 {
 "key": "C",
-"text": "Increase max_connections"
+"text": "Increase max_connections so that the repeated queries run in parallel"
 },
 {
 "key": "D",
-"text": "Add more IVFFlat lists"
+"text": "Add more IVFFlat lists so that repeated product lookups use the index"
 }
 ],
 "correct": [
@@ -6252,19 +6252,19 @@
 "options": [
 {
 "key": "A",
-"text": "Route the app through PgBouncer (port 6432) and size the per-instance pools so instances × pool size stays well within limits"
+"text": "Use PgBouncer (port 6432) and size pools so instances × pool size stays in limits"
 },
 {
 "key": "B",
-"text": "Create a vector index"
+"text": "Create a vector index so queries finish faster and release connections sooner"
 },
 {
 "key": "C",
-"text": "Increase work_mem"
+"text": "Increase work_mem so each backend connection needs less memory on the server"
 },
 {
 "key": "D",
-"text": "Remove client-side pooling and open a connection per query"
+"text": "Remove client-side pooling and open a new connection for every query instead"
 }
 ],
 "correct": [
@@ -6285,19 +6285,19 @@
 "options": [
 {
 "key": "A",
-"text": "The app reads the item from the database, writes it to Redis (usually with an expiration), and returns it"
+"text": "The app loads it from the database, stores it in Redis with a TTL, and returns it"
 },
 {
 "key": "B",
-"text": "Redis automatically loads the item from the database"
+"text": "Redis loads the item from the database automatically and returns it to the app"
 },
 {
 "key": "C",
-"text": "The app writes a placeholder value and returns nothing"
+"text": "The app writes a placeholder value to Redis and returns an empty response"
 },
 {
 "key": "D",
-"text": "The request fails until a background job fills the cache"
+"text": "The request fails until a background job fills the cache with the missing item"
 }
 ],
 "correct": [
@@ -6318,19 +6318,19 @@
 "options": [
 {
 "key": "A",
-"text": "Store prices without a TTL and refresh them weekly"
+"text": "Store prices without a TTL and refresh the whole cache every week"
 },
 {
 "key": "B",
-"text": "Set an expiration (TTL) of 10 minutes on each key, for example SET key value EX 600"
+"text": "Set a 10-minute TTL on each key, for example SET key value EX 600"
 },
 {
 "key": "C",
-"text": "Use NoEviction so values stay forever"
+"text": "Use the NoEviction policy so cached values stay in memory forever"
 },
 {
 "key": "D",
-"text": "Use a longer key name"
+"text": "Use longer key names that include the date the price was cached"
 }
 ],
 "correct": [
@@ -6351,15 +6351,15 @@
 "options": [
 {
 "key": "A",
-"text": "Flush the entire cache on every update"
+"text": "Flush the entire cache on every product update"
 },
 {
 "key": "B",
-"text": "Update the database and then delete (invalidate) the product's cache key so the next read reloads it"
+"text": "Update the database, then delete the product's cache key"
 },
 {
 "key": "C",
-"text": "Do nothing; TTL alone guarantees immediate consistency"
+"text": "Do nothing; the TTL alone gives immediate consistency"
 },
 {
 "key": "D",
@@ -6384,15 +6384,15 @@
 "options": [
 {
 "key": "A",
-"text": "Microsoft Entra ID (for example a managed identity), which new caches use by default"
+"text": "Microsoft Entra ID, such as a managed identity"
 },
 {
 "key": "B",
-"text": "Access keys stored in app settings"
+"text": "Access keys stored in the app settings"
 },
 {
 "key": "C",
-"text": "A shared password embedded in the container image"
+"text": "A shared password embedded in the image"
 },
 {
 "key": "D",
@@ -6417,19 +6417,19 @@
 "options": [
 {
 "key": "A",
-"text": "Disable TLS"
+"text": "Disable TLS so that connections can be re-established faster"
 },
 {
 "key": "B",
-"text": "Switch to access keys"
+"text": "Switch to access keys, which never expire and need no refresh"
 },
 {
 "key": "C",
-"text": "Have the client send a new token at least three minutes before the current one expires"
+"text": "Send a new token at least three minutes before the old one expires"
 },
 {
 "key": "D",
-"text": "Restart the cache every hour"
+"text": "Restart the cache every hour so all clients reconnect together"
 }
 ],
 "correct": [
@@ -6450,19 +6450,19 @@
 "options": [
 {
 "key": "A",
-"text": "Non-clustered, because it supports sharding"
+"text": "Non-clustered, because it shards data across nodes automatically"
 },
 {
 "key": "B",
-"text": "Any policy; it can be changed later"
+"text": "Any policy for now, because it can be changed after creation"
 },
 {
 "key": "C",
-"text": "OSS, because it works with any client"
+"text": "OSS, because it works with any standard Redis client library"
 },
 {
 "key": "D",
-"text": "Enterprise, because clients connect to a single endpoint and a proxy routes requests to shards"
+"text": "Enterprise: one endpoint, with a proxy that routes to shards"
 }
 ],
 "correct": [
@@ -6483,15 +6483,15 @@
 "options": [
 {
 "key": "A",
-"text": "Redis automatically replicates every write back to PostgreSQL"
+"text": "Redis replicates every write back to PostgreSQL automatically"
 },
 {
 "key": "B",
-"text": "Redis data must never expire"
+"text": "Redis data must never expire, or PostgreSQL gets overloaded"
 },
 {
 "key": "C",
-"text": "Redis holds values the app can re-create from PostgreSQL; it isn't the system of record"
+"text": "Redis holds values the app can rebuild from PostgreSQL"
 },
 {
 "key": "D",
@@ -6516,19 +6516,19 @@
 "options": [
 {
 "key": "A",
-"text": "Use the Microsoft.Azure.StackExchangeRedis extension and configure the connection with a token credential (for example DefaultAzureCredential), which acquires and refreshes tokens"
+"text": "Use Microsoft.Azure.StackExchangeRedis with a token credential that refreshes tokens"
 },
 {
 "key": "B",
-"text": "Paste the token into the user name field instead"
+"text": "Paste the access token into the user name field and the object ID as the password"
 },
 {
 "key": "C",
-"text": "Use the cache's access key permanently"
+"text": "Use the cache's access key permanently and remove Entra authentication from the code"
 },
 {
 "key": "D",
-"text": "Disable Entra authentication on the cache"
+"text": "Disable Entra authentication on the cache so that StackExchange.Redis can connect"
 }
 ],
 "correct": [
@@ -6553,15 +6553,15 @@
 },
 {
 "key": "B",
-"text": "The oldest keys are evicted automatically"
+"text": "The oldest keys are evicted automatically to make room"
 },
 {
 "key": "C",
-"text": "Keys are written to disk instead"
+"text": "Keys are written to disk until memory is available again"
 },
 {
 "key": "D",
-"text": "Writes that need more memory fail, so plan explicit cleanup (such as TTLs) and capacity alerts"
+"text": "Writes fail, so plan TTL-based cleanup and capacity alerts"
 }
 ],
 "correct": [
@@ -6582,19 +6582,19 @@
 "options": [
 {
 "key": "A",
-"text": "Microsoft Entra groups aren't supported, so you add individual users or service principals"
+"text": "Groups aren't supported; add individual users or service principals"
 },
 {
 "key": "B",
-"text": "Only one Entra user can be added per cache"
+"text": "Only one Entra user can be added per cache, so share a single account"
 },
 {
 "key": "C",
-"text": "Groups are supported, but only with access keys enabled"
+"text": "Groups are supported, but only when access keys are also enabled"
 },
 {
 "key": "D",
-"text": "Entra authentication only works for managed identities"
+"text": "Entra authentication only works for managed identities, not for people"
 }
 ],
 "correct": [
@@ -6615,19 +6615,19 @@
 "options": [
 {
 "key": "A",
-"text": "When you create the cache, by enabling the RediSearch module; modules can't be added later"
+"text": "At creation, by enabling RediSearch; it can't be added later"
 },
 {
 "key": "B",
-"text": "No module is needed; vector search is built into every cache"
+"text": "Never; vector search is built into every Managed Redis cache"
 },
 {
 "key": "C",
-"text": "Any time, by running MODULE LOAD"
+"text": "Any time, by running MODULE LOAD from a client connection"
 },
 {
 "key": "D",
-"text": "After creation, through a support request"
+"text": "After creation, by asking support to install the module"
 }
 ],
 "correct": [
@@ -6714,11 +6714,11 @@
 "options": [
 {
 "key": "A",
-"text": "When vectors are stored as plain strings"
+"text": "When vectors are stored as plain strings in hashes"
 },
 {
 "key": "B",
-"text": "For larger datasets where low latency matters more than exhaustive precision"
+"text": "For larger datasets, when latency matters more than exact results"
 },
 {
 "key": "C",
@@ -6726,7 +6726,7 @@
 },
 {
 "key": "D",
-"text": "When you want the index to store keys on disk"
+"text": "When you want the index to store its keys on disk"
 }
 ],
 "correct": [
@@ -6751,15 +6751,15 @@
 },
 {
 "key": "B",
-"text": "Levenshtein"
+"text": "Levenshtein and COSINE for text vectors"
 },
 {
 "key": "C",
-"text": "Jaccard and Hamming only"
+"text": "Jaccard, Hamming, and Tanimoto only"
 },
 {
 "key": "D",
-"text": "Manhattan only"
+"text": "Manhattan and L2 only, without COSINE"
 }
 ],
 "correct": [
@@ -6780,19 +6780,19 @@
 "options": [
 {
 "key": "A",
-"text": "Only sorted sets, with no metadata"
+"text": "Only sorted sets, with no metadata stored alongside them"
 },
 {
 "key": "B",
-"text": "Only streams"
+"text": "Only streams, with metadata kept in the stream entries"
 },
 {
 "key": "C",
-"text": "Hashes or JSON documents, with metadata such as document ID, source URL, category, and tenant ID"
+"text": "Hashes or JSON, with metadata such as ID, source, and tenant"
 },
 {
 "key": "D",
-"text": "Only lists, with metadata in a separate cache"
+"text": "Only lists, with metadata kept in a separate cache"
 }
 ],
 "correct": [
@@ -6813,19 +6813,19 @@
 "options": [
 {
 "key": "A",
-"text": "A separate Redis cache for every tenant"
+"text": "A separate Redis cache for every tenant and product line"
 },
 {
 "key": "B",
-"text": "Pub/Sub channels per product line"
+"text": "Pub/Sub channels for each product line and tenant"
 },
 {
 "key": "C",
-"text": "Hybrid queries that combine metadata filters (for example TAG or numeric filters) with KNN vector search"
+"text": "Hybrid queries: TAG or numeric filters combined with KNN"
 },
 {
 "key": "D",
-"text": "Plain GET commands on each FAQ key"
+"text": "Plain GET commands on each FAQ key, filtered in the app"
 }
 ],
 "correct": [
@@ -6846,19 +6846,19 @@
 "options": [
 {
 "key": "A",
-"text": "As a semantic cache: store prompt embeddings with responses and reuse a cached response when a new prompt is semantically similar"
+"text": "As a semantic cache that reuses answers to similar prompts"
 },
 {
 "key": "B",
-"text": "By storing the language model weights"
+"text": "By storing the language model's weights in memory for faster inference"
 },
 {
 "key": "C",
-"text": "By caching the exact prompt string only, so paraphrases always hit the cache"
+"text": "By caching exact prompt strings, so paraphrases always hit the cache"
 },
 {
 "key": "D",
-"text": "By replacing the language model entirely"
+"text": "By replacing the language model with stored answers for every topic"
 }
 ],
 "correct": [
@@ -6879,19 +6879,19 @@
 "options": [
 {
 "key": "A",
-"text": "It requires the OSS clustering policy"
+"text": "It requires the OSS clustering policy to route prompts"
 },
 {
 "key": "B",
-"text": "It only works with the Flash Optimized tier"
+"text": "It only works with the Flash Optimized tier of Managed Redis"
 },
 {
 "key": "C",
-"text": "It is a checkbox on the cache that works without RediSearch"
+"text": "It's a checkbox on the cache that works without RediSearch"
 },
 {
 "key": "D",
-"text": "It is an application or gateway pattern built on Redis vector search, not a separate managed feature you switch on"
+"text": "It's an app or gateway pattern built on Redis vector search"
 }
 ],
 "correct": [
@@ -7077,19 +7077,19 @@
 "options": [
 {
 "key": "A",
-"text": "Switch to receive-and-delete"
+"text": "Switch the queue to receive-and-delete mode so no lock is needed"
 },
 {
 "key": "B",
-"text": "Renew the message lock while processing (for example by configuring automatic lock renewal in the processor)"
+"text": "Renew the lock while processing, for example with automatic lock renewal"
 },
 {
 "key": "C",
-"text": "Enable duplicate detection"
+"text": "Enable duplicate detection so the second receiver gets nothing"
 },
 {
 "key": "D",
-"text": "Increase MaxDeliveryCount to 100"
+"text": "Increase MaxDeliveryCount to 100 so redeliveries are allowed"
 }
 ],
 "correct": [
@@ -7110,19 +7110,19 @@
 "options": [
 {
 "key": "A",
-"text": "After the delivery count exceeds MaxDeliveryCount (default 10), the message is moved to the dead-letter queue"
+"text": "It's dead-lettered once its delivery count exceeds MaxDeliveryCount (default 10)"
 },
 {
 "key": "B",
-"text": "The message is deleted after 3 failed attempts"
+"text": "It's deleted after 3 failed attempts, controlled by the queue's DeleteAfterRetries"
 },
 {
 "key": "C",
-"text": "The queue is disabled after 10 failures"
+"text": "The whole queue is disabled after 10 failures, controlled by MaxDeliveryCount"
 },
 {
 "key": "D",
-"text": "The message is retried forever unless you delete it manually"
+"text": "It's retried forever until you delete it manually, unless TTL is set on the queue"
 }
 ],
 "correct": [
@@ -7143,19 +7143,19 @@
 "options": [
 {
 "key": "A",
-"text": "Duplicate detection stores too many message IDs"
+"text": "Duplicate detection is storing too many message IDs in the entity"
 },
 {
 "key": "B",
-"text": "The dead-letter queue is filling up; dead-lettered messages count toward the entity's size and aren't removed automatically"
+"text": "The dead-letter queue is filling up, and its messages count toward the size"
 },
 {
 "key": "C",
-"text": "The queue has too many sessions"
+"text": "The queue has too many open sessions holding messages"
 },
 {
 "key": "D",
-"text": "The lock duration is too short"
+"text": "The lock duration is too short, so messages are stored twice"
 }
 ],
 "correct": [
@@ -7176,7 +7176,7 @@
 "options": [
 {
 "key": "A",
-"text": "orders/dlq"
+"text": "orders/$deadletter-queue-v2"
 },
 {
 "key": "B",
@@ -7209,7 +7209,7 @@
 "options": [
 {
 "key": "A",
-"text": "Increase the lock duration"
+"text": "Increase the lock duration to 1 hour"
 },
 {
 "key": "B",
@@ -7217,11 +7217,11 @@
 },
 {
 "key": "C",
-"text": "Set MaxDeliveryCount to 1"
+"text": "Set MaxDeliveryCount to 1 so expiring messages are kept"
 },
 {
 "key": "D",
-"text": "Enable duplicate detection"
+"text": "Enable duplicate detection with a 1-hour window"
 }
 ],
 "correct": [
@@ -7242,19 +7242,19 @@
 "options": [
 {
 "key": "A",
-"text": "forwardDeadLetteredMessagesTo on each queue or subscription, pointing to a central queue"
+"text": "forwardDeadLetteredMessagesTo, pointing to a central queue"
 },
 {
 "key": "B",
-"text": "defaultMessageTimeToLive"
+"text": "defaultMessageTimeToLive set to the same value on each queue"
 },
 {
 "key": "C",
-"text": "enablePartitioning"
+"text": "enablePartitioning so dead letters are merged across queues"
 },
 {
 "key": "D",
-"text": "requiresSession"
+"text": "requiresSession with one session per source queue"
 }
 ],
 "correct": [
@@ -7275,7 +7275,7 @@
 "options": [
 {
 "key": "A",
-"text": "They are deleted after 14 days"
+"text": "They are deleted automatically after 14 days"
 },
 {
 "key": "B",
@@ -7283,11 +7283,11 @@
 },
 {
 "key": "C",
-"text": "They stay there; messages in the dead-letter queue don't expire and aren't cleaned up automatically"
+"text": "They stay there until something receives them"
 },
 {
 "key": "D",
-"text": "They move to a dead-letter queue of the dead-letter queue"
+"text": "They move to the DLQ's own dead-letter queue"
 }
 ],
 "correct": [
@@ -7308,19 +7308,19 @@
 "options": [
 {
 "key": "A",
-"text": "Use receive-and-delete mode"
+"text": "Use receive-and-delete mode so that each message is processed once"
 },
 {
 "key": "B",
-"text": "Enable sessions and use random SessionId values"
+"text": "Enable sessions and give each resent message a random SessionId"
 },
 {
 "key": "C",
-"text": "Create the queue with duplicate detection enabled and set a stable, unique MessageId on each payment message"
+"text": "Enable duplicate detection on the queue and set a stable MessageId"
 },
 {
 "key": "D",
-"text": "Shorten the lock duration"
+"text": "Shorten the lock duration so the resent message expires first"
 }
 ],
 "correct": [
@@ -7407,19 +7407,19 @@
 "options": [
 {
 "key": "A",
-"text": "Restart the namespace"
+"text": "Restart the namespace after setting requiresSession to true"
 },
 {
 "key": "B",
-"text": "Create a new queue with sessions enabled, because sessions must be enabled when the entity is created"
+"text": "Create a new session-enabled queue; sessions are set only at creation"
 },
 {
 "key": "C",
-"text": "Run az servicebus queue update --enable-session true"
+"text": "Run az servicebus queue update --enable-session true on the queue"
 },
 {
 "key": "D",
-"text": "Set SessionId on new messages; the queue enables sessions automatically"
+"text": "Set SessionId on new messages; the queue then enables sessions itself"
 }
 ],
 "correct": [
@@ -7440,19 +7440,19 @@
 "options": [
 {
 "key": "A",
-"text": "The messages go straight to the dead-letter queue"
+"text": "The messages go straight to the queue's dead-letter queue without errors"
 },
 {
 "key": "B",
-"text": "Those sends fail, because clients must send messages as part of a session on a session-enabled queue"
+"text": "Those sends fail; a session-enabled queue needs a SessionId on every message"
 },
 {
 "key": "C",
-"text": "The broker assigns a random SessionId"
+"text": "The broker assigns a random SessionId so that the messages can be received"
 },
 {
 "key": "D",
-"text": "The messages are delivered to any receiver"
+"text": "The messages are delivered to any receiver that isn't holding a session"
 }
 ],
 "correct": [
@@ -7473,11 +7473,11 @@
 "options": [
 {
 "key": "A",
-"text": "Replace the subscription's default rule with a filter rule such as the SQL filter region = 'EU'"
+"text": "Replace the default rule with a SQL filter such as region = 'EU'"
 },
 {
 "key": "B",
-"text": "Create a separate topic for EU messages and change all senders"
+"text": "Create a separate topic for EU messages and change all the senders"
 },
 {
 "key": "C",
@@ -7485,7 +7485,7 @@
 },
 {
 "key": "D",
-"text": "Enable sessions with SessionId = EU"
+"text": "Enable sessions on the subscription with SessionId set to EU"
 }
 ],
 "correct": [
@@ -7572,19 +7572,19 @@
 "options": [
 {
 "key": "A",
-"text": "Queues support SQL filters on receive"
+"text": "Queues support SQL filters that are applied when messages are received"
 },
 {
 "key": "B",
-"text": "Filters can only inspect the message body"
+"text": "Filters can only inspect the message body, not message properties"
 },
 {
 "key": "C",
-"text": "Filtering is a feature of topic subscriptions; queues don't support subscription filters"
+"text": "Filters belong to topic subscriptions; queues don't support them"
 },
 {
 "key": "D",
-"text": "Each topic can have only one subscription with a filter"
+"text": "Each topic can have only one subscription that uses a filter rule"
 }
 ],
 "correct": [
@@ -7605,19 +7605,19 @@
 "options": [
 {
 "key": "A",
-"text": "Schedule the message with a scheduled enqueue time 24 hours in the future"
+"text": "Schedule it with an enqueue time 24 hours from now"
 },
 {
 "key": "B",
-"text": "Defer the message after receiving it"
+"text": "Defer the message after receiving it for 24 hours"
 },
 {
 "key": "C",
-"text": "Set the lock duration to 24 hours"
+"text": "Set the queue's lock duration to 24 hours"
 },
 {
 "key": "D",
-"text": "Set the message time-to-live to 24 hours"
+"text": "Set the message time-to-live to 24 hours from now"
 }
 ],
 "correct": [
@@ -7638,19 +7638,19 @@
 "options": [
 {
 "key": "A",
-"text": "Abandon the message, and later receive it by MessageId"
+"text": "Abandon it, then receive it later by its MessageId"
 },
 {
 "key": "B",
-"text": "Defer the message, and later receive it with its sequence number"
+"text": "Defer it, then receive it later by its sequence number"
 },
 {
 "key": "C",
-"text": "Dead-letter it, and later resubmit it"
+"text": "Dead-letter it, then resubmit it when the other message arrives"
 },
 {
 "key": "D",
-"text": "Complete it, and later restore it from a backup"
+"text": "Complete it, then restore it later from the namespace backup"
 }
 ],
 "correct": [
@@ -7671,19 +7671,19 @@
 "options": [
 {
 "key": "A",
-"text": "Auto-forwarding (forwardTo) on the subscription, set to the queue"
+"text": "Auto-forwarding (forwardTo) set to the queue"
 },
 {
 "key": "B",
-"text": "A SQL filter action"
+"text": "A SQL filter action that copies to the queue"
 },
 {
 "key": "C",
-"text": "A scheduled message"
+"text": "A scheduled message sent to the queue"
 },
 {
 "key": "D",
-"text": "Duplicate detection on the queue"
+"text": "Duplicate detection enabled on the queue"
 }
 ],
 "correct": [
@@ -7704,19 +7704,19 @@
 "options": [
 {
 "key": "A",
-"text": "Move to at least the Standard tier, because the Basic tier supports queues only"
+"text": "Move to Standard or Premium; Basic supports only queues"
 },
 {
 "key": "B",
-"text": "Enable sessions on the Basic namespace"
+"text": "Enable sessions on the Basic namespace to get pub-sub"
 },
 {
 "key": "C",
-"text": "Create a topic with the --basic flag"
+"text": "Create the topic with the --basic flag in the CLI"
 },
 {
 "key": "D",
-"text": "Use Premium only for queues"
+"text": "Use Premium for topics and keep Basic for the queues"
 }
 ],
 "correct": [
@@ -7737,11 +7737,11 @@
 "options": [
 {
 "key": "A",
-"text": "The Basic tier with batching"
+"text": "The Basic tier, using batching for large payloads"
 },
 {
 "key": "B",
-"text": "The Premium tier, which supports large messages (up to 100 MB)"
+"text": "The Premium tier, which supports large messages"
 },
 {
 "key": "C",
@@ -7803,19 +7803,19 @@
 "options": [
 {
 "key": "A",
-"text": "It is deleted immediately"
+"text": "It's deleted immediately, because the processor uses receive-and-delete"
 },
 {
 "key": "B",
-"text": "It is moved to the dead-letter queue on the first failure"
+"text": "It's moved straight to the dead-letter queue on the first failure"
 },
 {
 "key": "C",
-"text": "It isn't completed; the message is abandoned and redelivered, and after MaxDeliveryCount it is dead-lettered"
+"text": "It's abandoned and redelivered, then dead-lettered after MaxDeliveryCount"
 },
 {
 "key": "D",
-"text": "It is completed anyway because AutoCompleteMessages is true"
+"text": "It's completed anyway, because AutoCompleteMessages is true by default"
 }
 ],
 "correct": [
@@ -7836,19 +7836,19 @@
 "options": [
 {
 "key": "A",
-"text": "Send each message on a new client"
+"text": "Send each message on a new client so that sends run in parallel"
 },
 {
 "key": "B",
-"text": "Use receive-and-delete mode"
+"text": "Use receive-and-delete mode on the queue to speed up the sends"
 },
 {
 "key": "C",
-"text": "Concatenate all payloads into one message regardless of size"
+"text": "Concatenate all payloads into one message, regardless of its size"
 },
 {
 "key": "D",
-"text": "Create a ServiceBusMessageBatch, add messages with TryAddMessage until it's full, and send the batch"
+"text": "Use ServiceBusMessageBatch with TryAddMessage, then send the batch"
 }
 ],
 "correct": [
@@ -7869,19 +7869,19 @@
 "options": [
 {
 "key": "A",
-"text": "Make processing idempotent, for example by recording processed MessageIds"
+"text": "Make processing idempotent, such as by tracking MessageIds"
 },
 {
 "key": "B",
-"text": "Switch to receive-and-delete"
+"text": "Switch the consumer to receive-and-delete mode instead"
 },
 {
 "key": "C",
-"text": "Use a longer TTL"
+"text": "Use a longer time-to-live so duplicates expire first"
 },
 {
 "key": "D",
-"text": "Set MaxDeliveryCount to 1"
+"text": "Set MaxDeliveryCount to 1 so messages are delivered once"
 }
 ],
 "correct": [
@@ -7902,19 +7902,19 @@
 "options": [
 {
 "key": "A",
-"text": "TimeToLive only"
+"text": "TimeToLive plus the request's sequence number"
 },
 {
 "key": "B",
-"text": "PartitionKey only"
+"text": "PartitionKey plus the request's MessageId"
 },
 {
 "key": "C",
-"text": "ScheduledEnqueueTime"
+"text": "ScheduledEnqueueTime plus the request's SessionId"
 },
 {
 "key": "D",
-"text": "ReplyTo (and ReplyToSessionId for session-based replies), with CorrelationId linking the reply to the request"
+"text": "ReplyTo (or ReplyToSessionId) plus CorrelationId"
 }
 ],
 "correct": [
@@ -7935,19 +7935,19 @@
 "options": [
 {
 "key": "A",
-"text": "Prefetched messages are locked while they wait in the client buffer, and their locks can expire before the handler reaches them"
+"text": "Prefetched messages are already locked, and locks can expire in the buffer"
 },
 {
 "key": "B",
-"text": "Prefetch converts the queue to receive-and-delete"
+"text": "Prefetch switches the queue to receive-and-delete for the whole session"
 },
 {
 "key": "C",
-"text": "Prefetch only works with sessions"
+"text": "Prefetch only works with sessions, so other messages are redelivered"
 },
 {
 "key": "D",
-"text": "Prefetch disables lock renewal on the server"
+"text": "Prefetch disables lock renewal on the server for every buffered message"
 }
 ],
 "correct": [
@@ -7968,19 +7968,19 @@
 "options": [
 {
 "key": "A",
-"text": "Two separate operations with retries"
+"text": "Two separate operations, each retried until it succeeds"
 },
 {
 "key": "B",
-"text": "Duplicate detection on queue B"
+"text": "Duplicate detection on queue B to undo partial results"
 },
 {
 "key": "C",
-"text": "Auto-forwarding from A to B"
+"text": "Auto-forwarding from queue A to queue B in the namespace"
 },
 {
 "key": "D",
-"text": "A Service Bus transaction that groups the complete on queue A and the send to queue B in the same namespace"
+"text": "A transaction that groups the complete on A and the send to B"
 }
 ],
 "correct": [
@@ -8034,19 +8034,19 @@
 "options": [
 {
 "key": "A",
-"text": "Set auto-delete on idle (AutoDeleteOnIdle) on the queues so they are deleted after a period with no activity"
+"text": "Set AutoDeleteOnIdle on the temporary queues"
 },
 {
 "key": "B",
-"text": "Enable duplicate detection"
+"text": "Enable duplicate detection on the temporary queues"
 },
 {
 "key": "C",
-"text": "Set MaxDeliveryCount to 1"
+"text": "Set MaxDeliveryCount to 1 on the temporary queues"
 },
 {
 "key": "D",
-"text": "Set the message time-to-live to 1 minute"
+"text": "Set the message time-to-live to 1 minute on each queue"
 }
 ],
 "correct": [
@@ -8067,19 +8067,19 @@
 "options": [
 {
 "key": "A",
-"text": "The namespace's Activity log"
+"text": "The namespace's Activity log for the time of each failure"
 },
 {
 "key": "B",
-"text": "The DeadLetterReason and DeadLetterErrorDescription properties of each dead-lettered message"
+"text": "DeadLetterReason and DeadLetterErrorDescription on each message"
 },
 {
 "key": "C",
-"text": "The message's ScheduledEnqueueTime"
+"text": "Each message's ScheduledEnqueueTime and sequence number"
 },
 {
 "key": "D",
-"text": "The queue's lock duration"
+"text": "The queue's lock duration and MaxDeliveryCount settings"
 }
 ],
 "correct": [
@@ -8100,19 +8100,19 @@
 "options": [
 {
 "key": "A",
-"text": "Up to 7 days or 100 attempts"
+"text": "7 days or 100 attempts, whichever comes first"
 },
 {
 "key": "B",
-"text": "Exactly 3 attempts within 1 minute"
+"text": "Exactly 3 attempts within the first minute"
 },
 {
 "key": "C",
-"text": "Up to 24 hours (1,440 minutes) or 30 attempts, whichever comes first"
+"text": "24 hours or 30 attempts, whichever comes first"
 },
 {
 "key": "D",
-"text": "Until the endpoint recovers, with no limit"
+"text": "Until the endpoint recovers, with no time limit"
 }
 ],
 "correct": [
@@ -8166,19 +8166,19 @@
 "options": [
 {
 "key": "A",
-"text": "A dead-letter destination, a container in an Azure Storage account, on the event subscription"
+"text": "A dead-letter destination: a blob container set on the event subscription"
 },
 {
 "key": "B",
-"text": "Longer TTL on the custom topic itself"
+"text": "A longer event retention period configured on the custom topic itself"
 },
 {
 "key": "C",
-"text": "A Service Bus dead-letter queue on the topic"
+"text": "A Service Bus dead-letter queue that is attached to the custom topic"
 },
 {
 "key": "D",
-"text": "A second event subscription to the same endpoint"
+"text": "A second event subscription that points to the same webhook endpoint"
 }
 ],
 "correct": [
@@ -8199,19 +8199,19 @@
 "options": [
 {
 "key": "A",
-"text": "Maximum delivery attempts from 1 to 100 and a custom backoff schedule"
+"text": "Max delivery attempts 1–100 and a custom backoff schedule"
 },
 {
 "key": "B",
-"text": "A fixed retry every 10 seconds"
+"text": "A fixed retry interval, such as every 10 seconds, up to 1 day"
 },
 {
 "key": "C",
-"text": "Event time-to-live up to 7 days"
+"text": "Event time-to-live of up to 7 days and unlimited attempts"
 },
 {
 "key": "D",
-"text": "Maximum delivery attempts from 1 to 30 and event time-to-live from 1 to 1,440 minutes"
+"text": "Max delivery attempts 1–30 and event TTL 1–1,440 minutes"
 }
 ],
 "correct": [
@@ -8232,19 +8232,19 @@
 "options": [
 {
 "key": "A",
-"text": "includedEventTypes Microsoft.Storage.BlobCreated, subjectBeginsWith /blobServices/default/containers/images/blobs/, and subjectEndsWith .jpg"
+"text": "BlobCreated event type, subjectBeginsWith .../containers/images/blobs/, subjectEndsWith .jpg"
 },
 {
 "key": "B",
-"text": "subjectEndsWith images and subjectBeginsWith .jpg"
+"text": "subjectEndsWith /containers/images/ and subjectBeginsWith .jpg, with the BlobCreated event type"
 },
 {
 "key": "C",
-"text": "No filter; check the extension in the function"
+"text": "No filter on the subscription; check the container and file extension inside the function"
 },
 {
 "key": "D",
-"text": "An advanced filter on data.url StringContains images only"
+"text": "An advanced filter on data.url with StringContains images, and no event type filter at all"
 }
 ],
 "correct": [
@@ -8265,19 +8265,19 @@
 "options": [
 {
 "key": "A",
-"text": "An event type filter listing the colors"
+"text": "An event type filter that lists blue, red, and green as types"
 },
 {
 "key": "B",
-"text": "A dead-letter filter"
+"text": "A dead-letter filter that drops the other colors after delivery"
 },
 {
 "key": "C",
-"text": "A subject filter with subjectBeginsWith blue"
+"text": "A subject filter with subjectBeginsWith set to blue, red, green"
 },
 {
 "key": "D",
-"text": "An advanced filter with key data.color, operator StringIn, and the three values"
+"text": "An advanced filter: data.color StringIn [blue, red, green]"
 }
 ],
 "correct": [
@@ -8298,11 +8298,11 @@
 "options": [
 {
 "key": "A",
-"text": "Only events that match both filters (region is EU and amount is greater than 1000)"
+"text": "Only events that match both filters"
 },
 {
 "key": "B",
-"text": "Only the first filter is evaluated"
+"text": "Only the first filter is evaluated for each event"
 },
 {
 "key": "C",
@@ -8310,7 +8310,7 @@
 },
 {
 "key": "D",
-"text": "Events that match either filter"
+"text": "Events that match either of the filters"
 }
 ],
 "correct": [
@@ -8331,19 +8331,19 @@
 "options": [
 {
 "key": "A",
-"text": "With a client certificate only"
+"text": "A client certificate only, registered on the topic's Networking blade"
 },
 {
 "key": "B",
-"text": "With the storage account key of the subscriber"
+"text": "The storage account key of the subscriber that receives the events"
 },
 {
 "key": "C",
-"text": "With an access key (aeg-sas-key header), a SAS token, or Microsoft Entra ID"
+"text": "An access key (aeg-sas-key), a SAS token, or Microsoft Entra ID"
 },
 {
 "key": "D",
-"text": "Anonymously, because custom topics are public"
+"text": "No authentication, because custom topics accept anonymous events"
 }
 ],
 "correct": [
@@ -8364,19 +8364,19 @@
 "options": [
 {
 "key": "A",
-"text": "Only Avro"
+"text": "Only Avro, with a schema registered for each event type"
 },
 {
 "key": "B",
-"text": "Only the Service Bus message format"
+"text": "Only the Service Bus message format with JSON bodies"
 },
 {
 "key": "C",
-"text": "Only CloudEvents"
+"text": "Only CloudEvents v1.0, because it is the open standard"
 },
 {
 "key": "D",
-"text": "Event Grid schema, CloudEvents v1.0 schema, or a custom schema mapped to Event Grid fields"
+"text": "Event Grid, CloudEvents v1.0, or a custom mapped schema"
 }
 ],
 "correct": [
@@ -8397,19 +8397,19 @@
 "options": [
 {
 "key": "A",
-"text": "Use the CloudEvents schema; it accepts any field names"
+"text": "Use the CloudEvents schema, which accepts any field names that the publisher sends"
 },
 {
 "key": "B",
-"text": "Rename the fields in every subscriber"
+"text": "Rename the fields in every subscriber so they read eventName and eventSubject instead"
 },
 {
 "key": "C",
-"text": "Create the custom topic with the custom input schema and map eventName and eventSubject to Event Grid's eventType and subject, setting defaults where needed"
+"text": "Use a custom input schema that maps eventName and eventSubject to eventType and subject"
 },
 {
 "key": "D",
-"text": "Event Grid can't accept events that use other field names"
+"text": "Event Grid can't accept events that use other field names, so the publisher must change"
 }
 ],
 "correct": [
@@ -8430,19 +8430,19 @@
 "options": [
 {
 "key": "A",
-"text": "CloudEvents can only be delivered to Event Hubs"
+"text": "CloudEvents can only be delivered to Event Hubs, not to webhooks or functions"
 },
 {
 "key": "B",
-"text": "Event Grid natively supports the JSON format of CloudEvents v1.0 for system and custom events, and it is the preferred format for interoperability"
+"text": "Event Grid natively supports CloudEvents v1.0 JSON for system and custom events"
 },
 {
 "key": "C",
-"text": "CloudEvents requires a custom schema mapping"
+"text": "CloudEvents always requires a custom input schema mapping on the topic"
 },
 {
 "key": "D",
-"text": "CloudEvents is only supported for IoT Hub events"
+"text": "CloudEvents is only supported for IoT Hub events, not for other system topics"
 }
 ],
 "correct": [
@@ -8463,19 +8463,19 @@
 "options": [
 {
 "key": "A",
-"text": "Return the validationCode from the event in a validationResponse (or complete the manual validation URL)"
+"text": "Echo the validationCode in a validationResponse (or use the validationUrl)"
 },
 {
 "key": "B",
-"text": "Do nothing; validation is optional"
+"text": "Do nothing, because validation is optional for HTTPS webhook endpoints"
 },
 {
 "key": "C",
-"text": "Send a reply event to the topic"
+"text": "Send a reply event to the custom topic that contains the subscription ID"
 },
 {
 "key": "D",
-"text": "Return HTTP 401 to prove it is protected"
+"text": "Return HTTP 401 to prove that the endpoint is protected by authentication"
 }
 ],
 "correct": [
@@ -8496,19 +8496,19 @@
 "options": [
 {
 "key": "A",
-"text": "It uses the CloudEvents abuse protection handshake (an HTTP OPTIONS request that the endpoint answers with WebHook-Allowed-Origin) instead of the Event Grid validation event"
+"text": "The CloudEvents handshake: an OPTIONS request answered with WebHook-Allowed-Origin"
 },
 {
 "key": "B",
-"text": "It skips validation for CloudEvents"
+"text": "It skips validation entirely for CloudEvents, because the schema includes a source"
 },
 {
 "key": "C",
-"text": "It requires the endpoint to be an Azure Function"
+"text": "It requires the endpoint to be an Azure Function, which validates automatically"
 },
 {
 "key": "D",
-"text": "It sends a SubscriptionValidationEvent with a validationCode"
+"text": "A SubscriptionValidationEvent with a validationCode, as with the Event Grid schema"
 }
 ],
 "correct": [
@@ -8529,19 +8529,19 @@
 "options": [
 {
 "key": "A",
-"text": "It must be hosted in Azure"
+"text": "It must be hosted in Azure in a supported service"
 },
 {
 "key": "B",
-"text": "It must be in the same region as the topic"
+"text": "It must be in the same region as the Event Grid topic"
 },
 {
 "key": "C",
-"text": "It must accept FTP uploads"
+"text": "It must accept FTP uploads for batched events"
 },
 {
 "key": "D",
-"text": "It must use HTTPS and handle the webhook validation"
+"text": "It must use HTTPS and handle webhook validation"
 }
 ],
 "correct": [
@@ -8562,19 +8562,19 @@
 "options": [
 {
 "key": "A",
-"text": "Store the Service Bus connection string in the event subscription"
+"text": "Store the Service Bus connection string in the event subscription's delivery settings"
 },
 {
 "key": "B",
-"text": "Use the topic access key on the Service Bus queue"
+"text": "Use the topic's access key on the Service Bus queue so both sides share one secret"
 },
 {
 "key": "C",
-"text": "Make the Service Bus namespace public and anonymous"
+"text": "Make the Service Bus namespace public and allow anonymous sends from Event Grid"
 },
 {
 "key": "D",
-"text": "Enable a managed identity on the topic and assign it a Service Bus data sender role on the queue, then use managed identity for delivery"
+"text": "Give the topic a managed identity with a Service Bus sender role, and deliver with it"
 }
 ],
 "correct": [
@@ -8628,19 +8628,19 @@
 "options": [
 {
 "key": "A",
-"text": "No; Event Grid guarantees exactly-once, ordered delivery"
+"text": "No; Event Grid guarantees exactly-once, ordered delivery to each handler"
 },
 {
 "key": "B",
-"text": "Only for CloudEvents"
+"text": "Only for CloudEvents; the Event Grid schema keeps events in order"
 },
 {
 "key": "C",
-"text": "Only if dead-lettering is disabled"
+"text": "Only if dead-lettering is disabled; with a DLQ, delivery is exactly-once"
 },
 {
 "key": "D",
-"text": "Yes; Event Grid delivers at least once and doesn't guarantee order, so handlers should be idempotent and use the event id and time"
+"text": "Yes; delivery is at-least-once and unordered, so handlers must be idempotent"
 }
 ],
 "correct": [
@@ -8661,19 +8661,19 @@
 "options": [
 {
 "key": "A",
-"text": "Microsoft.KeyVault.SecretExpired, on the expiration date only"
+"text": "SecretExpired, which fires 30 days before expiration"
 },
 {
 "key": "B",
-"text": "Microsoft.KeyVault.VaultAccessPolicyChanged, daily"
+"text": "VaultAccessPolicyChanged, which fires once a day"
 },
 {
 "key": "C",
-"text": "Microsoft.Storage.BlobCreated, when the secret is rotated"
+"text": "BlobCreated, which fires when the secret is rotated"
 },
 {
 "key": "D",
-"text": "Microsoft.KeyVault.SecretNearExpiry, about 30 days before the secret's expiration date"
+"text": "SecretNearExpiry, 30 days before the expiration date"
 }
 ],
 "correct": [
@@ -8727,19 +8727,19 @@
 "options": [
 {
 "key": "A",
-"text": "It doesn't retry this error; the event is dead-lettered if a dead-letter location is configured, otherwise dropped"
+"text": "It doesn't retry; the event is dead-lettered if configured, else dropped"
 },
 {
 "key": "B",
-"text": "It sends the event to all other subscriptions"
+"text": "It sends the event on to all the other subscriptions on the topic"
 },
 {
 "key": "C",
-"text": "It disables the subscription"
+"text": "It disables the subscription until the handler is fixed and redeployed"
 },
 {
 "key": "D",
-"text": "It retries the event 30 times over 24 hours"
+"text": "It retries the event 30 times over 24 hours, like any other error"
 }
 ],
 "correct": [
@@ -8760,19 +8760,19 @@
 "options": [
 {
 "key": "A",
-"text": "az servicebus queue create ... --max-delivery-count 10"
+"text": "az servicebus queue create ... --max-delivery-count 10 --default-message-time-to-live PT2H --enable-dead-lettering-on-message-expiration"
 },
 {
 "key": "B",
-"text": "az storage container create ... --event-ttl 120"
+"text": "az storage container create ... --name deadletters --event-ttl 120 --max-delivery-attempts 10 --account-name <storage>"
 },
 {
 "key": "C",
-"text": "az eventgrid topic create ... --retry 10"
+"text": "az eventgrid topic create ... --deadletter-endpoint <container-id> --max-delivery-attempts 10 --event-ttl 120"
 },
 {
 "key": "D",
-"text": "az eventgrid event-subscription create ... --deadletter-endpoint <storage-id>/blobServices/default/containers/<container> --max-delivery-attempts 10 --event-ttl 120"
+"text": "az eventgrid event-subscription create ... --deadletter-endpoint <container-id> --max-delivery-attempts 10 --event-ttl 120"
 }
 ],
 "correct": [
@@ -8826,7 +8826,7 @@
 "options": [
 {
 "key": "A",
-"text": "An advanced filter on topic StringIn"
+"text": "An advanced filter on topic with StringIn"
 },
 {
 "key": "B",
@@ -8834,11 +8834,11 @@
 },
 {
 "key": "C",
-"text": "subjectBeginsWith with the resource path prefix"
+"text": "subjectBeginsWith set to the resource path prefix"
 },
 {
 "key": "D",
-"text": "includedEventTypes with the container name"
+"text": "includedEventTypes set to the container name"
 }
 ],
 "correct": [
@@ -8859,19 +8859,19 @@
 "options": [
 {
 "key": "A",
-"text": "On the custom topic's Networking blade"
+"text": "The custom topic's Networking and identity blade"
 },
 {
 "key": "B",
-"text": "In the Function app's host.json"
+"text": "The Function app's host.json extension settings"
 },
 {
 "key": "C",
-"text": "In the storage account's lifecycle policy"
+"text": "The storage account's lifecycle management policy"
 },
 {
 "key": "D",
-"text": "On the Additional features tab of the event subscription"
+"text": "The event subscription's Additional features tab"
 }
 ],
 "correct": [
@@ -8892,19 +8892,19 @@
 "options": [
 {
 "key": "A",
-"text": "Use the CloudEvents schema only"
+"text": "Use the CloudEvents schema so no handshake runs"
 },
 {
 "key": "B",
-"text": "Disable validation on the topic"
+"text": "Disable validation on the topic for functions"
 },
 {
 "key": "C",
-"text": "Write code that echoes the validationCode"
+"text": "Write code that echoes the validationCode back"
 },
 {
 "key": "D",
-"text": "Nothing extra; the Event Grid trigger handles validation automatically"
+"text": "Nothing; the trigger handles validation for you"
 }
 ],
 "correct": [
@@ -8925,19 +8925,19 @@
 "options": [
 {
 "key": "A",
-"text": "Event Grid waits and retries with an exponential backoff schedule until the max attempts or the event TTL is reached"
+"text": "It retries with exponential backoff until the attempt limit or the TTL"
 },
 {
 "key": "B",
-"text": "Event Grid retries immediately every second"
+"text": "It retries immediately every second until the endpoint recovers"
 },
 {
 "key": "C",
-"text": "Event Grid lets you choose a linear retry schedule"
+"text": "It uses a linear retry schedule that you choose on the subscription"
 },
 {
 "key": "D",
-"text": "Event Grid never retries 503 responses"
+"text": "It never retries 503 responses and drops the event right away"
 }
 ],
 "correct": [
@@ -8958,19 +8958,19 @@
 "options": [
 {
 "key": "A",
-"text": "Batching, configured with max events per batch and a preferred batch size in kilobytes on the event subscription"
+"text": "Output batching: max events per batch and preferred batch size"
 },
 {
 "key": "B",
-"text": "A longer event TTL"
+"text": "A longer event time-to-live on the subscription's retry policy"
 },
 {
 "key": "C",
-"text": "Advanced filters"
+"text": "Advanced filters that group matching events into one request"
 },
 {
 "key": "D",
-"text": "Dead-lettering"
+"text": "Dead-lettering to a blob container that the handler reads in bulk"
 }
 ],
 "correct": [
@@ -9024,19 +9024,19 @@
 "options": [
 {
 "key": "A",
-"text": "Set the event TTL to 1 minute"
+"text": "Set the event time-to-live to 1 minute on the topic"
 },
 {
 "key": "B",
-"text": "Set max delivery attempts to 1"
+"text": "Set max delivery attempts to 1 on the subscription"
 },
 {
 "key": "C",
-"text": "Set an expiration time (expirationTimeUtc) on the event subscription"
+"text": "Set an expiration time on the event subscription"
 },
 {
 "key": "D",
-"text": "Delete the topic"
+"text": "Delete the topic when the migration has finished"
 }
 ],
 "correct": [
@@ -9090,7 +9090,7 @@
 "options": [
 {
 "key": "A",
-"text": "Exactly one trigger, and zero or more input and output bindings"
+"text": "Exactly one trigger, plus any number of bindings"
 },
 {
 "key": "B",
@@ -9102,7 +9102,7 @@
 },
 {
 "key": "D",
-"text": "No trigger if it has an output binding"
+"text": "No trigger at all if it has an output binding"
 }
 ],
 "correct": [
@@ -9123,11 +9123,11 @@
 "options": [
 {
 "key": "A",
-"text": "Use a blob output binding with path container/{queueTrigger}"
+"text": "A blob output binding with path container/{queueTrigger}"
 },
 {
 "key": "B",
-"text": "Set the blob name in host.json"
+"text": "A blob name pattern set in the host.json extensions"
 },
 {
 "key": "C",
@@ -9135,7 +9135,7 @@
 },
 {
 "key": "D",
-"text": "Use an HTTP output binding"
+"text": "An HTTP output binding that returns the blob content"
 }
 ],
 "correct": [
@@ -9222,19 +9222,19 @@
 "options": [
 {
 "key": "A",
-"text": "The message is sent to a Service Bus dead-letter queue"
+"text": "It's sent to a Service Bus dead-letter queue"
 },
 {
 "key": "B",
-"text": "After 5 failed attempts the message is moved to a poison queue named <queue>-poison"
+"text": "After 5 failures it moves to a <queue>-poison queue"
 },
 {
 "key": "C",
-"text": "The message is retried forever"
+"text": "It's retried forever with an increasing delay"
 },
 {
 "key": "D",
-"text": "The message is deleted after the first failure"
+"text": "It's deleted after the first failed attempt"
 }
 ],
 "correct": [
@@ -9255,19 +9255,19 @@
 "options": [
 {
 "key": "A",
-"text": "The message isn't completed; it is retried, and after the entity's MaxDeliveryCount it moves to the dead-letter queue"
+"text": "It's retried, then dead-lettered after MaxDeliveryCount"
 },
 {
 "key": "B",
-"text": "The message is completed and lost"
+"text": "It's completed anyway, so the message is lost"
 },
 {
 "key": "C",
-"text": "The function app stops"
+"text": "The function app stops until the error is fixed"
 },
 {
 "key": "D",
-"text": "The message is moved to a <queue>-poison queue after 5 attempts"
+"text": "It moves to a <queue>-poison queue after 5 attempts"
 }
 ],
 "correct": [
@@ -9288,11 +9288,11 @@
 "options": [
 {
 "key": "A",
-"text": "HttpResponseData"
+"text": "HttpResponseData with a body"
 },
 {
 "key": "B",
-"text": "QueueClient only"
+"text": "A single QueueMessage parameter"
 },
 {
 "key": "C",
@@ -9300,7 +9300,7 @@
 },
 {
 "key": "D",
-"text": "A single string"
+"text": "A single string return value"
 }
 ],
 "correct": [
@@ -9321,19 +9321,19 @@
 "options": [
 {
 "key": "A",
-"text": "Use an HTTP trigger to read blobs"
+"text": "Use an HTTP trigger to read the blobs instead"
 },
 {
 "key": "B",
-"text": "Switch to the Flex Consumption plan"
+"text": "Switch the function app to the Flex Consumption plan"
 },
 {
 "key": "C",
-"text": "Enable soft delete on the account"
+"text": "Enable soft delete on the Premium storage account"
 },
 {
 "key": "D",
-"text": "Use a Standard general-purpose v2 storage account, because Blob bindings don't support Premium blob storage accounts"
+"text": "Use a Standard general-purpose v2 account instead"
 }
 ],
 "correct": [
@@ -9358,15 +9358,15 @@
 },
 {
 "key": "B",
-"text": "In host.json"
+"text": "In host.json under the extensions section"
 },
 {
 "key": "C",
-"text": "With decorators on functions registered to a FunctionApp object, such as @app.route or @app.timer_trigger"
+"text": "Decorators on a FunctionApp object, such as @app.route"
 },
 {
 "key": "D",
-"text": "In requirements.txt"
+"text": "In requirements.txt, next to the package names"
 }
 ],
 "correct": [
@@ -9387,19 +9387,19 @@
 "options": [
 {
 "key": "A",
-"text": "By listing bindings in pom.xml only"
+"text": "Listing the bindings in pom.xml under the azure-functions plugin"
 },
 {
 "key": "B",
-"text": "By naming the method httpTrigger"
+"text": "Naming the method httpTrigger and the parameter queueOutput"
 },
 {
 "key": "C",
-"text": "With annotations from com.microsoft.azure.functions.annotation, such as @FunctionName, @HttpTrigger, and @QueueOutput"
+"text": "Annotations such as @FunctionName, @HttpTrigger, and @QueueOutput"
 },
 {
 "key": "D",
-"text": "By extending a base class called HttpFunction"
+"text": "Extending a base class called HttpFunction and overriding run()"
 }
 ],
 "correct": [
@@ -9420,11 +9420,11 @@
 "options": [
 {
 "key": "A",
-"text": "ServiceBusConnection = Endpoint=sb://...;SharedAccessKey=..."
+"text": "ServiceBusConnection = Endpoint=sb://contoso.servicebus.windows.net/;SharedAccessKey=..."
 },
 {
 "key": "B",
-"text": "AzureWebJobsServiceBus = managed"
+"text": "AzureWebJobsServiceBus = managed, with the identity enabled on the function app"
 },
 {
 "key": "C",
@@ -9432,7 +9432,7 @@
 },
 {
 "key": "D",
-"text": "ServiceBusConnection__identity = true only"
+"text": "ServiceBusConnection__identity = true, with no namespace setting"
 }
 ],
 "correct": [
@@ -9453,19 +9453,19 @@
 "options": [
 {
 "key": "A",
-"text": "Use : or / as the key separator, for example ServiceBusConnection:fullyQualifiedNamespace, instead of the double underscore"
+"text": "Use : or / instead of __, such as ServiceBusConnection:fullyQualifiedNamespace"
 },
 {
 "key": "B",
-"text": "Use the double underscore exactly as in app settings"
+"text": "Use the double underscore exactly as in app settings, such as Connection__name"
 },
 {
 "key": "C",
-"text": "App Configuration can't store these settings"
+"text": "App Configuration can't store these settings; they must be app settings"
 },
 {
 "key": "D",
-"text": "Use a dot, for example ServiceBusConnection.fullyQualifiedNamespace"
+"text": "Use a dot as the separator, such as ServiceBusConnection.fullyQualifiedNamespace"
 }
 ],
 "correct": [
@@ -9585,19 +9585,19 @@
 "options": [
 {
 "key": "A",
-"text": "Two HTTP triggers"
+"text": "Two HTTP triggers, one for reading and one for saving the document"
 },
 {
 "key": "B",
-"text": "A Cosmos DB trigger and an HTTP output binding"
+"text": "Cosmos DB trigger with an HTTP output binding for the response"
 },
 {
 "key": "C",
-"text": "A timer trigger and a Cosmos DB input binding"
+"text": "Timer trigger with a Cosmos DB input binding that reads every id"
 },
 {
 "key": "D",
-"text": "An HTTP trigger, a Cosmos DB input binding using {id} from the route, and a Cosmos DB output binding"
+"text": "HTTP trigger, Cosmos DB input binding using {id}, and Cosmos DB output"
 }
 ],
 "correct": [
@@ -9618,19 +9618,19 @@
 "options": [
 {
 "key": "A",
-"text": "The FUNCTIONS_WORKER_RUNTIME setting"
+"text": "The FUNCTIONS_WORKER_RUNTIME setting set to http"
 },
 {
 "key": "B",
-"text": "A binding expression {queueTrigger}"
+"text": "A binding expression {queueTrigger} in the function path"
 },
 {
 "key": "C",
-"text": "A route template on the HTTP trigger, such as products/{id:int}"
+"text": "A route template such as products/{id:int} on the trigger"
 },
 {
 "key": "D",
-"text": "A timer schedule"
+"text": "A timer schedule that matches requests to /api/products"
 }
 ],
 "correct": [
@@ -9651,19 +9651,19 @@
 "options": [
 {
 "key": "A",
-"text": "They remove the need for a trigger"
+"text": "They remove the need for a trigger when the function has outputs"
 },
 {
 "key": "B",
-"text": "They connect the function to other services declaratively, so you don't write data-access and connection code"
+"text": "They connect to services declaratively, without data-access code"
 },
 {
 "key": "C",
-"text": "They guarantee exactly-once processing"
+"text": "They guarantee exactly-once processing for every incoming event"
 },
 {
 "key": "D",
-"text": "They make the function run on GPUs"
+"text": "They make the function run on GPUs when it processes large data"
 }
 ],
 "correct": [
@@ -9684,19 +9684,19 @@
 "options": [
 {
 "key": "A",
-"text": "IEnumerable<T> or IReadOnlyList<T> of a JSON-serializable type"
+"text": "IEnumerable<T> or IReadOnlyList<T> of a JSON type"
 },
 {
 "key": "B",
-"text": "A TimerInfo object"
+"text": "A TimerInfo object with the change feed position"
 },
 {
 "key": "C",
-"text": "A QueueClient"
+"text": "A QueueClient that reads the changes from a queue"
 },
 {
 "key": "D",
-"text": "A single HttpRequest"
+"text": "A single HttpRequest that contains the changed items"
 }
 ],
 "correct": [
@@ -9717,7 +9717,7 @@
 "options": [
 {
 "key": "A",
-"text": "Output bindings require the in-process model"
+"text": "Output bindings only work with the in-process .NET model"
 },
 {
 "key": "B",
@@ -9725,11 +9725,11 @@
 },
 {
 "key": "C",
-"text": "Output bindings can only write to Storage"
+"text": "Output bindings can only write to Storage, not Service Bus"
 },
 {
 "key": "D",
-"text": "The output binding sends the value returned or assigned in the function to the configured queue or topic"
+"text": "It sends the returned or assigned value to the queue or topic"
 }
 ],
 "correct": [
@@ -9817,19 +9817,19 @@
 "options": [
 {
 "key": "A",
-"text": "Slots are converted automatically into Flex instances"
+"text": "Slots are converted automatically into Flex Consumption instances"
 },
 {
 "key": "B",
-"text": "Flex Consumption doesn't currently support deployment slots, so you need another release strategy"
+"text": "Flex Consumption doesn't support slots, so plan another release strategy"
 },
 {
 "key": "C",
-"text": "Slots only work on Flex Consumption"
+"text": "Slots only work on Flex Consumption, so the migration improves them"
 },
 {
 "key": "D",
-"text": "Slots require the Free tier"
+"text": "Slots require the Free tier, so the app must move there first"
 }
 ],
 "correct": [
@@ -9850,19 +9850,19 @@
 "options": [
 {
 "key": "A",
-"text": "Flex Consumption mounts an Azure Files share for content, like Premium"
+"text": "Flex mounts an Azure Files share for content, exactly like the Premium plan does"
 },
 {
 "key": "B",
-"text": "Flex Consumption requires container images"
+"text": "Flex requires container images in ACR instead of code deployment packages"
 },
 {
 "key": "C",
-"text": "Flex Consumption only supports FTP"
+"text": "Flex only supports FTP deployment of the function files to the app's content share"
 },
 {
 "key": "D",
-"text": "Flex Consumption uses its own package deployment to a Blob storage container, while ZIP deploy isn't supported on Flex"
+"text": "Flex uses its own package deployment to a Blob container; ZIP deploy isn't supported"
 }
 ],
 "correct": [
@@ -9883,11 +9883,11 @@
 "options": [
 {
 "key": "A",
-"text": "The functionTimeout property in host.json"
+"text": "functionTimeout in host.json"
 },
 {
 "key": "B",
-"text": "The WEBSITES_PORT app setting"
+"text": "WEBSITES_PORT in the app settings"
 },
 {
 "key": "C",
@@ -9895,7 +9895,7 @@
 },
 {
 "key": "D",
-"text": "The Dockerfile"
+"text": "The Dockerfile's HEALTHCHECK"
 }
 ],
 "correct": [
@@ -9916,19 +9916,19 @@
 "options": [
 {
 "key": "A",
-"text": "Commit it so Azure reads the settings during deployment"
+"text": "Commit it so Azure reads the settings during every deployment"
 },
 {
 "key": "B",
-"text": "Exclude local.settings.json from source control; it's for local development only, and app settings in Azure hold the deployed values"
+"text": "Keep it out of Git; in Azure, app settings hold the deployed values"
 },
 {
 "key": "C",
-"text": "Rename it to host.json"
+"text": "Rename it to host.json so the secrets are hidden from Git"
 },
 {
 "key": "D",
-"text": "Encrypt it and keep it in the repository"
+"text": "Encrypt it with a password and keep it in the repository"
 }
 ],
 "correct": [
@@ -9949,19 +9949,19 @@
 "options": [
 {
 "key": "A",
-"text": "It stores connection strings for triggers"
+"text": "It stores the connection strings for triggers and bindings"
 },
 {
 "key": "B",
-"text": "It only applies when running locally"
+"text": "It only applies when running locally with Core Tools"
 },
 {
 "key": "C",
-"text": "Its settings configure the Functions host and apply both when running locally and in Azure"
+"text": "It configures the Functions host, both locally and in Azure"
 },
 {
 "key": "D",
-"text": "It's ignored by function apps written in Python"
+"text": "It's ignored by function apps that are written in Python"
 }
 ],
 "correct": [
@@ -9982,7 +9982,7 @@
 "options": [
 {
 "key": "A",
-"text": "az functionapp create --local-settings"
+"text": "az functionapp create --local-settings local.settings.json"
 },
 {
 "key": "B",
@@ -9990,11 +9990,11 @@
 },
 {
 "key": "C",
-"text": "func start --publish"
+"text": "func start --publish --app <app> --include-settings"
 },
 {
 "key": "D",
-"text": "func pack --settings"
+"text": "func pack --settings local.settings.json --publish <app>"
 }
 ],
 "correct": [
@@ -10015,19 +10015,19 @@
 "options": [
 {
 "key": "A",
-"text": "A grace period of 10 minutes"
+"text": "A grace period of 10 minutes after each request"
 },
 {
 "key": "B",
-"text": "Prewarmed and always ready instances, with at least one instance always running"
+"text": "Prewarmed and always ready instances (at least one running)"
 },
 {
 "key": "C",
-"text": "Running on the Free tier"
+"text": "Running on the Free tier with Always On enabled"
 },
 {
 "key": "D",
-"text": "Scale to zero when idle"
+"text": "Scale to zero when idle, with a fast startup image"
 }
 ],
 "correct": [
@@ -10114,7 +10114,7 @@
 "options": [
 {
 "key": "A",
-"text": "The legacy Consumption plan"
+"text": "The legacy Consumption plan with containers"
 },
 {
 "key": "B",
@@ -10122,11 +10122,11 @@
 },
 {
 "key": "C",
-"text": "The Free App Service tier"
+"text": "The Free App Service tier with Docker"
 },
 {
 "key": "D",
-"text": "Azure Container Registry Tasks"
+"text": "Azure Container Registry Tasks with Dapr"
 }
 ],
 "correct": [
@@ -10147,11 +10147,11 @@
 "options": [
 {
 "key": "A",
-"text": "From requirements.txt"
+"text": "From requirements.txt as package options"
 },
 {
 "key": "B",
-"text": "As environment variables populated from the function app's application settings"
+"text": "As environment variables from the app settings"
 },
 {
 "key": "C",
@@ -10159,7 +10159,7 @@
 },
 {
 "key": "D",
-"text": "From host.json"
+"text": "From host.json under the values section"
 }
 ],
 "correct": [
@@ -10180,7 +10180,7 @@
 "options": [
 {
 "key": "A",
-"text": "The maximum instance count for the app's scale settings"
+"text": "The app's maximum instance count"
 },
 {
 "key": "B",
@@ -10188,7 +10188,7 @@
 },
 {
 "key": "C",
-"text": "A deployment slot"
+"text": "A deployment slot limited to 20"
 },
 {
 "key": "D",
@@ -10213,7 +10213,7 @@
 "options": [
 {
 "key": "A",
-"text": "v3 is the recommended runtime for new apps"
+"text": "v3 remains the recommended runtime for new apps on Linux"
 },
 {
 "key": "B",
@@ -10221,11 +10221,11 @@
 },
 {
 "key": "C",
-"text": "They stop running after September 30, 2026, so migrate to the v4 runtime (and to Flex Consumption)"
+"text": "They stop running after September 30, 2026; migrate to v4"
 },
 {
 "key": "D",
-"text": "They move to the Free tier"
+"text": "They move to the Free tier with v3 support until 2028"
 }
 ],
 "correct": [
@@ -10250,15 +10250,15 @@
 },
 {
 "key": "B",
-"text": "Recover the secret, because deleted objects remain recoverable for the retention period (90 days by default)"
+"text": "Recover it; deleted secrets stay recoverable for 90 days by default"
 },
 {
 "key": "C",
-"text": "Nothing; deletion is permanent"
+"text": "Nothing; deletion is permanent even with soft delete enabled"
 },
 {
 "key": "D",
-"text": "Restore it only from an Azure Backup vault"
+"text": "Restore it only from a backup in an Azure Backup vault"
 }
 ],
 "correct": [
@@ -10312,19 +10312,19 @@
 "options": [
 {
 "key": "A",
-"text": "Secret names can never be reused"
+"text": "Secret names can never be reused in the same key vault"
 },
 {
 "key": "B",
-"text": "The deleted secret still exists in a soft-deleted state; you must recover it or purge it before reusing the name"
+"text": "The old secret is soft-deleted; recover or purge it first"
 },
 {
 "key": "C",
-"text": "You need the Key Vault Secrets User role"
+"text": "You need the Key Vault Secrets User role to create secrets"
 },
 {
 "key": "D",
-"text": "The vault must be restarted"
+"text": "The key vault must be restarted before the name is free"
 }
 ],
 "correct": [
@@ -10378,19 +10378,19 @@
 "options": [
 {
 "key": "A",
-"text": "Sharing the vault's access key with each app"
+"text": "Sharing the vault's access key with each app that needs secrets"
 },
 {
 "key": "B",
-"text": "Anonymous access restricted by IP"
+"text": "Anonymous access restricted by IP address with a firewall rule"
 },
 {
 "key": "C",
-"text": "Storing the vault password in app settings"
+"text": "A vault password stored in each app's settings and rotated yearly"
 },
 {
 "key": "D",
-"text": "Azure RBAC (for example with -EnableRbacAuthorization), assigning built-in roles such as Key Vault Secrets User"
+"text": "Azure RBAC, with built-in roles such as Key Vault Secrets User"
 }
 ],
 "correct": [
@@ -10411,11 +10411,11 @@
 "options": [
 {
 "key": "A",
-"text": "new SecretClient(new Uri(\"https://contoso-kv.azurewebsites.net\"))"
+"text": "new SecretClient(new Uri(\"https://contoso-kv.azurewebsites.net\"), new DefaultAzureCredential())"
 },
 {
 "key": "B",
-"text": "new KeyVaultClient(connectionString)"
+"text": "new KeyVaultClient(\"Endpoint=https://contoso-kv.vault.azure.net;AccessKey=<key>\")"
 },
 {
 "key": "C",
@@ -10423,7 +10423,7 @@
 },
 {
 "key": "D",
-"text": "new SecretClient(\"contoso-kv\", \"admin-password\")"
+"text": "new SecretClient(\"contoso-kv\", new ClientSecretCredential(\"admin\", \"admin-password\"))"
 }
 ],
 "correct": [
@@ -10444,19 +10444,19 @@
 "options": [
 {
 "key": "A",
-"text": "The vault's admin key in both places"
+"text": "The vault's admin access key in both places, read from an environment variable"
 },
 {
 "key": "B",
-"text": "The developer's signed-in Azure CLI (or IDE) credentials locally, and the app's managed identity in Azure"
+"text": "The developer's Azure CLI or IDE sign-in locally, a managed identity in Azure"
 },
 {
 "key": "C",
-"text": "Anonymous access locally and a certificate in Azure"
+"text": "Anonymous access locally and a client certificate in Azure"
 },
 {
 "key": "D",
-"text": "A hard-coded client secret in both places"
+"text": "A hard-coded client secret in both places, stored in appsettings.json"
 }
 ],
 "correct": [
@@ -10514,15 +10514,15 @@
 },
 {
 "key": "B",
-"text": "Key Vault creates a new version of the secret; previous versions are kept"
+"text": "A new version is created and older versions are kept"
 },
 {
 "key": "C",
-"text": "The existing value is overwritten and the old value is lost"
+"text": "The value is overwritten and the old value is lost"
 },
 {
 "key": "D",
-"text": "The call fails because the secret exists"
+"text": "The call fails because the secret already exists"
 }
 ],
 "correct": [
@@ -10543,19 +10543,19 @@
 "options": [
 {
 "key": "A",
-"text": "A timer that rotates both keys at the same moment"
+"text": "A timer function that regenerates both storage keys at the same moment every month"
 },
 {
 "key": "B",
-"text": "A key rotation policy on the secret"
+"text": "A key rotation policy on the secret that regenerates the storage key automatically"
 },
 {
 "key": "C",
-"text": "Delete and recreate the storage account every 90 days"
+"text": "Delete and recreate the storage account every 90 days with a new key in the vault"
 },
 {
 "key": "D",
-"text": "An Event Grid SecretNearExpiry event triggers a function that regenerates the alternate key and stores it as a new secret version"
+"text": "SecretNearExpiry triggers a function that regenerates the unused key as a new version"
 }
 ],
 "correct": [
@@ -10576,19 +10576,19 @@
 "options": [
 {
 "key": "A",
-"text": "SecretNearExpiry only works for certificates"
+"text": "SecretNearExpiry only fires for certificates"
 },
 {
 "key": "B",
-"text": "The secret has no expiration date set, so it can never be near expiry"
+"text": "The secret has no expiration date set"
 },
 {
 "key": "C",
-"text": "The function needs the Key Vault Administrator role"
+"text": "The function needs Key Vault Administrator"
 },
 {
 "key": "D",
-"text": "Event Grid only supports Key Vault in Premium tier"
+"text": "Event Grid needs a Premium-tier key vault"
 }
 ],
 "correct": [
@@ -10609,7 +10609,7 @@
 "options": [
 {
 "key": "A",
-"text": "Only certificates can be rotated"
+"text": "Only certificates can be rotated, through their issuance policy"
 },
 {
 "key": "B",
@@ -10617,11 +10617,11 @@
 },
 {
 "key": "C",
-"text": "Rotation requires deleting the old object first"
+"text": "Rotation always requires deleting the old object first"
 },
 {
 "key": "D",
-"text": "Cryptographic keys support a rotation policy that rotates them automatically; secrets are rotated with your own logic, typically triggered by Event Grid near-expiry events"
+"text": "Keys have rotation policies; secrets need your own rotation logic"
 }
 ],
 "correct": [
@@ -10642,19 +10642,19 @@
 "options": [
 {
 "key": "A",
-"text": "An expiry time on the rotation policy and an expiration date on the key"
+"text": "An expiry time on the policy and an expiration date on the key"
 },
 {
 "key": "B",
-"text": "Purge protection disabled"
+"text": "Purge protection disabled on the vault so notifications are allowed"
 },
 {
 "key": "C",
-"text": "A Premium-tier App Configuration store"
+"text": "A Premium-tier App Configuration store that forwards the events"
 },
 {
 "key": "D",
-"text": "A secret with the same name as the key"
+"text": "A secret with the same name as the key, with its own expiry date"
 }
 ],
 "correct": [
@@ -10675,19 +10675,19 @@
 "options": [
 {
 "key": "A",
-"text": "Disable TLS to reduce latency"
+"text": "TLS disabled on the client to reduce latency"
 },
 {
 "key": "B",
-"text": "Create a new SecretClient for every request"
+"text": "A new SecretClient for every request to Key Vault"
 },
 {
 "key": "C",
-"text": "Switch to anonymous access"
+"text": "Anonymous access so that no token is requested"
 },
 {
 "key": "D",
-"text": "Configure SecretClientOptions with an exponential retry policy (delay, max delay, max retries)"
+"text": "An exponential retry policy in SecretClientOptions"
 }
 ],
 "correct": [
@@ -10708,11 +10708,11 @@
 "options": [
 {
 "key": "A",
-"text": "A secret containing the PEM private key"
+"text": "A secret that contains the PEM private key"
 },
 {
 "key": "B",
-"text": "An App Configuration key-value"
+"text": "An App Configuration key-value with the key"
 },
 {
 "key": "C",
@@ -10720,7 +10720,7 @@
 },
 {
 "key": "D",
-"text": "A key, and perform sign operations through the Key Vault keys API"
+"text": "A key, signing through the Key Vault keys API"
 }
 ],
 "correct": [
@@ -10774,19 +10774,19 @@
 "options": [
 {
 "key": "A",
-"text": "Serialize the object to a string (for example JSON or Base64) before setting it, and deserialize it after reading"
+"text": "Serialize it to a string (such as JSON) and deserialize it on read"
 },
 {
 "key": "B",
-"text": "Split it into keys"
+"text": "Split it into Key Vault keys, one key for each JSON property"
 },
 {
 "key": "C",
-"text": "Nothing; Key Vault stores native JSON objects"
+"text": "Nothing, because Key Vault stores native JSON objects as secrets"
 },
 {
 "key": "D",
-"text": "Store it as a certificate"
+"text": "Store it as a certificate so that the structure is preserved"
 }
 ],
 "correct": [
@@ -10807,15 +10807,15 @@
 "options": [
 {
 "key": "A",
-"text": "Certificates with private keys can't be retrieved"
+"text": "It can't be retrieved; certificates with private keys stay in the vault"
 },
 {
 "key": "B",
-"text": "Read it as a secret, because Key Vault stores the certificate's public and private key pair as a secret"
+"text": "Read it as a secret; the key pair is stored as a secret"
 },
 {
 "key": "C",
-"text": "Read it from the certificate endpoint, which always includes the private key"
+"text": "Read it from the certificates endpoint, which includes the private key"
 },
 {
 "key": "D",
@@ -10840,11 +10840,11 @@
 "options": [
 {
 "key": "A",
-"text": "beginDeleteSecret starts a long-running operation and returns a poller you can wait on"
+"text": "beginDeleteSecret returns a poller for a long-running delete"
 },
 {
 "key": "B",
-"text": "Deleting a secret also deletes the vault"
+"text": "Deleting a secret also deletes the vault if it's the last one"
 },
 {
 "key": "C",
@@ -10852,7 +10852,7 @@
 },
 {
 "key": "D",
-"text": "You can only delete secrets in the Azure portal"
+"text": "You can only delete secrets in the Azure portal, not the SDK"
 }
 ],
 "correct": [
@@ -10873,15 +10873,15 @@
 "options": [
 {
 "key": "A",
-"text": "azure-storage-blob with BlobClient"
+"text": "azure-storage-blob with BlobClient and an account key"
 },
 {
 "key": "B",
-"text": "requests with the vault's admin password"
+"text": "requests with the vault's admin password in a header"
 },
 {
 "key": "C",
-"text": "azure-keyvault-secrets with SecretClient, authenticated with DefaultAzureCredential"
+"text": "azure-keyvault-secrets with SecretClient and DefaultAzureCredential"
 },
 {
 "key": "D",
@@ -10906,19 +10906,19 @@
 "options": [
 {
 "key": "A",
-"text": "The secret will be rotated every 90 days"
+"text": "The secret will be rotated automatically every 90 days"
 },
 {
 "key": "B",
-"text": "The secret can only be read 90 times"
+"text": "The secret can only be read 90 times before it's disabled"
 },
 {
 "key": "C",
-"text": "The secret expires in 90 days"
+"text": "The secret expires automatically 90 days after it was created"
 },
 {
 "key": "D",
-"text": "The secret can be recovered for 90 days after deletion and can also be purged during that time, because purge protection isn't enabled"
+"text": "Recoverable for 90 days after deletion, and purgeable meanwhile"
 }
 ],
 "correct": [
@@ -11005,19 +11005,19 @@
 "options": [
 {
 "key": "A",
-"text": "az keyvault update --retention-days 180"
+"text": "az keyvault update --name <vault> --retention-days 180 --enable-purge-protection"
 },
 {
 "key": "B",
-"text": "az keyvault secret set --vault-name <vault> --name MyApiKey --value <value> --expires <date 180 days ahead>"
+"text": "az keyvault secret set ... --name MyApiKey --value <value> --expires <date>"
 },
 {
 "key": "C",
-"text": "az keyvault secret show --ttl 180"
+"text": "az keyvault secret show --vault-name <vault> --name MyApiKey --ttl 180"
 },
 {
 "key": "D",
-"text": "az keyvault secret set --rotation-policy 180d"
+"text": "az keyvault secret set ... --name MyApiKey --value <value> --rotation-policy 180d"
 }
 ],
 "correct": [
@@ -11038,7 +11038,7 @@
 "options": [
 {
 "key": "A",
-"text": "Microsoft.Storage.BlobCreated"
+"text": "Microsoft.KeyVault.SecretUpdatedVersion"
 },
 {
 "key": "B",
@@ -11071,19 +11071,19 @@
 "options": [
 {
 "key": "A",
-"text": "Create three stores with different names for the key"
+"text": "Three stores, each with its own copy of the key"
 },
 {
 "key": "B",
-"text": "Use feature flags"
+"text": "Feature flags named after each environment"
 },
 {
 "key": "C",
-"text": "Append the environment to every value"
+"text": "The environment name appended to every value"
 },
 {
 "key": "D",
-"text": "Use the same key with labels Test, Staging, and Production"
+"text": "The same key with labels Test, Staging, and Production"
 }
 ],
 "correct": [
@@ -11104,19 +11104,19 @@
 "options": [
 {
 "key": "A",
-"text": "Labels can't be read by .NET apps"
+"text": "Labels can't be read by .NET apps through the configuration provider"
 },
 {
 "key": "B",
-"text": "The app needs the App Configuration Data Owner role"
+"text": "The app needs the App Configuration Data Owner role to read labels"
 },
 {
 "key": "C",
-"text": "By default the provider loads only key-values with no label; you must select the dev label explicitly"
+"text": "By default only unlabeled keys load; select the dev label explicitly"
 },
 {
 "key": "D",
-"text": "New keys are only visible after 24 hours"
+"text": "New keys are only visible to apps 24 hours after they're created"
 }
 ],
 "correct": [
@@ -11141,15 +11141,15 @@
 },
 {
 "key": "B",
-"text": "Restart the app after every change"
+"text": "Restart the app after every change so it always loads a complete set"
 },
 {
 "key": "C",
-"text": "Watch a single sentinel key and refresh all configuration only when the sentinel changes; update the sentinel last"
+"text": "Watch one sentinel key, update it last, and refresh all keys when it changes"
 },
 {
 "key": "D",
-"text": "Poll every key individually every second"
+"text": "Poll every key individually every second and apply changes as they arrive"
 }
 ],
 "correct": [
@@ -11170,19 +11170,19 @@
 "options": [
 {
 "key": "A",
-"text": "The app must use access keys instead of Entra ID"
+"text": "The app must use access keys instead of Entra ID for refresh to work"
 },
 {
 "key": "B",
-"text": "The sentinel key must be deleted after each update"
+"text": "The sentinel key must be deleted after each update to signal a change"
 },
 {
 "key": "C",
-"text": "Dynamic refresh only works in Python"
+"text": "Dynamic refresh only works in Python and JavaScript, not in .NET apps"
 },
 {
 "key": "D",
-"text": "Refresh must actually be triggered, for example with the App Configuration refresh middleware or by calling TryRefreshAsync"
+"text": "Refresh must be triggered, such as by the middleware or TryRefreshAsync"
 }
 ],
 "correct": [
@@ -11203,19 +11203,19 @@
 "options": [
 {
 "key": "A",
-"text": "Use IOptionsSnapshot<T> or IOptionsMonitor<T>, because IOptions<T> doesn't read configuration again after the app starts"
+"text": "Use IOptionsSnapshot<T> or IOptionsMonitor<T> instead"
 },
 {
 "key": "B",
-"text": "Store settings in Key Vault instead"
+"text": "Store the settings in Key Vault instead of App Configuration"
 },
 {
 "key": "C",
-"text": "Use a static variable"
+"text": "Use a static variable that is set once at startup"
 },
 {
 "key": "D",
-"text": "Restart the app every minute"
+"text": "Restart the app every minute to reload the settings"
 }
 ],
 "correct": [
@@ -11236,7 +11236,7 @@
 "options": [
 {
 "key": "A",
-"text": "Within about 30 seconds, the default feature flag refresh interval"
+"text": "Within about 30 seconds"
 },
 {
 "key": "B",
@@ -11244,11 +11244,11 @@
 },
 {
 "key": "C",
-"text": "Only after a restart"
+"text": "Only after the app restarts"
 },
 {
 "key": "D",
-"text": "After 24 hours"
+"text": "After the 24-hour cache expires"
 }
 ],
 "correct": [
@@ -11269,7 +11269,7 @@
 "options": [
 {
 "key": "A",
-"text": "Store the password in Key Vault and create a Key Vault reference in App Configuration; the app resolves it with an identity that can read the vault"
+"text": "Keep it in Key Vault, add a Key Vault reference in App Configuration"
 },
 {
 "key": "B",
@@ -11281,7 +11281,7 @@
 },
 {
 "key": "D",
-"text": "Put the password in a feature flag"
+"text": "Put the password in a feature flag with a filter"
 }
 ],
 "correct": [
@@ -11302,19 +11302,19 @@
 "options": [
 {
 "key": "A",
-"text": "Set the feature flag refresh interval to 0"
+"text": "Set the feature flag refresh interval to 0 so everything reloads"
 },
 {
 "key": "B",
-"text": "Change the label of the reference every time"
+"text": "Change the label of the Key Vault reference after each rotation"
 },
 {
 "key": "C",
-"text": "Configure a secret refresh interval for Key Vault references (SetSecretRefreshInterval)"
+"text": "Set a secret refresh interval (SetSecretRefreshInterval)"
 },
 {
 "key": "D",
-"text": "Delete the App Configuration store"
+"text": "Delete and recreate the App Configuration store after rotation"
 }
 ],
 "correct": [
@@ -11368,19 +11368,19 @@
 "options": [
 {
 "key": "A",
-"text": "Increasing the sentinel refresh interval"
+"text": "A longer sentinel refresh interval during deployments"
 },
 {
 "key": "B",
-"text": "Configuration snapshots, which are immutable point-in-time versions of key-values"
+"text": "Snapshots: immutable point-in-time sets of key-values"
 },
 {
 "key": "C",
-"text": "Using longer key names"
+"text": "Longer key names that include the release version"
 },
 {
 "key": "D",
-"text": "Disabling labels"
+"text": "Disabling labels so only one value exists per key"
 }
 ],
 "correct": [
@@ -11401,19 +11401,19 @@
 "options": [
 {
 "key": "A",
-"text": "Use the tenant ID as the label for every key"
+"text": "The tenant ID as the label for every key in the store"
 },
 {
 "key": "B",
-"text": "Use key prefixes for tenant-specific settings and keep labels for other purposes, such as environments"
+"text": "Key prefixes for tenants; labels kept for environments"
 },
 {
 "key": "C",
-"text": "Store tenant settings in feature flags"
+"text": "Tenant settings stored as feature flags with filters"
 },
 {
 "key": "D",
-"text": "Create one store per environment and one label per tenant"
+"text": "One store per environment and one label per tenant"
 }
 ],
 "correct": [
@@ -11434,19 +11434,19 @@
 "options": [
 {
 "key": "A",
-"text": "os.environ[\"sentinel\"]"
+"text": "os.environ[\"sentinel\"], checked in a loop every few seconds"
 },
 {
 "key": "B",
-"text": "azure.keyvault.secrets.SecretClient"
+"text": "SecretClient from azure-keyvault-secrets, watching the key"
 },
 {
 "key": "C",
-"text": "A timer that re-imports the module"
+"text": "A timer that re-imports the settings module every minute"
 },
 {
 "key": "D",
-"text": "load(...) with refresh_on=[WatchKey(\"sentinel\")] and a call to refresh"
+"text": "load(...) with refresh_on=[WatchKey(\"sentinel\")], then refresh()"
 }
 ],
 "correct": [
@@ -11500,15 +11500,15 @@
 "options": [
 {
 "key": "A",
-"text": "They discover replicas automatically and fail over to them when the primary endpoint is unavailable"
+"text": "They discover replicas automatically and fail over to them"
 },
 {
 "key": "B",
-"text": "Replicas are only for backups and can't serve reads"
+"text": "They can't read from replicas, which exist only for backups"
 },
 {
 "key": "C",
-"text": "They write to all replicas on every read"
+"text": "They write to every replica each time they read a value"
 },
 {
 "key": "D",
@@ -11566,19 +11566,19 @@
 "options": [
 {
 "key": "A",
-"text": "A Key Vault reference to the store itself"
+"text": "A Key Vault reference in appsettings.json that points to the store"
 },
 {
 "key": "B",
-"text": "options.Connect(new Uri(endpoint), new DefaultAzureCredential()), with the identity granted a data role on the store"
+"text": "options.Connect(new Uri(endpoint), new DefaultAzureCredential())"
 },
 {
 "key": "C",
-"text": "Anonymous access to the store's endpoint"
+"text": "options.Connect(new Uri(endpoint)) with anonymous access enabled"
 },
 {
 "key": "D",
-"text": "Using the store's primary access key in appsettings.json"
+"text": "options.Connect(builder.Configuration[\"AppConfig:PrimaryAccessKey\"])"
 }
 ],
 "correct": [
@@ -11599,19 +11599,19 @@
 "options": [
 {
 "key": "A",
-"text": "Leave out the key"
+"text": "Leave out the label parameter"
 },
 {
 "key": "B",
-"text": "Use the label default"
+"text": "Use the label value default"
 },
 {
 "key": "C",
-"text": "Use the null label value \\0, URL-encoded as %00"
+"text": "Use \\0, URL-encoded as %00"
 },
 {
 "key": "D",
-"text": "Use an asterisk"
+"text": "Use an asterisk (*) as the label"
 }
 ],
 "correct": [
@@ -11632,7 +11632,7 @@
 "options": [
 {
 "key": "A",
-"text": "Secrets (in Key Vault) and large files (in Azure Storage)"
+"text": "Secrets and large files"
 },
 {
 "key": "B",
@@ -11640,11 +11640,11 @@
 },
 {
 "key": "C",
-"text": "Logging levels"
+"text": "Logging levels per component"
 },
 {
 "key": "D",
-"text": "Feature flags"
+"text": "Feature flags and their filters"
 }
 ],
 "correct": [
@@ -11698,19 +11698,19 @@
 "options": [
 {
 "key": "A",
-"text": "As a single key TestApp containing all settings as plain text"
+"text": "As a single key TestApp holding all settings as plain text"
 },
 {
 "key": "B",
-"text": "As TestApp_Settings_Message using underscores only"
+"text": "With underscores only, such as TestApp_Settings_Message"
 },
 {
 "key": "C",
-"text": "With the : delimiter, for example TestApp:Settings:Message and TestApp:Settings:FontSize"
+"text": "With the : delimiter, such as TestApp:Settings:Message"
 },
 {
 "key": "D",
-"text": "With the label Settings and keys Message and FontSize"
+"text": "With the label Settings and the keys Message and FontSize"
 }
 ],
 "correct": [
@@ -11731,19 +11731,19 @@
 "options": [
 {
 "key": "A",
-"text": "Set the APPLICATIONINSIGHTS_CONNECTION_STRING environment variable to the resource's connection string"
+"text": "Set APPLICATIONINSIGHTS_CONNECTION_STRING for the app"
 },
 {
 "key": "B",
-"text": "Install the Application Insights classic SDK alongside the distro"
+"text": "Install the classic Application Insights SDK next to the distro"
 },
 {
 "key": "C",
-"text": "Set the instrumentation key in web.config"
+"text": "Set the instrumentation key in web.config under appSettings"
 },
 {
 "key": "D",
-"text": "Call builder.Services.AddOpenTelemetry().UseAzureMonitor() in Program.cs"
+"text": "Call AddOpenTelemetry().UseAzureMonitor() in Program.cs"
 }
 ],
 "correct": [
@@ -11765,19 +11765,19 @@
 "options": [
 {
 "key": "A",
-"text": "From the user's browser cookies"
+"text": "From the user's browser cookies on each page"
 },
 {
 "key": "B",
-"text": "From a query string parameter"
+"text": "From a query string parameter on each request"
 },
 {
 "key": "C",
-"text": "From an environment variable (or a configuration file for Java), not hard-coded in code"
+"text": "From an environment variable, not hard-coded"
 },
 {
 "key": "D",
-"text": "Hard-coded in the source code"
+"text": "Hard-coded in the source code for every build"
 }
 ],
 "correct": [
@@ -11798,19 +11798,19 @@
 "options": [
 {
 "key": "A",
-"text": "Remove all telemetry configuration"
+"text": "Remove all telemetry configuration from the app"
 },
 {
 "key": "B",
-"text": "Add adaptive sampling settings"
+"text": "Add adaptive sampling settings to the configuration"
 },
 {
 "key": "C",
-"text": "Provide a connection string, because SDK 3.x requires a connection string and can fail at startup without one"
+"text": "Provide a connection string; 3.x requires one"
 },
 {
 "key": "D",
-"text": "Nothing; instrumentation keys remain required"
+"text": "Nothing; the instrumentation key alone still works"
 }
 ],
 "correct": [
@@ -11831,19 +11831,19 @@
 "options": [
 {
 "key": "A",
-"text": "Set samplingRatio to 0.1 (and tracesPerSecond to 0 to use the ratio instead of a rate limit)"
+"text": "samplingRatio 0.1 with tracesPerSecond 0"
 },
 {
 "key": "B",
-"text": "Set the log level to Error"
+"text": "Set the log level to Error for all loggers"
 },
 {
 "key": "C",
-"text": "Delete the Application Insights resource"
+"text": "Delete and recreate the Application Insights resource"
 },
 {
 "key": "D",
-"text": "Set maxDeliveryAttempts to 10"
+"text": "Set maxDeliveryAttempts to 10 in the exporter"
 }
 ],
 "correct": [
@@ -11864,7 +11864,7 @@
 "options": [
 {
 "key": "A",
-"text": "It samples based on a hash of the trace ID, so all services make the same decision for the same trace"
+"text": "It samples on a hash of the trace ID, so decisions match"
 },
 {
 "key": "B",
@@ -11872,11 +11872,11 @@
 },
 {
 "key": "C",
-"text": "Sampling is disabled for distributed traces"
+"text": "Sampling is disabled automatically for distributed traces"
 },
 {
 "key": "D",
-"text": "Upstream services send a sampling flag that downstream services must obey"
+"text": "Upstream services send a flag that downstream services obey"
 }
 ],
 "correct": [
@@ -11930,19 +11930,19 @@
 "options": [
 {
 "key": "A",
-"text": "cloud_RoleInstance"
+"text": "cloud_RoleInstance of the frontend"
 },
 {
 "key": "B",
-"text": "itemCount"
+"text": "itemCount on the first request"
 },
 {
 "key": "C",
-"text": "client_IP"
+"text": "client_IP of the original caller"
 },
 {
 "key": "D",
-"text": "operation_Id, which corresponds to the W3C trace-id"
+"text": "operation_Id (the W3C trace-id)"
 }
 ],
 "correct": [
@@ -11967,7 +11967,7 @@
 },
 {
 "key": "B",
-"text": "A 16-byte trace-id for the transaction and an 8-byte span-id for each operation"
+"text": "A 16-byte trace-id and an 8-byte span-id"
 },
 {
 "key": "C",
@@ -12000,15 +12000,15 @@
 },
 {
 "key": "B",
-"text": "Add a custom metric named role"
+"text": "Add a custom metric named role with the service's name"
 },
 {
 "key": "C",
-"text": "Rename the Log Analytics workspace"
+"text": "Rename the Log Analytics workspace to match each service"
 },
 {
 "key": "D",
-"text": "Set the service.name resource attribute (for example with OTEL_SERVICE_NAME) for each service"
+"text": "Set service.name (for example OTEL_SERVICE_NAME) per service"
 }
 ],
 "correct": [
@@ -12062,11 +12062,11 @@
 "options": [
 {
 "key": "A",
-"text": "A KQL function"
+"text": "A KQL function applied in the workspace"
 },
 {
 "key": "B",
-"text": "A Container Apps scale rule"
+"text": "A log processor that rewrites span names"
 },
 {
 "key": "C",
@@ -12074,7 +12074,7 @@
 },
 {
 "key": "D",
-"text": "An Event Grid filter"
+"text": "An Event Grid filter on the telemetry topic"
 }
 ],
 "correct": [
@@ -12095,19 +12095,19 @@
 "options": [
 {
 "key": "A",
-"text": "Lower the sampling ratio to 0"
+"text": "Lower the sampling ratio to 0 for the whole service"
 },
 {
 "key": "B",
-"text": "Delete them in Log Analytics every day"
+"text": "Delete them in Log Analytics every day with a job"
 },
 {
 "key": "C",
-"text": "Configure the HTTP instrumentation library to exclude those requests"
+"text": "Configure the HTTP instrumentation to exclude them"
 },
 {
 "key": "D",
-"text": "Disable the Application Insights resource"
+"text": "Disable the Application Insights resource at night"
 }
 ],
 "correct": [
@@ -12128,7 +12128,7 @@
 "options": [
 {
 "key": "A",
-"text": "Initialize it after the first request"
+"text": "Initialize it after the first request is handled"
 },
 {
 "key": "B",
@@ -12136,11 +12136,11 @@
 },
 {
 "key": "C",
-"text": "Initialize the distro before loading application libraries (for ESM, preload the distro loader)"
+"text": "Initialize the distro before loading app libraries"
 },
 {
 "key": "D",
-"text": "Increase the sampling ratio"
+"text": "Increase the sampling ratio to 1.0 for the app"
 }
 ],
 "correct": [
@@ -12198,11 +12198,11 @@
 },
 {
 "key": "B",
-"text": "KQL sample operators"
+"text": "KQL sample operators in queries"
 },
 {
 "key": "C",
-"text": "Sampling configured with TracesPerSecond or SamplingRatio"
+"text": "TracesPerSecond or SamplingRatio"
 },
 {
 "key": "D",
@@ -12227,19 +12227,19 @@
 "options": [
 {
 "key": "A",
-"text": "A histogram created from a Meter"
+"text": "A histogram from a Meter"
 },
 {
 "key": "B",
-"text": "A log message"
+"text": "A log message per order"
 },
 {
 "key": "C",
-"text": "A span attribute"
+"text": "A span attribute on each order"
 },
 {
 "key": "D",
-"text": "A counter"
+"text": "A counter from a Meter"
 }
 ],
 "correct": [
@@ -12293,19 +12293,19 @@
 "options": [
 {
 "key": "A",
-"text": "The system property, then the environment variable, then the configuration file"
+"text": "System property, then environment variable, then file"
 },
 {
 "key": "B",
-"text": "The last one read alphabetically"
+"text": "Whichever source the agent happens to read last"
 },
 {
 "key": "C",
-"text": "The configuration file always wins"
+"text": "The configuration file always wins over the others"
 },
 {
 "key": "D",
-"text": "The environment variable always wins"
+"text": "The environment variable always wins over the others"
 }
 ],
 "correct": [
@@ -12363,7 +12363,7 @@
 },
 {
 "key": "B",
-"text": "Transaction diagnostics (end-to-end transaction details)"
+"text": "Transaction diagnostics"
 },
 {
 "key": "C",
@@ -12396,15 +12396,15 @@
 },
 {
 "key": "B",
-"text": "requests | summarize count() by timestamp | where timestamp > 1d"
+"text": "requests | summarize count() by timestamp | where timestamp > ago(1d) | take 5m"
 },
 {
 "key": "C",
-"text": "requests | project bin(5m) | count()"
+"text": "requests | project bin(5m) | where timestamp > ago(1d) | summarize count()"
 },
 {
 "key": "D",
-"text": "requests | take 5m | count"
+"text": "requests | where timestamp > ago(1d) | take 5m | summarize count() by timestamp"
 }
 ],
 "correct": [
@@ -12425,11 +12425,11 @@
 "options": [
 {
 "key": "A",
-"text": "render must be the last operator in the query"
+"text": "render must be the last operator"
 },
 {
 "key": "B",
-"text": "where can't follow summarize"
+"text": "where can't follow a render operator's chart"
 },
 {
 "key": "C",
@@ -12437,7 +12437,7 @@
 },
 {
 "key": "D",
-"text": "timechart requires a join"
+"text": "timechart always requires a join first"
 }
 ],
 "correct": [
@@ -12499,7 +12499,7 @@
 },
 {
 "key": "C",
-"text": "innerunique, which removes duplicate keys from the left side before matching"
+"text": "innerunique"
 },
 {
 "key": "D",
@@ -12557,19 +12557,19 @@
 "options": [
 {
 "key": "A",
-"text": "extend removes columns and project adds them"
+"text": "extend removes the listed columns, and project adds new calculated ones"
 },
 {
 "key": "B",
-"text": "project selects (and can rename or compute) only the listed columns, while extend adds new calculated columns and keeps all existing ones"
+"text": "project keeps only the listed columns; extend adds columns and keeps the rest"
 },
 {
 "key": "C",
-"text": "project can only be used after summarize"
+"text": "project can only be used after summarize, and extend only before it"
 },
 {
 "key": "D",
-"text": "They are identical"
+"text": "They are identical, so either one can be used with the same result"
 }
 ],
 "correct": [
@@ -12590,19 +12590,19 @@
 "options": [
 {
 "key": "A",
-"text": "With a let statement, for example let startTime = ago(14d); and then use startTime in the query"
+"text": "A let statement, such as let startTime = ago(14d);"
 },
 {
 "key": "B",
-"text": "With a variable declared using var"
+"text": "A variable declared with var startTime = ago(14d);"
 },
 {
 "key": "C",
-"text": "By repeating ago(14d) everywhere; KQL has no variables"
+"text": "Repeat ago(14d) everywhere, because KQL has no variables"
 },
 {
 "key": "D",
-"text": "With the set operator"
+"text": "The set operator, such as set startTime = ago(14d);"
 }
 ],
 "correct": [
@@ -12689,19 +12689,19 @@
 "options": [
 {
 "key": "A",
-"text": "requests | summarize count() by success | top 10"
+"text": "requests | where timestamp > ago(24h) | summarize count() by success | top 10 by count_"
 },
 {
 "key": "B",
-"text": "requests | where timestamp > ago(24h) and success == false | summarize failures = count() by name | top 10 by failures desc"
+"text": "requests | where timestamp > ago(24h) and success == false | summarize failures = count() by name | top 10 by failures"
 },
 {
 "key": "C",
-"text": "requests | top 10 by success"
+"text": "requests | where timestamp > ago(24h) | top 10 by success | summarize failures = count() by name"
 },
 {
 "key": "D",
-"text": "requests | take 10 | where success == false"
+"text": "requests | take 10 | where timestamp > ago(24h) and success == false | summarize count() by name"
 }
 ],
 "correct": [
@@ -12755,19 +12755,19 @@
 "options": [
 {
 "key": "A",
-"text": "contains, because it uses the index"
+"text": "contains, because it uses the term index"
 },
 {
 "key": "B",
-"text": "has, because it matches indexed terms, while contains matches any substring"
+"text": "has, because it matches whole indexed terms"
 },
 {
 "key": "C",
-"text": "Neither; you must use matches regex"
+"text": "Neither; use matches regex for whole words"
 },
 {
 "key": "D",
-"text": "They always perform the same"
+"text": "They always perform the same on large tables"
 }
 ],
 "correct": [
@@ -12854,7 +12854,7 @@
 "options": [
 {
 "key": "A",
-"text": "project TenantId"
+"text": "project TenantId | summarize count() by TenantId, customDimensions"
 },
 {
 "key": "B",
@@ -12862,11 +12862,11 @@
 },
 {
 "key": "C",
-"text": "summarize count() by customDimensions"
+"text": "summarize count() by customDimensions | where customDimensions has \"TenantId\""
 },
 {
 "key": "D",
-"text": "where customDimensions == TenantId"
+"text": "where customDimensions == \"TenantId\" | summarize count() by name"
 }
 ],
 "correct": [
@@ -12953,7 +12953,7 @@
 "options": [
 {
 "key": "A",
-"text": "Rename isn't possible; the columns must have the same name"
+"text": "Not possible; both columns must have the same name to be joined"
 },
 {
 "key": "B",
@@ -12961,11 +12961,11 @@
 },
 {
 "key": "C",
-"text": "join PopulationData on State, StateName"
+"text": "join kind=innerunique PopulationData on State, StateName"
 },
 {
 "key": "D",
-"text": "join PopulationData where State = StateName"
+"text": "join kind=innerunique PopulationData where State == StateName"
 }
 ],
 "correct": [
@@ -12986,15 +12986,15 @@
 "options": [
 {
 "key": "A",
-"text": "summarize sum(success) by bin(timestamp, 1h)"
+"text": "summarize total = sum(itemCount), failed = sum(success) by bin(timestamp, 1h)"
 },
 {
 "key": "B",
-"text": "where success == false | summarize count() by bin(timestamp, 1h)"
+"text": "where success == false | summarize total = count(), failed = count() by bin(timestamp, 1h)"
 },
 {
 "key": "C",
-"text": "summarize count() by success, bin(timestamp, 1h) is the only way"
+"text": "summarize total = count(), failed = count(success == false) by bin(timestamp, 1h)"
 },
 {
 "key": "D",
@@ -13019,11 +13019,11 @@
 "options": [
 {
 "key": "A",
-"text": "top 1 by TimeGenerated"
+"text": "top 1 by TimeGenerated desc, Computer"
 },
 {
 "key": "B",
-"text": "distinct Computer"
+"text": "distinct Computer, TimeGenerated"
 },
 {
 "key": "C",
@@ -13052,19 +13052,19 @@
 "options": [
 {
 "key": "A",
-"text": "ContainerAppConsoleLogs_CL | project TimeGenerated, ContainerAppName_s, RevisionName_s, Log_s | where Log_s contains \"error\""
+"text": "ContainerAppConsoleLogs_CL | where Log_s contains \"error\" | project TimeGenerated, ContainerAppName_s, RevisionName_s, Log_s"
 },
 {
 "key": "B",
-"text": "ContainerLogV2 | where PodName contains \"app\""
+"text": "ContainerLogV2 | where LogMessage contains \"error\" | project TimeGenerated, PodName, ContainerName, LogMessage"
 },
 {
 "key": "C",
-"text": "AzureActivity | where Level == \"Error\""
+"text": "AzureActivity | where Level == \"Error\" | project TimeGenerated, ResourceGroup, OperationNameValue, Caller"
 },
 {
 "key": "D",
-"text": "AppRequests | where Success == false"
+"text": "AppRequests | where Success == false | project TimeGenerated, AppRoleName, OperationName, ResultCode"
 }
 ],
 "correct": [
@@ -13085,19 +13085,19 @@
 "options": [
 {
 "key": "A",
-"text": "The distinct operator"
+"text": "The distinct operator on the daily values"
 },
 {
 "key": "B",
-"text": "render barchart"
+"text": "render anomalychart without any series"
 },
 {
 "key": "C",
-"text": "Series functions such as series_decompose_anomalies applied to the time series"
+"text": "series_decompose_anomalies on the series"
 },
 {
 "key": "D",
-"text": "A join with the Heartbeat table"
+"text": "A join with the Heartbeat table by day"
 }
 ],
 "correct": [
@@ -13118,19 +13118,19 @@
 "options": [
 {
 "key": "A",
-"text": "It sorts rows by time"
+"text": "It sorts the rows by time before they are summarized"
 },
 {
 "key": "B",
-"text": "It rounds values down to multiples of a given size, so summarize ... by bin(timestamp, 1h) groups rows into hourly buckets"
+"text": "It rounds values down into fixed-size buckets, such as hours"
 },
 {
 "key": "C",
-"text": "It converts strings to datetimes"
+"text": "It converts string columns into datetime values"
 },
 {
 "key": "D",
-"text": "It removes null values"
+"text": "It removes null values from the column before grouping"
 }
 ],
 "correct": [
@@ -13151,15 +13151,15 @@
 "options": [
 {
 "key": "A",
-"text": "order by Name"
+"text": "order by Name, SessionId asc"
 },
 {
 "key": "B",
-"text": "summarize count()"
+"text": "summarize count() by Name"
 },
 {
 "key": "C",
-"text": "take 100"
+"text": "take 100 | project Name, SessionId"
 },
 {
 "key": "D",
@@ -13184,19 +13184,19 @@
 "options": [
 {
 "key": "A",
-"text": "Add render at the start of the query"
+"text": "Add render at the start so the client draws fewer rows"
 },
 {
 "key": "B",
-"text": "Join every table first and filter at the end"
+"text": "Join every table first, then filter at the very end"
 },
 {
 "key": "C",
-"text": "Use contains instead of has"
+"text": "Use contains instead of has for all string filters"
 },
 {
 "key": "D",
-"text": "Filter early with where clauses, especially on time (for example where TimeGenerated > ago(1h)), before joins and aggregations"
+"text": "Filter early with where, especially on time, before joins"
 }
 ],
 "correct": [
