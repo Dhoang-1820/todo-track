@@ -168,7 +168,7 @@
       <section class="hero">
         <div>
           <h1>Exam AI-200 practice</h1>
-          <p class="muted">Developing AI Cloud Solutions on Azure · 400 questions from official Microsoft Learn sources · 10 mock tests of 40 questions</p>
+          <p class="muted">Developing AI Cloud Solutions on Azure · ${bank.length} questions${bank.some((q) => q.origin === "upload") ? " (including your uploads)" : ""} · 10 mock tests of 40 questions</p>
         </div>
         <div class="overall ${answered.length ? (overall >= CFG.passScore ? "pass" : "fail") : ""}">
           <div class="big">${answered.length ? overall : "—"}</div>
@@ -378,7 +378,7 @@
       document.getElementById("review").innerHTML = items.filter((x) => f === "all" || !x.ans.is_correct).map((x) => {
         const n = items.indexOf(x) + 1;
         return `<article class="rev ${x.ans.is_correct ? "ok" : "bad"}">
-          <div class="qmeta"><span>${n}. ${x.ans.is_correct ? "✔ Correct" : "✘ Incorrect"}${flags[x.q.id] ? " · ★ flagged" : ""}</span><span class="tag">${x.q.domain} · ${esc(x.q.skill_name)}</span></div>
+          <div class="qmeta"><span>${n}. ${x.ans.is_correct ? "✔ Correct" : "✘ Incorrect"}${flags[x.q.id] ? " · ★ flagged" : ""}</span><span class="tag">${x.q.domain} · ${esc(x.q.skill_name || "")}</span></div>
           <p class="stem">${esc(x.q.stem)}</p>
           <ul class="ropts">${x.q.options.map((o) => {
             const isC = x.q.correct.includes(o.key), mine = x.ans.selected.includes(o.key);
@@ -386,7 +386,7 @@
           }).join("")}</ul>
           ${x.ans.selected.length ? "" : `<p class="muted small">Not answered.</p>`}
           <div class="expl"><b>Explanation.</b> ${esc(x.q.explanation)}</div>
-          <p class="src">Source: <a href="${esc(x.q.source_url)}" target="_blank" rel="noopener">${esc(x.q.source_title)} — Microsoft Learn</a></p>
+          ${x.q.source_url ? `<p class="src">Source: <a href="${esc(x.q.source_url)}" target="_blank" rel="noopener">${esc(x.q.source_title || x.q.source_url)}</a></p>` : ""}
         </article>`;
       }).join("") || `<p class="muted">Nothing to show. Every answer was correct.</p>`;
     }
@@ -408,11 +408,210 @@
     document.querySelectorAll("tr[data-id]").forEach((r) => r.onclick = () => (location.hash = `#/result/${r.dataset.id}`));
   }
 
+
+  /* ---------- bulk upload ---------- */
+  const CSV_COLS = ["id", "domain", "skill", "mock", "question", "option_a", "option_b", "option_c", "option_d", "option_e", "option_f", "correct", "explanation", "source_title", "source_url"];
+
+  function parseCSV(text) {
+    text = text.replace(/^﻿/, "");
+    const rows = []; let row = [], field = "", inQ = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (inQ) {
+        if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+        else if (c === '"') inQ = false;
+        else field += c;
+      } else if (c === '"') inQ = true;
+      else if (c === ",") { row.push(field); field = ""; }
+      else if (c === "\n" || c === "\r") {
+        if (c === "\r" && text[i + 1] === "\n") i++;
+        row.push(field); field = ""; if (row.some((v) => v.trim() !== "")) rows.push(row); row = [];
+      } else field += c;
+    }
+    row.push(field); if (row.some((v) => v.trim() !== "")) rows.push(row);
+    if (!rows.length) return [];
+    const head = rows[0].map((h) => h.trim().toLowerCase());
+    return rows.slice(1).map((r) => Object.fromEntries(head.map((h, i) => [h, (r[i] ?? "").trim()])));
+  }
+
+  function fromCsvRow(r) {
+    const options = ["a", "b", "c", "d", "e", "f"].map((l) => ({ key: l.toUpperCase(), text: r["option_" + l] || "" })).filter((o) => o.text);
+    return {
+      id: r.id || "", domain: (r.domain || "").toUpperCase(), skill: r.skill || "", mock: r.mock ? Number(r.mock) : null,
+      stem: r.question || r.stem || "", options,
+      correct: (r.correct || "").toUpperCase().split(/[^A-F]+/).filter(Boolean),
+      explanation: r.explanation || "", source_title: r.source_title || "", source_url: r.source_url || ""
+    };
+  }
+
+  function fromJsonItem(x) {
+    let options = x.options || [];
+    if (Array.isArray(options) && typeof options[0] === "string") options = options.map((t, i) => ({ key: "ABCDEF"[i], text: t }));
+    let correct = x.correct ?? x.answer ?? [];
+    if (!Array.isArray(correct)) correct = String(correct).toUpperCase().split(/[^A-F]+/).filter(Boolean);
+    return {
+      id: x.id || "", domain: String(x.domain || "").toUpperCase(), skill: x.skill || "", skill_name: x.skill_name || "",
+      mock: x.mock ? Number(x.mock) : null, stem: x.stem || x.question || "", options: options.map((o) => ({ key: String(o.key).toUpperCase(), text: String(o.text || "").trim() })),
+      correct: correct.map((c) => String(c).toUpperCase()), explanation: x.explanation || "", source_title: x.source_title || "", source_url: x.source_url || ""
+    };
+  }
+
+  function validateItems(items) {
+    const bankStems = new Map(bank.map((q) => [q.stem.trim().toLowerCase(), q]));
+    const seen = new Set();
+    return items.map((it, i) => {
+      const errors = [], warnings = [];
+      if (!DOMAINS[it.domain]) errors.push("domain must be D1–D4");
+      if (!it.stem.trim()) errors.push("question text is missing");
+      if (it.options.length < 2 || it.options.length > 6) errors.push("needs 2–6 options");
+      if (!it.correct.length) errors.push("correct answer is missing");
+      else if (!it.correct.every((c) => it.options.some((o) => o.key === c))) errors.push(`correct answer ${it.correct.join(",")} doesn't match an option`);
+      if (!it.explanation.trim()) errors.push("explanation is missing");
+      if (it.mock !== null && !(it.mock >= 1 && it.mock <= 10)) errors.push("mock must be 1–10 or empty");
+      if (it.source_url && !/^https?:\/\//i.test(it.source_url)) errors.push("source_url must start with http(s)://");
+      const key = it.stem.trim().toLowerCase();
+      const dupe = bankStems.get(key);
+      if (dupe && dupe.origin !== "upload") errors.push("same question already exists in the bank");
+      else if (dupe) warnings.push("will update an uploaded question with the same text");
+      if (seen.has(key) && key) errors.push("duplicate of an earlier row in this file");
+      seen.add(key);
+      if (!it.source_url) warnings.push("no source link");
+      return { row: i + 1, item: it, errors, warnings };
+    });
+  }
+
+  function download(name, text, type) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  const csvCell = (v) => (/[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
+
+  function templateCSV() {
+    const rows = [CSV_COLS,
+      ["", "D2", "cvec", "", "Which function orders Cosmos DB for NoSQL results by vector similarity?", "VectorDistance", "ST_DISTANCE", "ARRAY_CONTAINS", "", "", "", "A", "VectorDistance computes the distance between a stored vector and the query vector, so ORDER BY VectorDistance(...) returns the nearest items.", "Vector search in Azure Cosmos DB for NoSQL", "https://learn.microsoft.com/en-us/azure/cosmos-db/vector-search"],
+      ["", "D3", "sb", "", "Which two settings help you inspect poison messages in Service Bus? Choose two.", "MaxDeliveryCount", "The dead-letter queue", "WEBSITES_PORT", "Event TTL", "", "", "A,B", "Messages that exceed MaxDeliveryCount move to the dead-letter queue, where you can inspect them.", "", ""]];
+    return "﻿" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n");
+  }
+  function templateJSON() {
+    return JSON.stringify([{ id: "", domain: "D4", skill: "kql", mock: null, stem: "Which KQL operator must be last in a query?", options: ["render", "where", "summarize", "project"], correct: ["A"], explanation: "render instructs the client how to visualize results and must be the last operator.", source_title: "render operator (KQL)", source_url: "https://learn.microsoft.com/en-us/kusto/query/render-operator" }], null, 2);
+  }
+
+  function renderUpload() {
+    let parsed = [];
+    const uploads = bank.filter((q) => q.origin === "upload");
+    const batches = {};
+    uploads.forEach((q) => { const b = q.batch_id || "unnamed"; batches[b] = batches[b] || { n: 0, at: q.uploaded_at }; batches[b].n++; });
+    const stamp = new Date().toISOString().slice(0, 16).replace("T", "-").replace(":", "");
+    setView(`
+      <section class="card">
+        <h1>Upload questions</h1>
+        <p class="muted">Add many questions at once from a CSV file (works with Excel and Google Sheets) or a JSON file. Uploaded questions appear in smart mixed tests, domain practice, and mistake review, and in a mock test if you set its number.</p>
+        <div class="rowbtns">
+          <button class="btn small" id="tplCsv">Download CSV template</button>
+          <button class="btn small" id="tplJson">Download JSON template</button>
+        </div>
+        <details class="fmt"><summary>Column guide</summary>
+          <ul class="small">
+            <li><b>domain</b> (required): D1, D2, D3 or D4</li>
+            <li><b>question</b>, <b>explanation</b> (required)</li>
+            <li><b>option_a … option_f</b>: 2 to 6 options</li>
+            <li><b>correct</b> (required): letter(s), for example B or A,C. More than one letter makes it a "choose N" question; say so in the question text.</li>
+            <li><b>mock</b> (optional): 1–10 to include it in that mock test</li>
+            <li><b>id</b> (optional): reuse an id to update a question you uploaded before</li>
+            <li><b>skill</b>, <b>source_title</b>, <b>source_url</b> (optional, but a Microsoft Learn link is recommended)</li>
+          </ul>
+        </details>
+        <label class="drop" id="drop">
+          <input type="file" id="file" accept=".csv,.json,text/csv,application/json">
+          <b>Choose a .csv or .json file</b><span class="muted small">or drop it here</span>
+        </label>
+        <div id="preview"></div>
+      </section>
+      <section class="card">
+        <h2>Uploaded batches</h2>
+        ${Object.keys(batches).length ? `<div class="tablewrap"><table><thead><tr><th>Batch</th><th>Questions</th><th>Uploaded</th><th></th></tr></thead><tbody>
+          ${Object.entries(batches).map(([b, v]) => `<tr class="static"><td>${esc(b)}</td><td>${v.n}</td><td>${v.at ? fmtDate(v.at) : ""}</td><td><button class="btn small ghost danger" data-del="${esc(b)}">Delete</button></td></tr>`).join("")}
+        </tbody></table></div><p class="muted small">Deleting a batch also removes those questions from your past results.</p>` : `<p class="muted">Nothing uploaded yet. The built-in bank has ${bank.length} questions.</p>`}
+      </section>`);
+
+    document.getElementById("tplCsv").onclick = () => download("ai200-questions-template.csv", templateCSV(), "text/csv");
+    document.getElementById("tplJson").onclick = () => download("ai200-questions-template.json", templateJSON(), "application/json");
+
+    const fileIn = document.getElementById("file"), drop = document.getElementById("drop");
+    const handle = async (file) => {
+      if (!file) return;
+      const text = await file.text();
+      let items = [];
+      try {
+        if (/\.json$/i.test(file.name) || text.trim().startsWith("[") || text.trim().startsWith("{")) {
+          const data = JSON.parse(text); items = (Array.isArray(data) ? data : data.questions || []).map(fromJsonItem);
+        } else items = parseCSV(text).map(fromCsvRow);
+      } catch (e) { document.getElementById("preview").innerHTML = `<p class="err">Couldn't read the file: ${esc(e.message)}</p>`; return; }
+      parsed = validateItems(items);
+      drawPreview(file.name);
+    };
+    fileIn.onchange = () => handle(fileIn.files[0]);
+    drop.ondragover = (e) => { e.preventDefault(); drop.classList.add("over"); };
+    drop.ondragleave = () => drop.classList.remove("over");
+    drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove("over"); handle(e.dataTransfer.files[0]); };
+
+    function drawPreview(name) {
+      const ok = parsed.filter((p) => !p.errors.length), bad = parsed.length - ok.length;
+      const byDom = {}; ok.forEach((p) => (byDom[p.item.domain] = (byDom[p.item.domain] || 0) + 1));
+      document.getElementById("preview").innerHTML = parsed.length ? `
+        <div class="summary ${bad ? "warnbox" : "okbox"}">
+          <b>${esc(name)}</b>: ${parsed.length} rows · <span class="okc">${ok.length} ready</span>${bad ? ` · <span class="errc">${bad} with errors</span>` : ""}
+          ${ok.length ? `<div class="small muted">${Object.entries(byDom).map(([d, n]) => `${d}: ${n}`).join(" · ")}</div>` : ""}
+        </div>
+        <div class="tablewrap"><table class="prev"><thead><tr><th>Row</th><th>Status</th><th>Domain</th><th>Question</th><th>Answer</th></tr></thead><tbody>
+          ${parsed.map((p) => `<tr class="static ${p.errors.length ? "rowbad" : ""}"><td>${p.row}</td>
+            <td>${p.errors.length ? `<span class="errc">✘ ${esc(p.errors.join("; "))}</span>` : `<span class="okc">✔ Ready</span>${p.warnings.length ? `<div class="small muted">${esc(p.warnings.join("; "))}</div>` : ""}`}</td>
+            <td>${esc(p.item.domain)}</td><td class="wrap">${esc(p.item.stem.slice(0, 140))}${p.item.stem.length > 140 ? "…" : ""}</td><td>${esc(p.item.correct.join(","))}</td></tr>`).join("")}
+        </tbody></table></div>
+        ${ok.length ? `
+        <div class="uploadform">
+          <label>Batch name <input type="text" id="batch" value="upload-${stamp}" maxlength="60"></label>
+          <label>Admin passcode <input type="password" id="pass" autocomplete="current-password"></label>
+          <button class="btn primary" id="doUpload">Upload ${ok.length} question${ok.length > 1 ? "s" : ""}${bad ? " (skip rows with errors)" : ""}</button>
+          <p id="upMsg" class="small" role="status"></p>
+        </div>` : `<p class="err">Fix the errors in your file and choose it again.</p>`}` : `<p class="err">No questions found in this file. Check that the first row contains the column names.</p>`;
+      const btn = document.getElementById("doUpload");
+      if (btn) btn.onclick = async () => {
+        const msg = document.getElementById("upMsg");
+        const pass = document.getElementById("pass").value, batch = document.getElementById("batch").value.trim();
+        if (!pass) { msg.textContent = "Enter the admin passcode."; msg.className = "small errc"; return; }
+        btn.disabled = true; msg.textContent = "Uploading…"; msg.className = "small";
+        try {
+          const res = await api("rpc/upload_questions", { method: "POST", body: JSON.stringify({ p_passcode: pass, p_items: ok.map((p) => p.item), p_batch: batch || "upload-" + stamp }) });
+          bank = await loadBank(); byId = new Map(bank.map((q) => [q.id, q]));
+          msg.className = "small okc";
+          msg.textContent = `Done: ${res.inserted} added, ${res.updated} updated${res.skipped ? `, ${res.skipped} skipped (id belongs to the built-in bank)` : ""}. The bank now has ${bank.length} questions.`;
+          setTimeout(renderUpload, 2500);
+        } catch (e) {
+          btn.disabled = false; msg.className = "small errc";
+          msg.textContent = /Invalid passcode/.test(e.message) ? "Wrong passcode." : "Upload failed: " + (e.message.match(/"message":"([^"]+)"/)?.[1] || e.message);
+        }
+      };
+    }
+
+    document.querySelectorAll("[data-del]").forEach((b) => b.onclick = async () => {
+      const batch = b.dataset.del;
+      const pass = prompt(`Delete batch "${batch}" (${batches[batch].n} questions)? Enter the admin passcode to confirm.`);
+      if (!pass) return;
+      try {
+        await api("rpc/delete_upload_batch", { method: "POST", body: JSON.stringify({ p_passcode: pass, p_batch: batch }) });
+        bank = await loadBank(); byId = new Map(bank.map((q) => [q.id, q])); renderUpload();
+      } catch (e) { alert(/Invalid passcode/.test(e.message) ? "Wrong passcode." : "Delete failed: " + e.message); }
+    });
+  }
+
   function route() {
     const h = location.hash || "#/";
     if (h.startsWith("#/test")) return renderTest();
     if (h.startsWith("#/result/")) return renderResult(h.slice(9));
     if (h.startsWith("#/history")) return renderHistory();
+    if (h.startsWith("#/upload")) return renderUpload();
     return renderDashboard();
   }
 

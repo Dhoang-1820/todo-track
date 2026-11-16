@@ -145,3 +145,21 @@ tbody tr:hover { background: var(--accent-soft); }
   .testbar { top: 49px; }
   .qnav .btn { flex: 1; }
 }
+
+/* upload */
+.rowbtns { display: flex; flex-wrap: wrap; gap: .5rem; margin: .4rem 0 .8rem; }
+.fmt { margin-bottom: .9rem; } .fmt summary { cursor: pointer; font-weight: 600; } .fmt ul { margin: .5rem 0 0; padding-left: 1.2rem; }
+.drop { display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: 1.4rem; border: 2px dashed var(--line); border-radius: var(--radius); cursor: pointer; text-align: center; }
+.drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.drop:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+.summary { margin: 1rem 0 .6rem; padding: .7rem .9rem; border-radius: 10px; border: 1px solid var(--line); }
+.okbox { background: var(--good-soft); border-color: var(--good); } .warnbox { background: var(--bad-soft); border-color: var(--bad); }
+.okc { color: var(--good); font-weight: 600; } .errc { color: var(--bad); font-weight: 600; } .err { color: var(--bad); }
+table.prev td { white-space: normal; vertical-align: top; } table.prev td.wrap { min-width: 220px; }
+tr.static { cursor: default; } tr.static:hover { background: transparent; } tr.rowbad td { background: var(--bad-soft); }
+.uploadform { display: flex; flex-wrap: wrap; gap: .8rem; align-items: flex-end; margin-top: 1rem; }
+.uploadform label { display: flex; flex-direction: column; gap: .25rem; font-size: .85rem; font-weight: 600; }
+.uploadform input { font: inherit; font-weight: 400; padding: .5rem .6rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); }
+.uploadform p { flex-basis: 100%; margin: 0; }
+.btn.danger { color: var(--bad); border-color: var(--bad); }
