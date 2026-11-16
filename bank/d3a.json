@@ -1,0 +1,527 @@
+[
+{
+"s": "cconn",
+"q": "A .NET job imports 5 million items into a Cosmos DB container and must use the provisioned throughput as efficiently as possible. Which SDK option is designed for this?",
+"o": [
+"Enable bulk mode (AllowBulkExecution = true) and send many concurrent CreateItem or UpsertItem tasks",
+"Insert items one at a time with await on each call",
+"Use a stored procedure for each item",
+"Switch to strong consistency"
+],
+"a": [
+0
+],
+"e": "Bulk mode lets the .NET SDK group concurrent point operations into batches per partition, which maximizes throughput use for large ingestion jobs. Sequential awaits leave throughput idle, per-item stored procedures add overhead and are limited to one partition key, and consistency doesn't improve ingestion.",
+"r": "cos-perf"
+},
+{
+"s": "ppool",
+"q": "Twenty instances of a web app each keep a client-side pool of up to 50 PostgreSQL connections. After scaling out, new connections fail because the server's connection limit is reached. What is the best fix?",
+"o": [
+"Route the app through PgBouncer (port 6432) and size the per-instance pools so instances × pool size stays well within limits",
+"Increase work_mem",
+"Create a vector index",
+"Remove client-side pooling and open a connection per query"
+],
+"a": [
+0
+],
+"e": "Client-side pools multiply with the number of instances: 20 × 50 means up to 1,000 backend connections. PgBouncer lets many client connections share a small number of server connections, and right-sizing pools keeps the total under control. work_mem and vector indexes don't affect connection limits, and opening a connection per query increases churn.",
+"r": "pg-bouncer"
+},
+{
+"s": "sb",
+"q": "An order service sends each order to exactly one of several competing worker instances for processing. Which Service Bus entity fits?",
+"o": [
+"A queue",
+"A topic with one subscription per worker instance",
+"An Event Grid custom topic",
+"A topic with a single subscription per message"
+],
+"a": [
+0
+],
+"e": "A queue delivers each message to one of the competing consumers, which load-balances work across instances. With a topic, every subscription gets its own copy of each message, so one subscription per worker would process every order multiple times. Event Grid is for discrete event notifications rather than durable work queues.",
+"r": "sb-qts"
+},
+{
+"s": "sb",
+"q": "Billing, shipping, and analytics services each need their own copy of every OrderPlaced message. Which Service Bus design should you use?",
+"o": [
+"A topic with one subscription per service",
+"One queue shared by all three services",
+"Three queues, with the sender writing the same message to each",
+"A queue with sessions enabled"
+],
+"a": [
+0
+],
+"e": "Topics provide publish-subscribe messaging: each subscription receives an independent copy of every message sent to the topic, and each service reads from its own subscription. A shared queue gives each message to only one consumer, writing to three queues couples the sender to every consumer, and sessions are for ordered processing.",
+"r": "sb-qts"
+},
+{
+"s": "sb",
+"q": "Your consumer crashes in the middle of processing, and the business can't lose any message. Which receive mode should you use, and what delivery guarantee does it provide?",
+"o": [
+"Peek-lock, which gives at-least-once delivery",
+"Receive-and-delete, which gives exactly-once delivery",
+"Receive-and-delete, which gives at-least-once delivery",
+"Peek-lock, which gives at-most-once delivery"
+],
+"a": [
+0
+],
+"e": "In peek-lock (the default), the message is locked and only removed when it is settled (completed), so if the consumer fails the lock expires and the message becomes available again: at-least-once delivery. Receive-and-delete removes the message as soon as it is received, so a crash loses it: at-most-once.",
+"r": "sb-loss"
+},
+{
+"s": "sb",
+"q": "With peek-lock, which settlement action removes a successfully processed message from the queue?",
+"o": [
+"Complete",
+"Abandon",
+"Defer",
+"Peek"
+],
+"a": [
+0
+],
+"e": "Completing a message tells the broker processing succeeded, and the message is deleted. Abandon releases the lock so the message can be delivered again, defer sets it aside to be retrieved later by sequence number, and peek reads a message without locking or removing it.",
+"r": "sb-locks"
+},
+{
+"s": "sb",
+"q": "A handler sometimes needs 4 minutes to process a message, but the queue's lock duration is 1 minute. Other consumers then receive the same message while it's still being processed. What should you do?",
+"o": [
+"Renew the message lock while processing (for example by configuring automatic lock renewal in the processor)",
+"Switch to receive-and-delete",
+"Increase MaxDeliveryCount to 100",
+"Enable duplicate detection"
+],
+"a": [
+0
+],
+"e": "When a lock expires, the message becomes visible again and another receiver can take it. The lock holder can extend the lock (RenewMessageLockAsync, or automatic renewal through settings such as MaxAutoLockRenewalDuration), or you can raise the lock duration within its limit. Receive-and-delete risks losing messages, and delivery count and duplicate detection don't stop the lock from expiring.",
+"r": "sb-locks"
+},
+{
+"s": "sb",
+"q": "A malformed message keeps failing and is retried repeatedly. What does Service Bus do by default, and which setting controls it?",
+"o": [
+"After the delivery count exceeds MaxDeliveryCount (default 10), the message is moved to the dead-letter queue",
+"The message is deleted after 3 failed attempts",
+"The message is retried forever unless you delete it manually",
+"The queue is disabled after 10 failures"
+],
+"a": [
+0
+],
+"e": "Each time a locked message is abandoned or its lock expires, its delivery count increases. When it exceeds MaxDeliveryCount, which defaults to 10, Service Bus moves it to the dead-letter queue so it no longer blocks processing. Service Bus doesn't delete poison messages or disable the queue.",
+"r": "sb-exceptions"
+},
+{
+"s": "sb",
+"q": "A queue's size keeps growing and senders start getting QuotaExceeded errors, although the main queue is nearly empty. What is a likely cause?",
+"o": [
+"The dead-letter queue is filling up; dead-lettered messages count toward the entity's size and aren't removed automatically",
+"Duplicate detection stores too many message IDs",
+"The lock duration is too short",
+"The queue has too many sessions"
+],
+"a": [
+0
+],
+"e": "The exceptions guide notes that dead-lettered messages take up space as they accumulate and are a common cause of QuotaExceeded. Messages stay in the dead-letter queue until a consumer receives them, so you need a process that inspects and clears it. Duplicate detection, locks, and sessions don't fill an entity like this.",
+"r": "sb-exceptions"
+},
+{
+"s": "sb",
+"q": "You want to inspect the dead-lettered messages of the queue orders. Which path do you receive from?",
+"o": [
+"orders/$deadletterqueue",
+"orders-poison",
+"$deadletter/orders",
+"orders/dlq"
+],
+"a": [
+0
+],
+"e": "Every queue and subscription has a dead-letter subqueue with the path <entity>/$deadletterqueue (the SDKs also expose it through a sub-queue option). The -poison suffix is the Azure Storage queue convention used by Functions, and the other paths don't exist.",
+"r": "msg-options"
+},
+{
+"s": "sb",
+"q": "Messages in a queue have a time-to-live of 1 hour, and you need to audit messages that expire before anyone processes them. What should you configure on the queue?",
+"o": [
+"Enable dead-lettering on message expiration",
+"Increase the lock duration",
+"Enable duplicate detection",
+"Set MaxDeliveryCount to 1"
+],
+"a": [
+0
+],
+"e": "With dead-lettering on message expiration enabled, messages whose time-to-live expires move to the dead-letter queue instead of being discarded silently. Lock duration, duplicate detection, and MaxDeliveryCount don't affect what happens to expired messages.",
+"r": "sb-qts"
+},
+{
+"s": "sb",
+"q": "Dead-lettered messages from many queues pile up, and you want them all collected in one place for a single remediation service. Which property helps?",
+"o": [
+"forwardDeadLetteredMessagesTo on each queue or subscription, pointing to a central queue",
+"defaultMessageTimeToLive",
+"enablePartitioning",
+"requiresSession"
+],
+"a": [
+0
+],
+"e": "forwardDeadLetteredMessagesTo automatically forwards dead-lettered messages from a queue or subscription to another queue or topic, so you can centralize handling. TTL controls expiry, partitioning distributes the entity across brokers, and sessions enable ordered processing.",
+"r": "sb-qts"
+},
+{
+"s": "sb",
+"q": "Messages in the dead-letter queue are several weeks old. What happens to them if no one processes them?",
+"o": [
+"They stay there; messages in the dead-letter queue don't expire and aren't cleaned up automatically",
+"They are deleted after 14 days",
+"They return to the main queue after their TTL",
+"They move to a dead-letter queue of the dead-letter queue"
+],
+"a": [
+0
+],
+"e": "The dead-letter queue retains messages until a consumer explicitly receives them. Time-to-live isn't observed for messages that have already been dead-lettered, so you need an operational process to drain and resolve them.",
+"r": "msg-options"
+},
+{
+"s": "sb",
+"q": "A producer sometimes resends a payment message after a timeout, causing double charges. You want Service Bus to drop the repeated message automatically. What should you do?",
+"o": [
+"Create the queue with duplicate detection enabled and set a stable, unique MessageId on each payment message",
+"Enable sessions and use random SessionId values",
+"Use receive-and-delete mode",
+"Shorten the lock duration"
+],
+"a": [
+0
+],
+"e": "Duplicate detection discards a message whose MessageId was already seen within the detection time window. It must be enabled when the queue or topic is created, and the sender must set the MessageId to a value derived from the business operation. Sessions, receive mode, and lock duration don't detect duplicates.",
+"r": "sb-payloads"
+},
+{
+"s": "sb",
+"q": "Your solution needs guaranteed first-in, first-out delivery and automatic duplicate detection. Which queueing service fits?",
+"o": [
+"Azure Service Bus queues",
+"Azure Storage queues",
+"Azure Event Grid",
+"Azure Event Hubs consumer groups"
+],
+"a": [
+0
+],
+"e": "The comparison guide recommends Service Bus queues when you need guaranteed FIFO ordered delivery (through sessions) and automatic duplicate detection. Storage queues don't guarantee ordering or detect duplicates, Event Grid is an eventing service, and Event Hubs is a streaming platform.",
+"r": "sb-compare"
+},
+{
+"s": "sb",
+"q": "All messages for the same customer must be processed in order, but different customers can be processed in parallel. Which Service Bus feature should you use?",
+"o": [
+"Sessions, with the customer ID as the SessionId",
+"Duplicate detection, with the customer ID as the MessageId",
+"Partitioning, with one partition per customer",
+"Scheduled messages"
+],
+"a": [
+0
+],
+"e": "Sessions group related messages by SessionId; a receiver that accepts a session gets an exclusive lock and processes that session's messages in order, while other receivers handle other sessions in parallel. Duplicate detection would drop all but one message per customer, partitioning doesn't guarantee ordering per customer, and scheduling only delays delivery.",
+"r": "sb-sessions"
+},
+{
+"s": "sb",
+"q": "You want to enable sessions on an existing production queue that was created without them. What must you do?",
+"o": [
+"Create a new queue with sessions enabled, because sessions must be enabled when the entity is created",
+"Run az servicebus queue update --enable-session true",
+"Set SessionId on new messages; the queue enables sessions automatically",
+"Restart the namespace"
+],
+"a": [
+0
+],
+"e": "Session support must be enabled at the time a queue or subscription is created, so you create a new session-enabled entity and move producers and consumers to it. Setting SessionId on messages doesn't change the queue, and restarting the namespace isn't possible or relevant.",
+"r": "sb-sessions"
+},
+{
+"s": "sb",
+"q": "Sessions are enabled on a queue. A legacy sender keeps sending messages without a SessionId. What happens?",
+"o": [
+"Those sends fail, because clients must send messages as part of a session on a session-enabled queue",
+"The messages are delivered to any receiver",
+"The broker assigns a random SessionId",
+"The messages go straight to the dead-letter queue"
+],
+"a": [
+0
+],
+"e": "When sessions are enabled on a queue or subscription, clients can no longer send or receive regular messages; they must set a SessionId when sending and accept a session to receive. Clients can still peek. Service Bus doesn't assign session IDs automatically.",
+"r": "sb-sessions"
+},
+{
+"s": "sb",
+"q": "Every subscription on the topic orders receives all messages, but the EU-fulfillment subscription should get only messages where region = 'EU'. What should you configure?",
+"o": [
+"Replace the subscription's default rule with a filter rule such as the SQL filter region = 'EU'",
+"Create a separate topic for EU messages and change all senders",
+"Filter the messages in the subscriber's code after receiving them",
+"Enable sessions with SessionId = EU"
+],
+"a": [
+0
+],
+"e": "Subscriptions select messages through rules; a new subscription has a default rule that accepts everything (a true filter, equivalent to 1=1). Replacing it with a SQL or correlation filter on the region property delivers only matching messages. Client-side filtering wastes throughput, a new topic couples senders to consumers, and sessions don't filter.",
+"r": "sb-filters"
+},
+{
+"s": "sb",
+"q": "A subscription filter only needs to match messages whose Subject is 'red' and CorrelationId is 'high'. Which filter type is the most efficient?",
+"o": [
+"A correlation filter",
+"A SQL filter with LIKE patterns",
+"A boolean true filter",
+"No filter, with client-side checks"
+],
+"a": [
+0
+],
+"e": "Correlation filters match on equality against system and user properties such as Subject, CorrelationId, and custom properties, and they are cheaper for the broker to evaluate than SQL filter expressions. A true filter passes everything, and client-side checks waste delivery capacity.",
+"r": "sb-filters"
+},
+{
+"s": "sb",
+"q": "For the subscription ColorRed, you want to accept messages where color = 'red' and also set the quantity property to half its value before delivery. What should you use?",
+"o": [
+"A SQL filter with a SQL rule action",
+"A correlation filter only",
+"Duplicate detection",
+"Auto-forwarding to another queue"
+],
+"a": [
+0
+],
+"e": "A subscription rule consists of a filter condition and, optionally, an action that annotates the selected message, for example a SQL action that sets quantity = quantity / 2 when color is red. Correlation filters select messages but don't modify them, and duplicate detection and auto-forwarding don't change properties.",
+"r": "sb-filters"
+},
+{
+"s": "sb",
+"q": "Which statement about Service Bus filtering is correct?",
+"o": [
+"Filtering is a feature of topic subscriptions; queues don't support subscription filters",
+"Queues support SQL filters on receive",
+"Filters can only inspect the message body",
+"Each topic can have only one subscription with a filter"
+],
+"a": [
+0
+],
+"e": "Subscription rules (SQL, boolean, and correlation filters) let each subscription select messages from a topic; queues don't support filtering. Filters evaluate message properties, not the body, and a topic can have many subscriptions, each with its own rules.",
+"r": "sb-qts"
+},
+{
+"s": "sb",
+"q": "A reminder message must become available to receivers only 24 hours after it is sent. What should the sender do?",
+"o": [
+"Schedule the message with a scheduled enqueue time 24 hours in the future",
+"Set the message time-to-live to 24 hours",
+"Defer the message after receiving it",
+"Set the lock duration to 24 hours"
+],
+"a": [
+0
+],
+"e": "Scheduled messages (ScheduledEnqueueTime or ScheduleMessageAsync) are accepted immediately but stay invisible until the scheduled time, and the sequence number returned lets you cancel them. TTL makes messages expire rather than appear later, deferral happens on the receiver side, and lock duration has a much lower maximum and only applies after a message is received.",
+"r": "sb-payloads"
+},
+{
+"s": "sb",
+"q": "A consumer receives a message that can't be processed until a related message arrives. It wants to set the message aside and fetch it later by ID. Which action should it use, and how is the message retrieved later?",
+"o": [
+"Defer the message, and later receive it with its sequence number",
+"Abandon the message, and later receive it by MessageId",
+"Dead-letter it, and later resubmit it",
+"Complete it, and later restore it from a backup"
+],
+"a": [
+0
+],
+"e": "Deferral keeps the message in the queue but hides it from normal receives; it can only be retrieved explicitly by its sequence number, so the consumer must store that number. Abandon makes it available to any receiver immediately, dead-lettering marks it as failed, and complete deletes it.",
+"r": "sb-locks"
+},
+{
+"s": "sb",
+"q": "Messages arriving in the subscription audit of the topic orders must be moved automatically into the queue audit-processing in the same namespace, with no code. What should you configure?",
+"o": [
+"Auto-forwarding (forwardTo) on the subscription, set to the queue",
+"A SQL filter action",
+"A scheduled message",
+"Duplicate detection on the queue"
+],
+"a": [
+0
+],
+"e": "Auto-forwarding chains a queue or subscription to another queue or topic in the same namespace, and Service Bus moves messages automatically. Filter actions modify properties, scheduled messages delay visibility, and duplicate detection removes repeats.",
+"r": "sb-qts"
+},
+{
+"s": "sb",
+"q": "A startup uses the Basic tier of Service Bus, and the team now wants publish-subscribe with topics. What must change?",
+"o": [
+"Move to at least the Standard tier, because the Basic tier supports queues only",
+"Enable sessions on the Basic namespace",
+"Create a topic with the --basic flag",
+"Use Premium only for queues"
+],
+"a": [
+0
+],
+"e": "The Basic tier offers queues only; topics and subscriptions require the Standard or Premium tier. There's no flag to create topics in Basic, and sessions are an unrelated feature.",
+"r": "sb-qts"
+},
+{
+"s": "sb",
+"q": "Your messages carry document payloads of up to 20 MB. Which Service Bus option supports this without splitting messages?",
+"o": [
+"The Premium tier, which supports large messages (up to 100 MB)",
+"The Standard tier, which supports up to 256 MB",
+"The Basic tier with batching",
+"Any tier, because Service Bus has no size limit"
+],
+"a": [
+0
+],
+"e": "The Standard tier limits messages to 256 KB, while the Premium tier supports large messages up to 100 MB. Batching combines small messages into one send but doesn't raise the per-message limit. For very large payloads, another option is the claim-check pattern with Blob storage.",
+"r": "sb-compare"
+},
+{
+"s": "sb",
+"q": "An app with a managed identity must only send messages to a queue, following least privilege. Which role should you assign at the queue scope?",
+"o": [
+"Azure Service Bus Data Sender",
+"Azure Service Bus Data Owner",
+"Azure Service Bus Data Receiver",
+"Contributor"
+],
+"a": [
+0
+],
+"e": "Azure Service Bus Data Sender allows sending messages, which is all the app needs. Data Receiver allows receiving, Data Owner allows full data-plane access, and Contributor is a management-plane role that doesn't give the least-privilege data access you want.",
+"r": "fn-identity"
+},
+{
+"s": "sb",
+"q": "A ServiceBusProcessor handler throws an exception for a message. With the default settings of the .NET processor, what happens to that message?",
+"o": [
+"It isn't completed; the message is abandoned and redelivered, and after MaxDeliveryCount it is dead-lettered",
+"It is completed anyway because AutoCompleteMessages is true",
+"It is deleted immediately",
+"It is moved to the dead-letter queue on the first failure"
+],
+"a": [
+0
+],
+"e": "With AutoCompleteMessages enabled (the default), the processor completes a message only after the handler returns without throwing. If the handler throws, the message is abandoned, its delivery count increases, and once MaxDeliveryCount is exceeded it moves to the dead-letter queue.",
+"r": "sb-exceptions"
+},
+{
+"s": "sb",
+"q": "You need to send hundreds of small messages efficiently without exceeding the maximum message size. What is the recommended approach in the SDK?",
+"o": [
+"Create a ServiceBusMessageBatch, add messages with TryAddMessage until it's full, and send the batch",
+"Send each message on a new client",
+"Concatenate all payloads into one message regardless of size",
+"Use receive-and-delete mode"
+],
+"a": [
+0
+],
+"e": "A message batch tracks its size as you add messages and tells you when it's full, so each send stays within the size limit while reducing round trips. Creating clients per message is expensive, a single concatenated message can exceed limits, and receive mode only affects consumers.",
+"r": "sb-qts"
+},
+{
+"s": "sb",
+"q": "Peek-lock gives at-least-once delivery, so a consumer can occasionally process the same message twice. What should you do in the consumer?",
+"o": [
+"Make processing idempotent, for example by recording processed MessageIds",
+"Switch to receive-and-delete",
+"Set MaxDeliveryCount to 1",
+"Use a longer TTL"
+],
+"a": [
+0
+],
+"e": "At-least-once delivery means duplicates can happen, for example when a lock expires after processing but before completion. Idempotent handlers, such as checking a stored MessageId, make duplicates harmless. Receive-and-delete trades duplicates for possible message loss, and the other settings don't prevent redelivery.",
+"r": "sb-loss"
+},
+{
+"s": "sb",
+"q": "A client sends a request message and needs the reply delivered back to it. Which message properties support this request-response pattern?",
+"o": [
+"ReplyTo (and ReplyToSessionId for session-based replies), with CorrelationId linking the reply to the request",
+"ScheduledEnqueueTime",
+"TimeToLive only",
+"PartitionKey only"
+],
+"a": [
+0
+],
+"e": "ReplyTo names the entity where the reply should be sent, ReplyToSessionId lets the requester receive replies through a specific session, and CorrelationId lets it match a reply to its request, for example by echoing the request's MessageId. Scheduling, TTL, and partition key don't route replies.",
+"r": "sb-payloads"
+},
+{
+"s": "sb",
+"q": "A consumer uses a high prefetch count, and you notice messages being redelivered and their delivery counts increasing. What is a likely cause?",
+"o": [
+"Prefetched messages are locked while they wait in the client buffer, and their locks can expire before the handler reaches them",
+"Prefetch disables lock renewal on the server",
+"Prefetch converts the queue to receive-and-delete",
+"Prefetch only works with sessions"
+],
+"a": [
+0
+],
+"e": "Prefetching pulls messages into a local buffer to increase throughput, but in peek-lock mode each prefetched message's lock is already running. If messages sit in the buffer longer than the lock duration, the locks expire and the messages are delivered again. Keep the prefetch count in line with processing speed.",
+"r": "sb-locks"
+},
+{
+"s": "sb",
+"q": "A consumer receives a message from queue A and must send a result to queue B. Either both operations succeed or neither does. What can you use?",
+"o": [
+"A Service Bus transaction that groups the complete on queue A and the send to queue B in the same namespace",
+"Two separate operations with retries",
+"Duplicate detection on queue B",
+"Auto-forwarding from A to B"
+],
+"a": [
+0
+],
+"e": "Service Bus supports transactions that group operations such as completing a received message and sending new messages to entities in the same namespace, so they commit or roll back together. Separate operations can leave partial results, and duplicate detection or auto-forwarding don't give atomicity.",
+"r": "sb-locks"
+},
+{
+"s": "sb",
+"q": "Which Service Bus message property should a sender set to a unique, application-defined value so that duplicate sends can be detected?",
+"o": [
+"MessageId",
+"ContentType",
+"Subject",
+"TimeToLive"
+],
+"a": [
+0
+],
+"e": "MessageId is the application-defined identifier of the message; when duplicate detection is enabled, Service Bus uses it to discard repeated messages within the detection window. ContentType describes the payload, Subject is an application label, and TimeToLive controls expiration.",
+"r": "sb-payloads"
+}
+]

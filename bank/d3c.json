@@ -1,0 +1,528 @@
+[
+{
+"s": "fn",
+"q": "How many triggers and bindings can a single Azure Functions function have?",
+"o": [
+"Exactly one trigger, and zero or more input and output bindings",
+"Any number of triggers and exactly one binding",
+"One trigger and exactly one output binding",
+"No trigger if it has an output binding"
+],
+"a": [
+0
+],
+"e": "Every function has exactly one trigger, which starts it; the trigger is a special kind of input binding. On top of that a function can have any number of input and output bindings, including none. A function can't run without a trigger.",
+"r": "fn-bind"
+},
+{
+"s": "fn",
+"q": "A function triggered by a queue message must write a blob whose name equals the message text. How can you do this without code that builds the blob name?",
+"o": [
+"Use a blob output binding with path container/{queueTrigger}",
+"Read the message in code and call the Blob REST API",
+"Use an HTTP output binding",
+"Set the blob name in host.json"
+],
+"a": [
+0
+],
+"e": "Binding expressions resolve values at runtime; in a queue-triggered function, {queueTrigger} resolves to the message text, so a blob output path of container/{queueTrigger} creates a blob named after the message. Calling the REST API works but is extra code, the HTTP output binding returns HTTP responses, and host.json doesn't name blobs.",
+"r": "fn-expr"
+},
+{
+"s": "fn",
+"q": "You are building a serverless REST API with Azure Functions. Which trigger and binding combination receives a request and returns the response?",
+"o": [
+"An HTTP trigger with an HTTP output binding",
+"A timer trigger with a queue output binding",
+"A Blob trigger with an HTTP input binding",
+"A Service Bus trigger with an HTTP output binding"
+],
+"a": [
+0
+],
+"e": "The HTTP trigger runs a function from an HTTP request, and the HTTP output binding returns the response, which is the basis of serverless APIs and webhooks. Timer, Blob, and Service Bus triggers start functions from schedules, storage changes, or messages, not from client HTTP calls.",
+"r": "fn-http"
+},
+{
+"s": "fn",
+"q": "An HTTP-triggered function must only be callable by clients that present the function's key. Which authorization level should you set?",
+"o": [
+"function",
+"anonymous",
+"user",
+"system"
+],
+"a": [
+0
+],
+"e": "With the function authorization level, callers must supply a function (or host) key, either in the x-functions-key header or the code query parameter. anonymous requires no key, admin requires the master key, and user and system aren't HTTP trigger authorization levels for this purpose.",
+"r": "fn-http"
+},
+{
+"s": "fn",
+"q": "A queue-triggered function keeps failing on one message. What do Azure Functions and Queue storage do with the message by default?",
+"o": [
+"After 5 failed attempts the message is moved to a poison queue named <queue>-poison",
+"The message is deleted after the first failure",
+"The message is retried forever",
+"The message is sent to a Service Bus dead-letter queue"
+],
+"a": [
+0
+],
+"e": "The Queue storage trigger retries a failing message up to maxDequeueCount, 5 by default, and then moves it to a poison queue named <original-queue>-poison so you can inspect it. Service Bus dead-letter queues apply to the Service Bus trigger, not Queue storage.",
+"r": "fn-queue"
+},
+{
+"s": "fn",
+"q": "A Service Bus-triggered function throws an exception while processing a message. What happens by default?",
+"o": [
+"The message isn't completed; it is retried, and after the entity's MaxDeliveryCount it moves to the dead-letter queue",
+"The message is completed and lost",
+"The message is moved to a <queue>-poison queue after 5 attempts",
+"The function app stops"
+],
+"a": [
+0
+],
+"e": "The Service Bus trigger completes the message only when the function succeeds; on failure the message is abandoned and redelivered, and Service Bus dead-letters it once the delivery count exceeds MaxDeliveryCount. The -poison queue is the Queue storage convention, and a single failure doesn't stop the app.",
+"r": "fn-sb"
+},
+{
+"s": "fn",
+"q": "A function must write several messages to a Storage queue in a single invocation using an output binding (.NET). Which parameter type supports this?",
+"o": [
+"ICollector<T> or IAsyncCollector<T>",
+"A single string",
+"QueueClient only",
+"HttpResponseData"
+],
+"a": [
+0
+],
+"e": "For multiple queue messages, the Queue output binding supports ICollector<T> and IAsyncCollector<T> (or QueueClient), where each Add writes a message. A plain string writes a single message, and HttpResponseData is for HTTP responses.",
+"r": "fn-queue"
+},
+{
+"s": "fn",
+"q": "A team wants to use Blob storage bindings with a Premium block blob storage account and finds they don't work. What should they do?",
+"o": [
+"Use a Standard general-purpose v2 storage account, because Blob bindings don't support Premium blob storage accounts",
+"Switch to the Flex Consumption plan",
+"Use an HTTP trigger to read blobs",
+"Enable soft delete on the account"
+],
+"a": [
+0
+],
+"e": "The Blob storage bindings documentation states that Premium Blob storage accounts aren't supported and recommends a Standard general-purpose v2 account instead. The hosting plan, HTTP triggers, and soft delete don't change binding support.",
+"r": "fn-blob"
+},
+{
+"s": "fn",
+"q": "In the Python v2 programming model, how are triggers and bindings declared?",
+"o": [
+"With decorators on functions registered to a FunctionApp object, such as @app.route or @app.timer_trigger",
+"Only in a function.json file next to each function",
+"In host.json",
+"In requirements.txt"
+],
+"a": [
+0
+],
+"e": "The Python v2 model defines all functions on a FunctionApp object and declares triggers and bindings with decorators like @app.route and @app.timer_trigger. function.json belongs to the older v1 model, host.json holds host settings, and requirements.txt lists dependencies.",
+"r": "fn-python"
+},
+{
+"s": "fn",
+"q": "In a Java function app, how do you bind a method to an HTTP trigger and a queue output?",
+"o": [
+"With annotations from com.microsoft.azure.functions.annotation, such as @FunctionName, @HttpTrigger, and @QueueOutput",
+"By extending a base class called HttpFunction",
+"By listing bindings in pom.xml only",
+"By naming the method httpTrigger"
+],
+"a": [
+0
+],
+"e": "The Java programming model uses annotations from the com.microsoft.azure.functions.annotation package to declare the function name, trigger, and input and output bindings. Base classes, method names, or POM entries alone don't define bindings.",
+"r": "fn-java"
+},
+{
+"s": "fn",
+"q": "A Service Bus-triggered function must connect with its managed identity instead of a connection string. The binding's Connection property is ServiceBusConnection. Which app setting should you add?",
+"o": [
+"ServiceBusConnection__fullyQualifiedNamespace = contoso.servicebus.windows.net",
+"ServiceBusConnection = Endpoint=sb://...;SharedAccessKey=...",
+"AzureWebJobsServiceBus = managed",
+"ServiceBusConnection__identity = true only"
+],
+"a": [
+0
+],
+"e": "Identity-based connections use settings with the connection name as a prefix, such as <CONNECTION>__fullyQualifiedNamespace, which tells the extension to authenticate with the app's managed identity. The identity also needs a data role such as Azure Service Bus Data Receiver. A SharedAccessKey string is what you want to remove, and the other settings aren't valid ways to switch to identity-based connections.",
+"r": "fn-conn"
+},
+{
+"s": "fn",
+"q": "You store identity-based connection settings for a function app in Azure App Configuration instead of app settings. How must the setting names be written?",
+"o": [
+"Use : or / as the key separator, for example ServiceBusConnection:fullyQualifiedNamespace, instead of the double underscore",
+"Use the double underscore exactly as in app settings",
+"Use a dot, for example ServiceBusConnection.fullyQualifiedNamespace",
+"App Configuration can't store these settings"
+],
+"a": [
+0
+],
+"e": "The double underscore is how environment variables express hierarchy. When the setting comes from App Configuration (or Key Vault), the documentation says to use a valid key separator such as : or / in place of __ so the name resolves correctly.",
+"r": "fn-conn"
+},
+{
+"s": "fn",
+"q": "A function must run every day at 02:30. Which timer trigger schedule (NCRONTAB, six fields) is correct?",
+"o": [
+"0 30 2 * * *",
+"30 2 * * *",
+"* * 2 30 * *",
+"0 0 2 30 * *"
+],
+"a": [
+0
+],
+"e": "The Functions timer trigger uses six-field NCRONTAB expressions: second, minute, hour, day, month, day of week. 0 30 2 * * * fires at 02:30:00 every day. The five-field form omits seconds, and the other expressions put values in the wrong fields.",
+"r": "fn-timer"
+},
+{
+"s": "fn",
+"q": "You are creating a new .NET function app in November 2026. Which execution model should you use?",
+"o": [
+"The isolated worker model",
+"The in-process model",
+"A function.json-only model with no .NET code",
+"The v1 runtime"
+],
+"a": [
+0
+],
+"e": "The isolated worker model runs your .NET code in a separate worker process and is the supported model going forward; support for the in-process model ended in November 2026, and the v1 runtime is long out of support. In the isolated model, host.json mainly controls host runtime logging, and your application controls its own logs.",
+"r": "fn-isolated"
+},
+{
+"s": "fn",
+"q": "A function on the Flex Consumption plan must run when blobs are uploaded, and the blob trigger in polling mode isn't an option. Which blob trigger source should you use?",
+"o": [
+"The Event Grid-based blob trigger (source set to EventGrid)",
+"A timer trigger that lists the container every second",
+"An HTTP trigger called by the uploader",
+"A Queue storage trigger without any event subscription"
+],
+"a": [
+0
+],
+"e": "The Event Grid source for the blob trigger delivers blob events with lower latency than container polling, and it's the supported blob trigger option on Flex Consumption. Polling the container with a timer is slow and costly, an HTTP call requires every uploader to cooperate, and a queue trigger needs something to put messages in the queue.",
+"r": "fn-blob"
+},
+{
+"s": "fn",
+"q": "A function is triggered by an HTTP request and must read a document from Cosmos DB by the id in the route, then save a new document. Which binding set fits?",
+"o": [
+"An HTTP trigger, a Cosmos DB input binding using {id} from the route, and a Cosmos DB output binding",
+"A Cosmos DB trigger and an HTTP output binding",
+"A timer trigger and a Cosmos DB input binding",
+"Two HTTP triggers"
+],
+"a": [
+0
+],
+"e": "The HTTP trigger starts the function, a Cosmos DB input binding can look up a document using a binding expression from the route, and a Cosmos DB output binding saves documents. The Cosmos DB trigger reacts to changes rather than HTTP requests, and a function can only have one trigger.",
+"r": "fn-cosmos"
+},
+{
+"s": "fn",
+"q": "You want an HTTP-triggered function to be reachable at /api/products/42, with 42 passed to the function as an integer parameter. What should you configure?",
+"o": [
+"A route template on the HTTP trigger, such as products/{id:int}",
+"A binding expression {queueTrigger}",
+"A timer schedule",
+"The FUNCTIONS_WORKER_RUNTIME setting"
+],
+"a": [
+0
+],
+"e": "HTTP triggers accept a route template, and route parameters can have constraints like {id:int}, which makes the value available to the function and its bindings. {queueTrigger} is for queue messages, and the other settings don't define URLs.",
+"r": "fn-http"
+},
+{
+"s": "fn",
+"q": "What is the main benefit of using input and output bindings instead of calling service SDKs directly in a function?",
+"o": [
+"They connect the function to other services declaratively, so you don't write data-access and connection code",
+"They make the function run on GPUs",
+"They remove the need for a trigger",
+"They guarantee exactly-once processing"
+],
+"a": [
+0
+],
+"e": "Bindings give you a declarative way to pass data into and return data from a function without custom data-access code; the runtime handles connections and serialization. They don't change hardware, replace the trigger, or guarantee exactly-once processing.",
+"r": "fn-java"
+},
+{
+"s": "fn",
+"q": "A Cosmos DB-triggered function receives batches of changed documents. Which parameter type should it accept in C# to process a batch?",
+"o": [
+"IEnumerable<T> or IReadOnlyList<T> of a JSON-serializable type",
+"A single HttpRequest",
+"A QueueClient",
+"A TimerInfo object"
+],
+"a": [
+0
+],
+"e": "The Cosmos DB trigger delivers changes as a batch of documents, which you bind to a collection of a JSON-serializable type. HttpRequest belongs to HTTP triggers, QueueClient to queue bindings, and TimerInfo to timer triggers.",
+"r": "fn-cosmos"
+},
+{
+"s": "fn",
+"q": "A function uses a Service Bus output binding to send a message after processing an HTTP request. Which statement is correct?",
+"o": [
+"The output binding sends the value returned or assigned in the function to the configured queue or topic",
+"Output bindings can only write to Storage",
+"The Service Bus output binding also triggers the function",
+"Output bindings require the in-process model"
+],
+"a": [
+0
+],
+"e": "The Service Bus output binding sends messages to a queue or topic using the value your function returns or assigns to the binding. The trigger is separate, output bindings exist for many services, and they're supported in the isolated worker model and other languages.",
+"r": "fn-sb"
+},
+{
+"s": "fdep",
+"q": "You are creating a new serverless function app with event-driven scaling. Which hosting plan does Microsoft recommend?",
+"o": [
+"Flex Consumption",
+"Consumption (legacy)",
+"Free App Service plan",
+"Shared App Service plan"
+],
+"a": [
+0
+],
+"e": "The hosting options documentation calls the Consumption plan legacy and recommends Flex Consumption for new serverless function apps, with migration of existing Consumption apps. Azure Functions doesn't support the Free or Shared App Service tiers.",
+"r": "fn-scale"
+},
+{
+"s": "fdep",
+"q": "Which capabilities does the Flex Consumption plan add compared with the legacy Consumption plan? Each correct answer presents part of the solution. Choose two.",
+"o": [
+"Always ready instances to reduce cold starts",
+"Virtual network integration",
+"Deployment slots",
+"Unlimited execution time with no grace period on scale-in"
+],
+"a": [
+0,
+1
+],
+"e": "Flex Consumption adds always ready instances, per-function scaling, and virtual network integration while still scaling to zero. It doesn't currently support deployment slots, and although there's no enforced maximum timeout, running executions get a 60-minute grace period during scale-in.",
+"r": "fn-flex"
+},
+{
+"s": "fdep",
+"q": "You plan to migrate a Consumption plan function app to Flex Consumption. The app uses staging deployment slots for swaps. What should you consider?",
+"o": [
+"Flex Consumption doesn't currently support deployment slots, so you need another release strategy",
+"Slots are converted automatically into Flex instances",
+"Slots only work on Flex Consumption",
+"Slots require the Free tier"
+],
+"a": [
+0
+],
+"e": "The migration guide says to check deployment slot usage because Flex Consumption doesn't currently support deployment slots. You would need a different approach, such as separate apps, or a plan that supports slots like Premium or Dedicated.",
+"r": "fn-migrate-flex"
+},
+{
+"s": "fdep",
+"q": "How are deployment packages handled on the Flex Consumption plan compared with Premium?",
+"o": [
+"Flex Consumption uses its own package deployment to a Blob storage container, while ZIP deploy isn't supported on Flex",
+"Flex Consumption only supports FTP",
+"Flex Consumption mounts an Azure Files share for content, like Premium",
+"Flex Consumption requires container images"
+],
+"a": [
+0
+],
+"e": "Flex Consumption hosts deployment packages in a Blob storage container and supports only its own package deployment technology; ZIP deployment is listed as not supported. Premium and Consumption on Windows use Azure Files content settings that Flex doesn't need. Flex Consumption doesn't support container images.",
+"r": "fn-deploy"
+},
+{
+"s": "fdep",
+"q": "Where do you configure the maximum execution time for all functions in a function app?",
+"o": [
+"The functionTimeout property in host.json",
+"The WEBSITES_PORT app setting",
+"local.settings.json in Azure",
+"The Dockerfile"
+],
+"a": [
+0
+],
+"e": "functionTimeout in host.json sets the timeout for function executions in the app, using a timespan string. When an execution exceeds it, a timeout error occurs and the worker process restarts. WEBSITES_PORT is for containers on App Service, local.settings.json is only used locally, and a Dockerfile doesn't control function timeouts.",
+"r": "fn-scale"
+},
+{
+"s": "fdep",
+"q": "A developer committed local.settings.json, which contains connection strings, to Git. What is the correct practice?",
+"o": [
+"Exclude local.settings.json from source control; it's for local development only, and app settings in Azure hold the deployed values",
+"Commit it so Azure reads the settings during deployment",
+"Rename it to host.json",
+"Encrypt it and keep it in the repository"
+],
+"a": [
+0
+],
+"e": "local.settings.json stores app settings for the local Functions runtime only, can contain secrets, and should stay out of source control (the generated .gitignore excludes it). In Azure, values come from application settings, which you can publish deliberately with --publish-local-settings. host.json holds host configuration, not secrets.",
+"r": "fn-local"
+},
+{
+"s": "fdep",
+"q": "Which statement about host.json is correct?",
+"o": [
+"Its settings configure the Functions host and apply both when running locally and in Azure",
+"It only applies when running locally",
+"It stores connection strings for triggers",
+"It's ignored by function apps written in Python"
+],
+"a": [
+0
+],
+"e": "host.json configures the Functions host, for example logging, extension settings, and functionTimeout, and it applies both locally and in Azure. Connection strings and other app settings belong in application settings (or local.settings.json locally), and host.json applies to all languages.",
+"r": "fn-host"
+},
+{
+"s": "fdep",
+"q": "You are publishing with Azure Functions Core Tools and also want the values in local.settings.json created as app settings in Azure. Which command does this?",
+"o": [
+"func azure functionapp publish <app> --publish-local-settings",
+"func start --publish",
+"az functionapp create --local-settings",
+"func pack --settings"
+],
+"a": [
+0
+],
+"e": "func azure functionapp publish deploys the project, and --publish-local-settings creates app settings in the function app from local.settings.json. func start runs locally, az functionapp create has no such option, and func pack creates a deployment package without deploying settings.",
+"r": "fn-core"
+},
+{
+"s": "fdep",
+"q": "An HTTP-triggered API must never have a cold start, needs virtual network access, and runs continuously under steady load with occasional bursts. Which plan characteristic addresses the cold-start requirement on Premium?",
+"o": [
+"Prewarmed and always ready instances, with at least one instance always running",
+"Scale to zero when idle",
+"A grace period of 10 minutes",
+"Running on the Free tier"
+],
+"a": [
+0
+],
+"e": "The Premium plan mitigates cold starts with prewarmed and always ready instances, keeping a minimum of one instance running, and it supports virtual networks. Scaling to zero causes cold starts, the grace period concerns scale-in, and Functions doesn't support the Free tier.",
+"r": "fn-events"
+},
+{
+"s": "fdep",
+"q": "During scale-in on the Flex Consumption or Premium plan, how long can currently executing functions continue to run?",
+"o": [
+"Up to 60 minutes",
+"Up to 10 seconds",
+"Up to 24 hours",
+"They are stopped immediately"
+],
+"a": [
+0
+],
+"e": "The grace period for executing functions during scale-in can extend up to 60 minutes on Flex Consumption and Premium, compared with up to 10 minutes on the Consumption plan. Executions aren't killed immediately.",
+"r": "fn-events"
+},
+{
+"s": "fdep",
+"q": "A function app runs on a Dedicated (App Service) plan and goes idle overnight, causing slow first requests. What should you enable?",
+"o": [
+"Always On",
+"Scale to zero",
+"A shorter functionTimeout",
+"The Free tier"
+],
+"a": [
+0
+],
+"e": "On a Dedicated plan, Always On keeps the app running continuously, which is the cold-start mitigation for that plan; there's no dynamic scaling to zero. A shorter timeout doesn't keep the app warm, and Functions doesn't support the Free tier. Even with Always On, individual executions are still limited by functionTimeout.",
+"r": "fn-events"
+},
+{
+"s": "fdep",
+"q": "You want to run Azure Functions as containers with custom dependencies, alongside other microservices that use Dapr and revisions. Which hosting option fits?",
+"o": [
+"Azure Functions on Azure Container Apps",
+"The legacy Consumption plan",
+"The Free App Service tier",
+"Azure Container Registry Tasks"
+],
+"a": [
+0
+],
+"e": "Functions on Azure Container Apps runs function apps as containers with custom dependencies and gets Container Apps features such as KEDA scaling, Dapr, revisions, and sidecars, scaling to zero and out to 1,000 instances (default maximum 10). The legacy Consumption plan doesn't support containers, Functions doesn't support the Free tier, and ACR Tasks only builds images.",
+"r": "fn-aca"
+},
+{
+"s": "fdep",
+"q": "In Azure, how does Python function code read configuration values such as a storage account name?",
+"o": [
+"As environment variables populated from the function app's application settings",
+"From local.settings.json deployed with the code",
+"From host.json",
+"From requirements.txt"
+],
+"a": [
+0
+],
+"e": "Application settings in the function app's configuration are exposed to code as environment variables in Azure, while local.settings.json provides the same values only during local development. host.json configures the host, and requirements.txt lists packages.",
+"r": "fn-python"
+},
+{
+"s": "fdep",
+"q": "A queue-triggered function on Flex Consumption should never scale beyond 20 instances so it doesn't overload a downstream database. What should you configure?",
+"o": [
+"The maximum instance count for the app's scale settings",
+"functionTimeout in host.json",
+"A deployment slot",
+"The extension bundle version"
+],
+"a": [
+0
+],
+"e": "Flex Consumption lets you limit scale-out with a maximum instance count, which applies to on-demand instances in each per-function scale group. functionTimeout limits execution length, Flex doesn't support slots, and the extension bundle version doesn't control scaling.",
+"r": "fn-events"
+},
+{
+"s": "fdep",
+"q": "A function app on the Linux Consumption plan still runs the Functions v3 runtime. What does Microsoft announce for these apps?",
+"o": [
+"They stop running after September 30, 2026, so migrate to the v4 runtime (and to Flex Consumption)",
+"They will be upgraded to v4 automatically with no action",
+"v3 is the recommended runtime for new apps",
+"They move to the Free tier"
+],
+"a": [
+0
+],
+"e": "The infrastructure-as-code guidance warns that function apps still running the end-of-life v3 runtime on Linux in a Consumption plan stop running after September 30, 2026, and must migrate to v4. New serverless apps should also use Flex Consumption, because Linux Consumption is retired.",
+"r": "fn-iac"
+}
+]

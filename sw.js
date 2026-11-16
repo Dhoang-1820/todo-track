@@ -1,28 +1,12 @@
-/* Network-first service worker: always tries fresh files, falls back to cache offline. */
-const CACHE = "ai200-tracker-v1";
-const FILES = ["./", "index.html", "styles.css", "app.js", "data.js", "icon.svg", "manifest.webmanifest"];
-
-self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
-});
-
-self.addEventListener("activate", (e) => {
-  e.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
-});
-
-self.addEventListener("fetch", (e) => {
-  if (e.request.method !== "GET" || new URL(e.request.url).origin !== location.origin) return;
-  e.respondWith(
-    fetch(e.request)
-      .then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copy));
-        return res;
-      })
-      .catch(() => caches.match(e.request).then((r) => r || caches.match("index.html")))
-  );
+// Retires the offline service worker from the old tracker site: clears its caches,
+// unregisters itself, and reloads open tabs so they get the new practice app.
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (event) => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.map((k) => caches.delete(k)));
+    await self.registration.unregister();
+    const clients = await self.clients.matchAll({ type: "window" });
+    clients.forEach((c) => c.navigate(c.url));
+  })());
 });

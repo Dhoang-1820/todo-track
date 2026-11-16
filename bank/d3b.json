@@ -1,0 +1,452 @@
+[
+{
+"s": "eg",
+"q": "An Event Grid subscription uses the default retry policy, and the webhook endpoint is down. How long and how many times does Event Grid try to deliver an event?",
+"o": [
+"Up to 24 hours (1,440 minutes) or 30 attempts, whichever comes first",
+"Up to 7 days or 100 attempts",
+"Exactly 3 attempts within 1 minute",
+"Until the endpoint recovers, with no limit"
+],
+"a": [
+0
+],
+"e": "By default Event Grid retries delivery for 24 hours (1,440 minutes) or 30 times, whichever limit is reached first, using an exponential backoff schedule. After that the event is dead-lettered if a dead-letter location is configured, otherwise it is dropped.",
+"r": "eg-delivery"
+},
+{
+"s": "eg",
+"q": "Events older than 2 hours are useless to your handler. How should you configure the event subscription?",
+"o": [
+"Set the retry policy's event time-to-live to 120 minutes",
+"Set maxDeliveryAttempts to 120",
+"Configure a custom retry schedule of every 2 hours",
+"Set the subscription expiration time to 2 hours from now"
+],
+"a": [
+0
+],
+"e": "The retry policy has two settings: maximum delivery attempts (1 to 30) and event time-to-live (1 to 1,440 minutes). Setting the TTL to 120 minutes stops retries after 2 hours. The retry schedule itself can't be configured, and the subscription expiration deletes the whole subscription at a given time.",
+"r": "eg-delivery"
+},
+{
+"s": "eg",
+"q": "You want events that Event Grid couldn't deliver to be kept for later analysis instead of being dropped. What should you configure?",
+"o": [
+"A dead-letter destination, a container in an Azure Storage account, on the event subscription",
+"A Service Bus dead-letter queue on the topic",
+"Longer TTL on the custom topic itself",
+"A second event subscription to the same endpoint"
+],
+"a": [
+0
+],
+"e": "Event Grid dead-lettering writes undeliverable events to a blob container in a storage account that you specify on the event subscription (for example with --deadletter-endpoint). Without it, events are dropped when retries end. Service Bus DLQs belong to Service Bus, topics have no such TTL setting, and a second subscription to the same failing endpoint fails too.",
+"r": "eg-delivery"
+},
+{
+"s": "eg",
+"q": "Which values are valid when you customize an Event Grid subscription's retry policy?",
+"o": [
+"Maximum delivery attempts from 1 to 30 and event time-to-live from 1 to 1,440 minutes",
+"Maximum delivery attempts from 1 to 100 and a custom backoff schedule",
+"Event time-to-live up to 7 days",
+"A fixed retry every 10 seconds"
+],
+"a": [
+0
+],
+"e": "Max delivery attempts must be an integer from 1 to 30, and event TTL must be from 1 to 1,440 minutes; the default for both is the maximum. You can't configure the retry schedule, which uses exponential backoff, and TTL can't exceed 24 hours.",
+"r": "eg-delivery"
+},
+{
+"s": "eg",
+"q": "An Azure Function subscribed to a Storage account's events should run only for blobs created under the container images whose names end with .jpg. Which filter settings should you use?",
+"o": [
+"includedEventTypes Microsoft.Storage.BlobCreated, subjectBeginsWith /blobServices/default/containers/images/blobs/, and subjectEndsWith .jpg",
+"An advanced filter on data.url StringContains images only",
+"No filter; check the extension in the function",
+"subjectEndsWith images and subjectBeginsWith .jpg"
+],
+"a": [
+0
+],
+"e": "Event type filters select BlobCreated events, and subject filters match the blob path prefix and suffix, as in Microsoft's subscription schema example. Filtering in the function still delivers and bills every event, a single contains check on the URL is less precise, and the last option reverses prefix and suffix.",
+"r": "eg-filter"
+},
+{
+"s": "eg",
+"q": "You need to deliver only events whose data.color is blue, red, or green. Which kind of filter should you use?",
+"o": [
+"An advanced filter with key data.color, operator StringIn, and the three values",
+"A subject filter with subjectBeginsWith blue",
+"An event type filter listing the colors",
+"A dead-letter filter"
+],
+"a": [
+0
+],
+"e": "Advanced filters compare a key in the event, including fields inside data, against values using operators such as StringIn, NumberGreaterThan, or StringContains; StringIn matches any of the listed values. Subject and event type filters only inspect those specific fields, and there's no dead-letter filter.",
+"r": "eg-filter"
+},
+{
+"s": "eg",
+"q": "An event subscription has two advanced filters: data.region StringIn [EU] and data.amount NumberGreaterThan 1000. Which events are delivered?",
+"o": [
+"Only events that match both filters (region is EU and amount is greater than 1000)",
+"Events that match either filter",
+"Only the first filter is evaluated",
+"All events, because advanced filters are informational"
+],
+"a": [
+0
+],
+"e": "When a subscription has several advanced filters, an event must satisfy all of them (logical AND). Within one filter, multiple values are combined with OR, so StringIn [EU, US] would match either value.",
+"r": "eg-filter"
+},
+{
+"s": "eg",
+"q": "You create an Event Grid custom topic and publish events from your app. How must the request be authenticated?",
+"o": [
+"With an access key (aeg-sas-key header), a SAS token, or Microsoft Entra ID",
+"Anonymously, because custom topics are public",
+"With the storage account key of the subscriber",
+"With a client certificate only"
+],
+"a": [
+0
+],
+"e": "Publishers authenticate to a custom topic with its access key, a SAS token generated from it, or a Microsoft Entra token for an identity with a publisher role. Topics aren't anonymous, subscriber storage keys aren't used for publishing, and client certificates aren't the documented mechanism.",
+"r": "eg-auth"
+},
+{
+"s": "eg",
+"q": "When you create an Event Grid custom topic, which input schemas can you choose for the events you publish?",
+"o": [
+"Event Grid schema, CloudEvents v1.0 schema, or a custom schema mapped to Event Grid fields",
+"Only CloudEvents",
+"Only Avro",
+"Only the Service Bus message format"
+],
+"a": [
+0
+],
+"e": "The input schema of a custom topic is set when it is created: the Event Grid schema (the default), the CloudEvents v1.0 schema, or a custom event schema with input mappings to Event Grid fields. Avro and Service Bus formats aren't Event Grid input schemas.",
+"r": "eg-mapping"
+},
+{
+"s": "eg",
+"q": "Your existing system emits events with fields named eventName and eventSubject, and you can't change the publisher. How can you publish them to Event Grid?",
+"o": [
+"Create the custom topic with the custom input schema and map eventName and eventSubject to Event Grid's eventType and subject, setting defaults where needed",
+"Rename the fields in every subscriber",
+"Use the CloudEvents schema; it accepts any field names",
+"Event Grid can't accept events that use other field names"
+],
+"a": [
+0
+],
+"e": "Custom input schema mapping lets a topic map your fields to the Event Grid schema (id, eventTime, subject, eventType, dataVersion), with default values for subject, event type, and data version when they are missing. CloudEvents has its own required attributes, and subscribers can't fix publisher-side schema problems.",
+"r": "eg-mapping"
+},
+{
+"s": "eg",
+"q": "Which statement about CloudEvents in Azure Event Grid is correct?",
+"o": [
+"Event Grid natively supports the JSON format of CloudEvents v1.0 for system and custom events, and it is the preferred format for interoperability",
+"CloudEvents is only supported for IoT Hub events",
+"CloudEvents requires a custom schema mapping",
+"CloudEvents can only be delivered to Event Hubs"
+],
+"a": [
+0
+],
+"e": "Event Grid natively supports CloudEvents v1.0 in JSON with the HTTP protocol binding, for system events such as Blob Storage and IoT Hub and for custom events. It is described as the preferred format because it's an open, extensible standard that improves interoperability. Event Grid also keeps its own proprietary schema.",
+"r": "eg-cloud"
+},
+{
+"s": "eg",
+"q": "You create an event subscription that targets your own HTTPS webhook using the Event Grid schema. Before any events are delivered, Event Grid sends a SubscriptionValidationEvent. What must your endpoint do?",
+"o": [
+"Return the validationCode from the event in a validationResponse (or complete the manual validation URL)",
+"Return HTTP 401 to prove it is protected",
+"Do nothing; validation is optional",
+"Send a reply event to the topic"
+],
+"a": [
+0
+],
+"e": "To prevent abuse, Event Grid confirms that the endpoint wants the events through a validation handshake: the endpoint echoes the validationCode in a validationResponse, or someone browses to the validationUrl. Until validation succeeds, nothing is delivered. Returning 401 fails validation.",
+"r": "eg-auth"
+},
+{
+"s": "eg",
+"q": "You subscribe a webhook with the CloudEvents v1.0 delivery schema. How does Event Grid confirm the endpoint?",
+"o": [
+"It uses the CloudEvents abuse protection handshake (an HTTP OPTIONS request that the endpoint answers with WebHook-Allowed-Origin) instead of the Event Grid validation event",
+"It sends a SubscriptionValidationEvent with a validationCode",
+"It requires the endpoint to be an Azure Function",
+"It skips validation for CloudEvents"
+],
+"a": [
+0
+],
+"e": "When the CloudEvents schema is used for delivery, Event Grid uses the CloudEvents v1.0 abuse protection mechanism, an OPTIONS request that the endpoint must answer with the allowed origin header, in place of the Event Grid validation event. Validation is always required, and any HTTPS endpoint that implements it can be used.",
+"r": "eg-auth"
+},
+{
+"s": "eg",
+"q": "Which requirement applies to a webhook endpoint that receives events pushed from Event Grid?",
+"o": [
+"It must use HTTPS and handle the webhook validation",
+"It must be hosted in Azure",
+"It must accept FTP uploads",
+"It must be in the same region as the topic"
+],
+"a": [
+0
+],
+"e": "Any public endpoint can be an event handler if it uses encryption in transit (HTTPS), can read the event format, and handles webhook validation. It doesn't have to be hosted in Azure or in the same region.",
+"r": "eg-concepts"
+},
+{
+"s": "eg",
+"q": "An Event Grid topic delivers events to a Service Bus queue. Security requires no keys or connection strings. How should delivery be authenticated?",
+"o": [
+"Enable a managed identity on the topic and assign it a Service Bus data sender role on the queue, then use managed identity for delivery",
+"Store the Service Bus connection string in the event subscription",
+"Make the Service Bus namespace public and anonymous",
+"Use the topic access key on the Service Bus queue"
+],
+"a": [
+0
+],
+"e": "Event Grid can deliver to Service Bus, Event Hubs, and Storage queues using its managed identity: enable a system- or user-assigned identity on the topic and add it to the right role on the destination. Connection strings are exactly what you wanted to avoid, Service Bus doesn't allow anonymous sends, and topic keys only authenticate publishers to Event Grid.",
+"r": "eg-auth"
+},
+{
+"s": "eg",
+"q": "Which description best matches when to choose Azure Event Grid over Service Bus or Event Hubs?",
+"o": [
+"Reacting to discrete events, such as a blob being created, with push delivery to many subscribers",
+"Processing high-value business commands that need ordering, transactions, and dead-letter handling",
+"Ingesting millions of telemetry records per second for stream analytics",
+"Long-term storage of messages for months"
+],
+"a": [
+0
+],
+"e": "Event Grid is an eventing service for discrete events that report state changes and pushes them to subscribers. Service Bus is a message broker for high-value commands with features like sessions, transactions, and DLQs, and Event Hubs is built for high-volume streaming telemetry. None of them is long-term message storage.",
+"r": "msg-options"
+},
+{
+"s": "eg",
+"q": "Your event handler sometimes receives the same Event Grid event twice and events don't always arrive in the order they were published. Is this expected?",
+"o": [
+"Yes; Event Grid delivers at least once and doesn't guarantee order, so handlers should be idempotent and use the event id and time",
+"No; Event Grid guarantees exactly-once, ordered delivery",
+"Only if dead-lettering is disabled",
+"Only for CloudEvents"
+],
+"a": [
+0
+],
+"e": "Retries can cause duplicate deliveries, and events are delivered independently, so ordering isn't guaranteed. Handlers should be idempotent, for example by tracking event ids, and use eventTime or sequence data if order matters. This is true for both schemas and regardless of dead-lettering.",
+"r": "eg-concepts"
+},
+{
+"s": "eg",
+"q": "You want to be notified when a secret in Key Vault is about to expire so a function can rotate it. Which Event Grid event should the function subscribe to, and when does it fire?",
+"o": [
+"Microsoft.KeyVault.SecretNearExpiry, about 30 days before the secret's expiration date",
+"Microsoft.KeyVault.SecretExpired, on the expiration date only",
+"Microsoft.Storage.BlobCreated, when the secret is rotated",
+"Microsoft.KeyVault.VaultAccessPolicyChanged, daily"
+],
+"a": [
+0
+],
+"e": "Key Vault publishes SecretNearExpiry when the current version of a secret is about to expire; the event fires 30 days before the expiration date. That gives time to create a new version. SecretExpired fires only once it has already expired, and the other events are unrelated.",
+"r": "eg-kv"
+},
+{
+"s": "eg",
+"q": "A SaaS platform must publish events for thousands of tenants, each with its own subscribers, while managing authentication and partitioning centrally. Which Event Grid feature fits?",
+"o": [
+"Event domains",
+"A separate Azure subscription per tenant",
+"One custom topic per event type with no tenant information",
+"Service Bus sessions"
+],
+"a": [
+0
+],
+"e": "Event domains manage large numbers of topics, typically one per tenant, under one endpoint, with centralized authentication and access control per domain topic. Separate subscriptions per tenant are unmanageable, a topic without tenant information can't isolate subscribers, and Service Bus sessions are a messaging feature.",
+"r": "eg-concepts"
+},
+{
+"s": "eg",
+"q": "Your Event Grid handler returns HTTP 400 Bad Request for a malformed event. What does Event Grid do?",
+"o": [
+"It doesn't retry this error; the event is dead-lettered if a dead-letter location is configured, otherwise dropped",
+"It retries the event 30 times over 24 hours",
+"It sends the event to all other subscriptions",
+"It disables the subscription"
+],
+"a": [
+0
+],
+"e": "Event Grid treats some errors, such as 400 Bad Request and 413 Request Entity Too Large, as failures that retrying won't fix, so it doesn't retry them and moves the event to dead-letter storage if configured. Transient errors like 503 are retried with backoff. Subscriptions aren't disabled by individual failures.",
+"r": "eg-delivery"
+},
+{
+"s": "eg",
+"q": "Using the Azure CLI, how do you create an event subscription on a custom topic that dead-letters to a blob container and stops retrying after 10 attempts or 2 hours?",
+"o": [
+"az eventgrid event-subscription create ... --deadletter-endpoint <storage-id>/blobServices/default/containers/<container> --max-delivery-attempts 10 --event-ttl 120",
+"az eventgrid topic create ... --retry 10",
+"az servicebus queue create ... --max-delivery-count 10",
+"az storage container create ... --event-ttl 120"
+],
+"a": [
+0
+],
+"e": "Dead-letter destination and retry policy are set on the event subscription: --deadletter-endpoint takes the storage container resource ID, and the retry policy uses max delivery attempts and event TTL in minutes. Topic creation doesn't define retries, and the Service Bus and Storage commands configure other services.",
+"r": "eg-cli"
+},
+{
+"s": "eg",
+"q": "In the Event Grid event schema, which property identifies the publisher-defined path to the event subject, such as /blobServices/default/containers/images/blobs/cat.jpg?",
+"o": [
+"subject",
+"eventType",
+"topic",
+"dataVersion"
+],
+"a": [
+0
+],
+"e": "subject is the publisher-defined path to the event subject, which is what subjectBeginsWith and subjectEndsWith filters match. eventType names the kind of event (for example Microsoft.Storage.BlobCreated), topic is the full resource path of the event source, and dataVersion is the schema version of the data object.",
+"r": "eg-filter"
+},
+{
+"s": "eg",
+"q": "A subscriber wants blob events delivered from a system topic, but only for one of the storage account's containers. Which filter does Microsoft show for limiting events to a specific resource path?",
+"o": [
+"subjectBeginsWith with the resource path prefix",
+"includedEventTypes with the container name",
+"An advanced filter on topic StringIn",
+"isSubjectCaseSensitive set to true"
+],
+"a": [
+0
+],
+"e": "The filtering guide uses subjectBeginsWith (or the --subject-begins-with CLI parameter) to limit events to a specific resource, because the subject contains the resource path. Event types describe what happened, not where, and case sensitivity only changes how subject filters compare text.",
+"r": "eg-filter"
+},
+{
+"s": "eg",
+"q": "You create a webhook subscription in the portal. Where do you enable dead-lettering and customize the retry policy?",
+"o": [
+"On the Additional features tab of the event subscription",
+"On the custom topic's Networking blade",
+"In the storage account's lifecycle policy",
+"In the Function app's host.json"
+],
+"a": [
+0
+],
+"e": "In the portal, the event subscription's Additional features tab is where you enable dead-lettering to a blob container and customize the retry policy, while the Filters tab holds event type, subject, and advanced filters. Topic networking, storage lifecycle rules, and host.json don't configure Event Grid delivery.",
+"r": "eg-filter"
+},
+{
+"s": "eg",
+"q": "An Azure Function uses the Event Grid trigger. What do you need to do about the subscription validation handshake?",
+"o": [
+"Nothing extra; the Event Grid trigger handles validation automatically",
+"Write code that echoes the validationCode",
+"Disable validation on the topic",
+"Use the CloudEvents schema only"
+],
+"a": [
+0
+],
+"e": "When you subscribe with the Azure Functions Event Grid trigger, Event Grid authenticates with the function's key and the trigger extension handles validation, so no custom handshake code is needed. You only implement the handshake yourself for generic HTTP webhooks. Validation can't be disabled.",
+"r": "eg-auth"
+},
+{
+"s": "eg",
+"q": "Which statement correctly describes Event Grid's retry behavior when an endpoint returns a transient error such as 503 Service Unavailable?",
+"o": [
+"Event Grid waits and retries with an exponential backoff schedule until the max attempts or the event TTL is reached",
+"Event Grid retries immediately every second",
+"Event Grid never retries 503 responses",
+"Event Grid lets you choose a linear retry schedule"
+],
+"a": [
+0
+],
+"e": "For transient failures, Event Grid retries on an exponential backoff schedule, stopping when the maximum number of attempts or the event TTL is reached. The schedule isn't configurable, and 503 is a retryable status.",
+"r": "eg-delivery"
+},
+{
+"s": "eg",
+"q": "Your handler can process events far more efficiently in groups. Which delivery setting reduces the number of HTTP calls to a webhook?",
+"o": [
+"Batching, configured with max events per batch and a preferred batch size in kilobytes on the event subscription",
+"A longer event TTL",
+"Dead-lettering",
+"Advanced filters"
+],
+"a": [
+0
+],
+"e": "Event Grid output batching delivers several events per HTTP request, controlled by max events per batch and preferred batch size on the event subscription. TTL, dead-lettering, and filters don't change how many events are sent per request.",
+"r": "eg-concepts"
+},
+{
+"s": "eg",
+"q": "A team plans to process a sustained stream of millions of IoT telemetry readings per second with replay and partitioned consumers. Which service fits better than Event Grid?",
+"o": [
+"Azure Event Hubs",
+"Azure Event Grid custom topics",
+"Azure Key Vault",
+"Azure App Configuration"
+],
+"a": [
+0
+],
+"e": "Event Hubs is designed for high-throughput streaming of telemetry, with partitions, consumer groups, and retention for replay. Event Grid is designed for discrete, reactive events pushed to handlers, and Key Vault and App Configuration aren't messaging services.",
+"r": "msg-options"
+},
+{
+"s": "eg",
+"q": "You expect a temporary event subscription to be needed only until the end of a migration. How can you make Event Grid remove it automatically?",
+"o": [
+"Set an expiration time (expirationTimeUtc) on the event subscription",
+"Set the event TTL to 1 minute",
+"Set max delivery attempts to 1",
+"Delete the topic"
+],
+"a": [
+0
+],
+"e": "An event subscription can have an expiration time, after which Event Grid removes it automatically. TTL and delivery attempts only control retries for individual events, and deleting the topic removes every subscription, not just the temporary one.",
+"r": "eg-cli"
+},
+{
+"s": "eg",
+"q": "Event Grid can't deliver an event and dead-lettering isn't configured on the subscription. What happens to the event when retries are exhausted?",
+"o": [
+"It is dropped",
+"It stays in the topic forever",
+"It is delivered to all other subscriptions",
+"It is written to the Activity log for replay"
+],
+"a": [
+0
+],
+"e": "Without a dead-letter location, Event Grid drops events once the retry policy (attempts or TTL) is exhausted. To keep them, configure a blob container as the dead-letter destination. Topics don't store events indefinitely, and the Activity log doesn't hold event payloads.",
+"r": "eg-delivery"
+}
+]

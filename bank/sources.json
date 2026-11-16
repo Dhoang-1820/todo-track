@@ -1,0 +1,726 @@
+{
+ "acr-intro": [
+  "Introduction to Azure Container Registry",
+  "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-intro"
+ ],
+ "acr-concepts": [
+  "About registries, repositories, and artifacts",
+  "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-concepts"
+ ],
+ "acr-skus": [
+  "Azure Container Registry SKU features and limits",
+  "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-skus"
+ ],
+ "acr-geo": [
+  "Geo-replication in Azure Container Registry",
+  "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-geo-replication"
+ ],
+ "acr-best": [
+  "Best practices for Azure Container Registry",
+  "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-best-practices"
+ ],
+ "acr-tags": [
+  "Recommendations for tagging and versioning container images",
+  "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-image-tag-version"
+ ],
+ "acr-lock": [
+  "Lock a container image in an Azure container registry",
+  "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-image-lock"
+ ],
+ "acr-purge": [
+  "Automatically purge images from an Azure container registry",
+  "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-auto-purge"
+ ],
+ "acr-retention": [
+  "Set a retention policy to retain untagged manifests",
+  "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-retention-policy"
+ ],
+ "acr-delete": [
+  "Delete container images in Azure Container Registry",
+  "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-delete"
+ ],
+ "acr-tasks": [
+  "Automate container image builds with ACR Tasks",
+  "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-tasks-overview"
+ ],
+ "acr-base": [
+  "About base image updates for ACR Tasks",
+  "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-tasks-base-images"
+ ],
+ "acr-sched": [
+  "Tutorial: Run an ACR task on a defined schedule",
+  "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-tasks-scheduled"
+ ],
+ "acr-yaml": [
+  "ACR Tasks reference: YAML",
+  "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-tasks-reference-yaml"
+ ],
+ "acr-multi": [
+  "Run multi-step build, test, and patch tasks in ACR Tasks",
+  "https://learn.microsoft.com/en-us/azure/container-registry/container-registry-tasks-multi-step"
+ ],
+ "acr-public": [
+  "How to consume and maintain public content with ACR Tasks",
+  "https://learn.microsoft.com/en-us/azure/container-registry/tasks-consume-public-content"
+ ],
+ "acr-cli": [
+  "az acr task (Azure CLI reference)",
+  "https://learn.microsoft.com/en-us/cli/azure/acr/task?view=azure-cli-latest"
+ ],
+ "app-container": [
+  "Configure a custom container for Azure App Service",
+  "https://learn.microsoft.com/en-us/azure/app-service/configure-custom-container"
+ ],
+ "app-tutorial": [
+  "Tutorial: Build and run a custom image in Azure App Service",
+  "https://learn.microsoft.com/en-us/azure/app-service/tutorial-custom-container"
+ ],
+ "app-settings": [
+  "Environment variables and app settings in Azure App Service",
+  "https://learn.microsoft.com/en-us/azure/app-service/reference-app-settings"
+ ],
+ "app-kv": [
+  "Use Key Vault references as app settings",
+  "https://learn.microsoft.com/en-us/azure/app-service/app-service-key-vault-references"
+ ],
+ "app-sidecar": [
+  "Configure sidecars in Azure App Service",
+  "https://learn.microsoft.com/en-us/azure/app-service/configure-sidecar"
+ ],
+ "app-appconfig": [
+  "Use App Configuration references for App Service and Azure Functions",
+  "https://learn.microsoft.com/en-us/azure/app-service/app-service-configuration-references"
+ ],
+ "aca-env": [
+  "Azure Container Apps environments",
+  "https://learn.microsoft.com/en-us/azure/container-apps/environment"
+ ],
+ "aca-vnet": [
+  "Provide a virtual network to an Azure Container Apps environment",
+  "https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom"
+ ],
+ "aca-structure": [
+  "Compute and billing structures in Azure Container Apps",
+  "https://learn.microsoft.com/en-us/azure/container-apps/structure"
+ ],
+ "aca-rev": [
+  "Update and deploy changes in Azure Container Apps",
+  "https://learn.microsoft.com/en-us/azure/container-apps/revisions"
+ ],
+ "aca-revman": [
+  "Manage revisions in Azure Container Apps",
+  "https://learn.microsoft.com/en-us/azure/container-apps/revisions-manage"
+ ],
+ "aca-traffic": [
+  "Traffic splitting in Azure Container Apps",
+  "https://learn.microsoft.com/en-us/azure/container-apps/traffic-splitting"
+ ],
+ "aca-bg": [
+  "Blue-green deployment in Azure Container Apps",
+  "https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment"
+ ],
+ "aca-secrets": [
+  "Manage secrets in Azure Container Apps",
+  "https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets"
+ ],
+ "aca-connect": [
+  "Communicate between container apps",
+  "https://learn.microsoft.com/en-us/azure/container-apps/connect-apps"
+ ],
+ "aca-probes": [
+  "Health probes in Azure Container Apps",
+  "https://learn.microsoft.com/en-us/azure/container-apps/health-probes"
+ ],
+ "aca-scale": [
+  "Set scaling rules in Azure Container Apps",
+  "https://learn.microsoft.com/en-us/azure/container-apps/scale-app"
+ ],
+ "aca-scaletut": [
+  "Tutorial: Scale a container app",
+  "https://learn.microsoft.com/en-us/azure/container-apps/tutorial-scaling"
+ ],
+ "aca-logs": [
+  "View log streams in Azure Container Apps",
+  "https://learn.microsoft.com/en-us/azure/container-apps/log-streaming"
+ ],
+ "aca-trouble": [
+  "Troubleshoot a container app",
+  "https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting"
+ ],
+ "aca-deployerr": [
+  "Troubleshoot common deployment failures in Azure Container Apps",
+  "https://learn.microsoft.com/en-us/azure/container-apps/troubleshoot-deployment-errors"
+ ],
+ "aca-obs": [
+  "Observability in Azure Container Apps",
+  "https://learn.microsoft.com/en-us/azure/container-apps/observability"
+ ],
+ "aks-deploy": [
+  "Tutorial: Deploy an application to AKS",
+  "https://learn.microsoft.com/en-us/azure/aks/tutorial-kubernetes-deploy-application"
+ ],
+ "aks-quick": [
+  "Quickstart: Deploy an AKS cluster using Azure CLI",
+  "https://learn.microsoft.com/en-us/azure/aks/learn/quick-kubernetes-deploy-cli"
+ ],
+ "aks-acr": [
+  "Authenticate with ACR from AKS",
+  "https://learn.microsoft.com/en-us/azure/aks/cluster-container-registry-integration"
+ ],
+ "aks-pull": [
+  "Troubleshoot AKS image pull errors from ACR",
+  "https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/connectivity/cannot-pull-image-from-acr-to-aks-cluster"
+ ],
+ "aks-crash": [
+  "Pod is stuck in CrashLoopBackOff mode",
+  "https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/create-upgrade-delete/pod-stuck-crashloopbackoff-mode"
+ ],
+ "aks-conn": [
+  "Troubleshoot app connection issues in an AKS cluster",
+  "https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/connectivity/connection-issues-application-hosted-aks-cluster"
+ ],
+ "aks-pods": [
+  "List pods in an AKS cluster",
+  "https://learn.microsoft.com/en-us/azure/aks/list-pods-aks-cluster"
+ ],
+ "aks-monitor": [
+  "Monitor Azure Kubernetes Service (AKS)",
+  "https://learn.microsoft.com/en-us/azure/aks/monitor-aks"
+ ],
+ "ci-query": [
+  "Query container logs in Azure Monitor",
+  "https://learn.microsoft.com/en-us/azure/azure-monitor/containers/container-insights-log-query"
+ ],
+ "cos-vec": [
+  "Vector search in Azure Cosmos DB for NoSQL",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/vector-search"
+ ],
+ "cos-vectips": [
+  "Tips for optimizing vector indexing and search performance",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/gen-ai/vector-search-performance-tips"
+ ],
+ "cos-idx": [
+  "Indexing policies in Azure Cosmos DB",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/index-policy"
+ ],
+ "cos-idxmanage": [
+  "Manage indexing policies in Azure Cosmos DB",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-indexing-policy"
+ ],
+ "cos-queryperf": [
+  "Troubleshoot query issues when using Azure Cosmos DB",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/troubleshoot-query-performance"
+ ],
+ "cos-consistency": [
+  "Consistency levels in Azure Cosmos DB",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels"
+ ],
+ "cos-ru": [
+  "Request Units in Azure Cosmos DB",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/request-units"
+ ],
+ "cos-cost": [
+  "Optimize request cost in Azure Cosmos DB",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/optimize-cost-reads-writes"
+ ],
+ "cos-partition": [
+  "Partitioning and horizontal scaling in Azure Cosmos DB",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning"
+ ],
+ "cos-dotnet": [
+  "Best practices for Azure Cosmos DB .NET SDK",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/best-practice-dotnet"
+ ],
+ "cos-perf": [
+  "Performance tips for Azure Cosmos DB and .NET",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/performance-tips-dotnet-sdk-v3"
+ ],
+ "cos-java": [
+  "Best practices for Azure Cosmos DB Java SDK",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/best-practice-java"
+ ],
+ "cos-python": [
+  "Performance tips for Azure Cosmos DB Python SDK",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/performance-tips-python-sdk"
+ ],
+ "cos-querysdk": [
+  "Query performance tips for Azure Cosmos DB SDKs",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/performance-tips-query-sdk"
+ ],
+ "cos-cache": [
+  "Azure Cosmos DB integrated cache",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/integrated-cache"
+ ],
+ "cos-cfread": [
+  "Read the Azure Cosmos DB change feed",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/read-change-feed"
+ ],
+ "cos-cfest": [
+  "Use the change feed estimator",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-use-change-feed-estimator"
+ ],
+ "cos-cfpull": [
+  "Change feed pull model in Azure Cosmos DB",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-pull-model"
+ ],
+ "cos-cfjava": [
+  "Java application using the change feed processor",
+  "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-java-change-feed"
+ ],
+ "fn-cosmos": [
+  "Azure Cosmos DB trigger and bindings for Azure Functions",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-cosmosdb-v2"
+ ],
+ "pg-python": [
+  "Quickstart: Use Python to connect to Azure Database for PostgreSQL",
+  "https://learn.microsoft.com/en-us/azure/postgresql/connectivity/connect-python"
+ ],
+ "pg-mi": [
+  "Connect with managed identity to Azure Database for PostgreSQL",
+  "https://learn.microsoft.com/en-us/azure/postgresql/security/security-connect-with-managed-identity"
+ ],
+ "pg-msi-app": [
+  "Tutorial: Connect to Azure databases from App Service using a managed identity",
+  "https://learn.microsoft.com/en-us/azure/app-service/tutorial-connect-msi-azure-database"
+ ],
+ "pg-vector": [
+  "Enable and use pgvector in Azure Database for PostgreSQL",
+  "https://learn.microsoft.com/en-us/azure/postgresql/extensions/how-to-use-pgvector"
+ ],
+ "pg-vecperf": [
+  "Optimize performance when using pgvector",
+  "https://learn.microsoft.com/en-us/azure/postgresql/extensions/how-to-optimize-performance-pgvector"
+ ],
+ "pg-diskann": [
+  "Enable and use DiskANN in Azure Database for PostgreSQL",
+  "https://learn.microsoft.com/en-us/azure/postgresql/extensions/how-to-use-pgdiskann"
+ ],
+ "pg-semantic": [
+  "Tutorial: Create a semantic search with Azure Database for PostgreSQL and Azure OpenAI",
+  "https://learn.microsoft.com/en-us/azure/postgresql/azure-ai/generative-ai-semantic-search"
+ ],
+ "pg-azureai": [
+  "Integrate Azure AI capabilities into Azure Database for PostgreSQL",
+  "https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-integrate-azure-ai"
+ ],
+ "pg-bouncer": [
+  "PgBouncer in Azure Database for PostgreSQL",
+  "https://learn.microsoft.com/en-us/azure/postgresql/connectivity/concepts-pgbouncer"
+ ],
+ "pg-overview": [
+  "What is Azure Database for PostgreSQL flexible server?",
+  "https://learn.microsoft.com/en-us/azure/postgresql/overview"
+ ],
+ "pg-mem": [
+  "Resource usage / memory server parameters",
+  "https://learn.microsoft.com/en-us/azure/postgresql/server-parameters/param-resource-usage-memory"
+ ],
+ "pg-bulk": [
+  "Best practices to bulk upload data to Azure Database for PostgreSQL",
+  "https://learn.microsoft.com/en-us/azure/postgresql/troubleshoot/how-to-bulk-load-data"
+ ],
+ "pg-highmem": [
+  "Troubleshoot high memory utilization in Azure Database for PostgreSQL",
+  "https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-high-memory-utilization"
+ ],
+ "pg-cache": [
+  "Improve performance using a cache with Azure Database for PostgreSQL",
+  "https://learn.microsoft.com/en-us/azure/postgresql/development/how-to-cache"
+ ],
+ "vec-choose": [
+  "Choose an Azure service for vector search",
+  "https://learn.microsoft.com/en-us/azure/architecture/guide/technology-choices/vector-search"
+ ],
+ "redis-modules": [
+  "Use Redis modules with Azure Managed Redis",
+  "https://learn.microsoft.com/en-us/azure/redis/redis-modules"
+ ],
+ "redis-vec": [
+  "Vector embeddings and vector search in Azure Managed Redis",
+  "https://learn.microsoft.com/en-us/azure/redis/overview-vector-similarity"
+ ],
+ "redis-cluster": [
+  "Choose a clustering policy for Azure Managed Redis",
+  "https://learn.microsoft.com/en-us/azure/redis/choose-clustering-policy"
+ ],
+ "redis-semcache": [
+  "Tutorial: Use Azure Managed Redis as a semantic cache",
+  "https://learn.microsoft.com/en-us/azure/redis/tutorial-semantic-cache"
+ ],
+ "redis-entra": [
+  "Use Microsoft Entra ID for cache authentication with Azure Managed Redis",
+  "https://learn.microsoft.com/en-us/azure/redis/entra-for-authentication"
+ ],
+ "redis-config": [
+  "How to configure Azure Managed Redis",
+  "https://learn.microsoft.com/en-us/azure/redis/configure"
+ ],
+ "redis-waf": [
+  "Architecture best practices for Azure Managed Redis",
+  "https://learn.microsoft.com/en-us/azure/well-architected/service-guides/azure-managed-redis"
+ ],
+ "caching": [
+  "Caching guidance",
+  "https://learn.microsoft.com/en-us/azure/architecture/best-practices/caching"
+ ],
+ "cache-aside": [
+  "Cache-aside caching using Azure Managed Redis and Azure Database for PostgreSQL",
+  "https://learn.microsoft.com/en-us/azure/architecture/databases/architecture/cache-aside-azure-managed-redis-postgresql"
+ ],
+ "sb-loss": [
+  "Prevent message loss and duplicate processing in Azure Service Bus",
+  "https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-message-loss-and-duplicates"
+ ],
+ "sb-locks": [
+  "Message transfers, locks, and settlement",
+  "https://learn.microsoft.com/en-us/azure/service-bus-messaging/message-transfers-locks-settlement"
+ ],
+ "sb-compare": [
+  "Storage queues and Service Bus queues compared",
+  "https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-azure-and-service-bus-queues-compared-contrasted"
+ ],
+ "sb-payloads": [
+  "Service Bus messages, payloads, and serialization",
+  "https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messages-payloads"
+ ],
+ "sb-qts": [
+  "Service Bus queues, topics, and subscriptions",
+  "https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-queues-topics-subscriptions"
+ ],
+ "sb-filters": [
+  "Topic filters and actions",
+  "https://learn.microsoft.com/en-us/azure/service-bus-messaging/topic-filters"
+ ],
+ "sb-sessions": [
+  "Message sessions",
+  "https://learn.microsoft.com/en-us/azure/service-bus-messaging/message-sessions"
+ ],
+ "sb-exceptions": [
+  "Service Bus messaging exceptions",
+  "https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-exceptions-latest"
+ ],
+ "msg-options": [
+  "Asynchronous messaging options",
+  "https://learn.microsoft.com/en-us/azure/architecture/guide/technology-choices/messaging"
+ ],
+ "eg-delivery": [
+  "Set dead-letter location and retry policy (Event Grid)",
+  "https://learn.microsoft.com/en-us/azure/event-grid/manage-event-delivery"
+ ],
+ "eg-filter": [
+  "Filter events for Event Grid",
+  "https://learn.microsoft.com/en-us/azure/event-grid/how-to-filter-events"
+ ],
+ "eg-cloud": [
+  "CloudEvents v1.0 schema with Azure Event Grid",
+  "https://learn.microsoft.com/en-us/azure/event-grid/cloud-event-schema"
+ ],
+ "eg-auth": [
+  "Authenticate event delivery to event handlers",
+  "https://learn.microsoft.com/en-us/azure/event-grid/security-authentication"
+ ],
+ "eg-concepts": [
+  "Azure Event Grid push delivery concepts",
+  "https://learn.microsoft.com/en-us/azure/event-grid/concepts"
+ ],
+ "eg-mapping": [
+  "Map custom fields to Event Grid schema",
+  "https://learn.microsoft.com/en-us/azure/event-grid/input-mappings"
+ ],
+ "eg-kv": [
+  "Azure Key Vault as Event Grid source",
+  "https://learn.microsoft.com/en-us/azure/event-grid/event-schema-key-vault"
+ ],
+ "eg-cli": [
+  "az eventgrid topic event-subscription (CLI reference)",
+  "https://learn.microsoft.com/en-us/cli/azure/eventgrid/topic/event-subscription?view=azure-cli-latest"
+ ],
+ "fn-bind": [
+  "Azure Functions triggers and bindings",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-triggers-bindings"
+ ],
+ "fn-expr": [
+  "Azure Functions binding expressions and patterns",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-expressions-patterns"
+ ],
+ "fn-http": [
+  "Azure Functions HTTP triggers and bindings",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-http-webhook"
+ ],
+ "fn-sb": [
+  "Azure Service Bus bindings for Azure Functions",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-service-bus"
+ ],
+ "fn-queue": [
+  "Azure Queue storage trigger and bindings for Azure Functions",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-queue"
+ ],
+ "fn-blob": [
+  "Azure Blob storage bindings for Azure Functions",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-blob"
+ ],
+ "fn-python": [
+  "Python developer reference for Azure Functions",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-python"
+ ],
+ "fn-java": [
+  "Java developer reference for Azure Functions",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-java"
+ ],
+ "fn-conn": [
+  "Configure connections to remote services in Azure Functions",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/manage-connections"
+ ],
+ "fn-identity": [
+  "Tutorial: Use identity-based connections with triggers and bindings",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-identity-based-connections-tutorial-2"
+ ],
+ "fn-flex": [
+  "Azure Functions Flex Consumption plan hosting",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan"
+ ],
+ "fn-scale": [
+  "Azure Functions hosting options",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-scale"
+ ],
+ "fn-best": [
+  "Best practices for reliable Azure Functions",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-best-practices"
+ ],
+ "fn-deploy": [
+  "Deployment technologies in Azure Functions",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies"
+ ],
+ "fn-events": [
+  "Event-driven scaling in Azure Functions",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/event-driven-scaling"
+ ],
+ "fn-host": [
+  "host.json reference for Azure Functions",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-host-json"
+ ],
+ "fn-local": [
+  "Code and test Azure Functions locally",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-develop-local"
+ ],
+ "fn-core": [
+  "Develop Azure Functions locally by using Core Tools",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local"
+ ],
+ "fn-aca": [
+  "Azure Functions on Azure Container Apps overview",
+  "https://learn.microsoft.com/en-us/azure/container-apps/functions-overview"
+ ],
+ "kv-rotate": [
+  "Automate rotation of a secret with two sets of credentials",
+  "https://learn.microsoft.com/en-us/azure/key-vault/secrets/tutorial-rotation-dual"
+ ],
+ "kv-eg": [
+  "Receive and respond to key vault notifications with Event Grid",
+  "https://learn.microsoft.com/en-us/azure/key-vault/general/event-grid-tutorial"
+ ],
+ "kv-keyrot": [
+  "Configure cryptographic key auto-rotation in Azure Key Vault",
+  "https://learn.microsoft.com/en-us/azure/key-vault/keys/how-to-configure-key-rotation"
+ ],
+ "kv-recovery": [
+  "Azure Key Vault soft delete and purge protection",
+  "https://learn.microsoft.com/en-us/azure/key-vault/general/key-vault-recovery"
+ ],
+ "kv-net": [
+  "Quickstart: Azure Key Vault secret client library for .NET",
+  "https://learn.microsoft.com/en-us/azure/key-vault/secrets/quick-create-net"
+ ],
+ "kv-python": [
+  "Quickstart: Azure Key Vault secret client library for Python",
+  "https://learn.microsoft.com/en-us/azure/key-vault/secrets/quick-create-python"
+ ],
+ "kv-vm": [
+  "Tutorial: Use Azure Key Vault with a virtual machine in .NET",
+  "https://learn.microsoft.com/en-us/azure/key-vault/general/tutorial-net-virtual-machine"
+ ],
+ "kv-webapp": [
+  "Tutorial: Use a managed identity to connect Key Vault to a web app",
+  "https://learn.microsoft.com/en-us/azure/key-vault/general/tutorial-net-create-vault-azure-web-app"
+ ],
+ "kv-apikeys": [
+  "Apps, API keys, and Azure Key Vault secrets",
+  "https://learn.microsoft.com/en-us/azure/key-vault/general/apps-api-keys-secrets"
+ ],
+ "kv-js": [
+  "Set, update, and rotate Key Vault secrets with JavaScript",
+  "https://learn.microsoft.com/en-us/azure/key-vault/secrets/javascript-developer-guide-set-update-rotate-secret"
+ ],
+ "ac-best": [
+  "Azure App Configuration best practices",
+  "https://learn.microsoft.com/en-us/azure/azure-app-configuration/howto-best-practices"
+ ],
+ "ac-kv": [
+  "Keys and values in Azure App Configuration",
+  "https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-key-value"
+ ],
+ "ac-dyn": [
+  "Tutorial: Use dynamic configuration in an ASP.NET Core app",
+  "https://learn.microsoft.com/en-us/azure/azure-app-configuration/enable-dynamic-configuration-aspnet-core"
+ ],
+ "ac-dynpy": [
+  "Tutorial: Use dynamic configuration in Python",
+  "https://learn.microsoft.com/en-us/azure/azure-app-configuration/enable-dynamic-configuration-python"
+ ],
+ "ac-ff": [
+  "Quickstart: Add feature flags to an ASP.NET Core app",
+  "https://learn.microsoft.com/en-us/azure/azure-app-configuration/quickstart-feature-flag-aspnet-core"
+ ],
+ "ac-reload": [
+  "Reload secrets and certificates from Key Vault automatically",
+  "https://learn.microsoft.com/en-us/azure/azure-app-configuration/reload-key-vault-secrets-dotnet"
+ ],
+ "ac-rbac": [
+  "Access Azure App Configuration using Microsoft Entra ID",
+  "https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac"
+ ],
+ "ac-secure": [
+  "Secure your Azure App Configuration deployment",
+  "https://learn.microsoft.com/en-us/azure/azure-app-configuration/secure-azure-app-configuration"
+ ],
+ "ac-js": [
+  "JavaScript configuration provider",
+  "https://learn.microsoft.com/en-us/azure/azure-app-configuration/reference-javascript-provider"
+ ],
+ "otel-enable": [
+  "Enable OpenTelemetry in Application Insights",
+  "https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-enable"
+ ],
+ "otel-config": [
+  "Configure OpenTelemetry in Application Insights",
+  "https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-configuration"
+ ],
+ "otel-add": [
+  "Add and modify OpenTelemetry in Application Insights",
+  "https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-add-modify"
+ ],
+ "otel-filter": [
+  "Filter OpenTelemetry in Application Insights",
+  "https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-filter"
+ ],
+ "otel-migrate": [
+  "Migrate from Application Insights classic SDKs to OpenTelemetry",
+  "https://learn.microsoft.com/en-us/azure/azure-monitor/app/migrate-to-opentelemetry"
+ ],
+ "ai-model": [
+  "Application Insights telemetry data model",
+  "https://learn.microsoft.com/en-us/azure/azure-monitor/app/data-model-complete"
+ ],
+ "ai-tx": [
+  "Investigate failures, performance, and transactions with Application Insights",
+  "https://learn.microsoft.com/en-us/azure/azure-monitor/app/failures-performance-transactions"
+ ],
+ "ai-dotnet": [
+  "Azure Monitor Distro client library for .NET",
+  "https://learn.microsoft.com/en-us/dotnet/api/overview/azure/monitor.opentelemetry.aspnetcore-readme?view=azure-dotnet"
+ ],
+ "kql-agg": [
+  "Tutorial: Use aggregation functions in KQL",
+  "https://learn.microsoft.com/en-us/kusto/query/tutorials/use-aggregation-functions?view=microsoft-fabric"
+ ],
+ "kql-join": [
+  "join operator (KQL)",
+  "https://learn.microsoft.com/en-us/kusto/query/join-operator?view=microsoft-fabric"
+ ],
+ "kql-joinunique": [
+  "innerunique join (KQL)",
+  "https://learn.microsoft.com/en-us/kusto/query/join-innerunique?view=microsoft-fabric"
+ ],
+ "kql-leftouter": [
+  "leftouter join (KQL)",
+  "https://learn.microsoft.com/en-us/kusto/query/join-leftouter?view=microsoft-fabric"
+ ],
+ "kql-render": [
+  "render operator (KQL)",
+  "https://learn.microsoft.com/en-us/kusto/query/render-operator?view=microsoft-fabric"
+ ],
+ "kql-ref": [
+  "KQL quick reference",
+  "https://learn.microsoft.com/en-us/kusto/query/kql-quick-reference?view=microsoft-fabric"
+ ],
+ "kql-samples": [
+  "Samples for Kusto queries",
+  "https://learn.microsoft.com/en-US/azure/data-explorer/kusto/query/samples?pivots=azuremonitor"
+ ],
+ "kql-timechart": [
+  "Time chart visualization (KQL)",
+  "https://learn.microsoft.com/en-us/kusto/query/visualization-timechart?view=microsoft-fabric"
+ ],
+ "kql-ml": [
+  "Detect and analyze anomalies using KQL in Azure Monitor",
+  "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/kql-machine-learning-azure-monitor"
+ ],
+ "kql-joindata": [
+  "Tutorial: Join data from multiple tables (KQL)",
+  "https://learn.microsoft.com/en-us/kusto/query/tutorials/join-data-from-multiple-tables?view=microsoft-fabric"
+ ],
+ "svc-pg": [
+  "Integrate Azure Database for PostgreSQL with Service Connector",
+  "https://learn.microsoft.com/en-us/azure/service-connector/how-to-integrate-postgres"
+ ],
+ "sb-cli-queue": [
+  "az servicebus queue (CLI reference)",
+  "https://learn.microsoft.com/en-us/cli/azure/servicebus/queue?view=azure-cli-latest"
+ ],
+ "pg-auth-lib": [
+  "Azure PostgreSQL Auth client library for Python",
+  "https://learn.microsoft.com/en-us/python/api/overview/azure/postgresql-auth-readme?view=azure-python"
+ ],
+ "fn-migrate-flex": [
+  "Migrate Consumption plan apps to the Flex Consumption plan",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/migration/migrate-plan-consumption-to-flex"
+ ],
+ "fn-iac": [
+  "Automate resource deployment for your function app",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-infrastructure-as-code"
+ ],
+ "fn-timer": [
+  "Timer trigger for Azure Functions",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer"
+ ],
+ "fn-isolated": [
+  "Differences between the isolated worker model and the in-process model for .NET on Azure Functions",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/dotnet-isolated-in-process-differences"
+ ],
+ "ac-cmk": [
+  "Use customer-managed keys to encrypt App Configuration data",
+  "https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-customer-managed-keys"
+ ],
+ "ac-k8s": [
+  "Azure App Configuration Kubernetes Provider reference",
+  "https://learn.microsoft.com/en-us/azure/azure-app-configuration/reference-kubernetes-provider"
+ ],
+ "ac-multi": [
+  "Multitenancy and Azure App Configuration",
+  "https://learn.microsoft.com/en-us/azure/architecture/guide/multitenant/service/app-configuration"
+ ],
+ "aca-spring-logs": [
+  "Logs and metrics in Azure Container Apps",
+  "https://learn.microsoft.com/en-us/azure/spring-apps/migration/migrate-to-azure-container-apps-monitoring"
+ ],
+ "fn-v1v4": [
+  "Migrate apps from Azure Functions version 1.x to 4.x",
+  "https://learn.microsoft.com/en-us/azure/azure-functions/migrate-version-1-version-4"
+ ],
+ "ai-faq": [
+  "Application Insights FAQ",
+  "https://learn.microsoft.com/en-us/azure/azure-monitor/app/application-insights-faq"
+ ],
+ "w3c-trace": [
+  "Distributed tracing and W3C Trace Context (Power Platform guidance)",
+  "https://learn.microsoft.com/en-us/power-platform/architecture/key-concepts/distributed-tracing-details"
+ ],
+ "kv-sdk-js": [
+  "SecretClient class (JavaScript)",
+  "https://learn.microsoft.com/en-us/javascript/api/@azure/keyvault-secrets/secretclient?view=azure-node-latest"
+ ],
+ "kv-sdk-net": [
+  "Azure Key Vault secret client library for .NET",
+  "https://learn.microsoft.com/en-us/dotnet/api/overview/azure/security.keyvault.secrets-readme?view=azure-dotnet"
+ ]
+}
