@@ -13,12 +13,14 @@
   const LS_CURRENT = "ai200.current";
   const LS_LOCAL = "ai200.attempts";
   const app = document.getElementById("app");
+  const live = document.getElementById("live");
 
   let bank = [];            // all questions
   let byId = new Map();     // id -> question
-  let attempts = [];        // [{id, mode, mock, domain, total, correct, score, passed, domain_scores, duration_sec, submitted_at, answers:[...]}]
+  let attempts = [];        // newest first, each with answers:[{question_id, selected, is_correct}]
   let remoteOk = false;
   let timerHandle = null;
+  let keyHandler = null;
 
   /* ---------- helpers ---------- */
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -27,12 +29,18 @@
   const pct = (c, t) => (t ? Math.round((c / t) * 100) : 0);
   const fmtTime = (sec) => { sec = Math.max(0, Math.floor(sec)); const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60; return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(s).padStart(2, "0"); };
   const fmtDate = (iso) => new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  const fmtShortDate = (iso) => new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
   const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => { const r = (Math.random() * 16) | 0; return (c === "x" ? r : (r & 0x3) | 0x8).toString(16); }));
   const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
   const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } };
   const lsDel = (k) => { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } };
   const sameSet = (a, b) => a.length === b.length && a.every((x) => b.includes(x));
-  const modeLabel = (a) => a.mode === "mock" ? `Mock test ${a.mock}` : a.mode === "domain" ? `${a.domain} practice` : a.mode === "review" ? "Review mistakes" : "Smart mixed test";
+  const isFull = (a) => a.mode === "mock" || a.mode === "random";
+  const skillName = (code) => (bank.find((q) => q.skill === code) || {}).skill_name || code;
+  const modeLabel = (a) => a.mode === "mock" ? `Mock test ${a.mock}` : a.mode === "domain" ? `${a.domain} practice`
+    : a.mode === "skill" ? `Skill drill: ${skillName(a.skill)}` : a.mode === "review" ? "Mistake review" : "Smart mixed test";
+  const announce = (msg) => { if (live) { live.textContent = ""; setTimeout(() => (live.textContent = msg), 50); } };
+  const typing = (e) => /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) && !["radio", "checkbox"].includes(e.target.type);
 
   /* ---------- Supabase REST ---------- */
   async function api(path, opts = {}) {
@@ -77,7 +85,6 @@
     } catch (e) { console.warn("Supabase attempts unavailable", e); }
     const ids = new Set(remote.map((r) => r.id));
     const pending = local.filter((a) => !ids.has(a.id));
-    // try to upload attempts that were saved while offline
     for (const a of pending) { if (await pushAttempt(a)) a.synced = true; }
     const merged = [...remote, ...pending].sort((a, b) => b.submitted_at.localeCompare(a.submitted_at));
     lsSet(LS_LOCAL, merged.filter((a) => !a.synced));
@@ -86,7 +93,7 @@
 
   async function pushAttempt(a) {
     try {
-      const { answers, synced, ...row } = a;
+      const { answers, synced, flags, ...row } = a;
       await api("attempts", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(row) });
       await api("attempt_answers", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(answers.map((x) => ({ attempt_id: a.id, question_id: x.question_id, selected: x.selected, is_correct: x.is_correct }))) });
       return true;
@@ -95,7 +102,6 @@
 
   /* ---------- statistics ---------- */
   function questionStats() {
-    // latest answer per question (attempts are newest first)
     const latest = new Map(); const seen = new Map();
     for (const a of attempts) for (const ans of a.answers) {
       seen.set(ans.question_id, (seen.get(ans.question_id) || 0) + 1);
@@ -110,9 +116,28 @@
     return d;
   }
 
+  function skillBreakdown(stats) {
+    const s = new Map();
+    for (const [id, ok] of stats.latest) {
+      const q = byId.get(id); if (!q || !q.skill) continue;
+      const v = s.get(q.skill) || { skill: q.skill, name: q.skill_name || q.skill, domain: q.domain, correct: 0, total: 0, pool: 0 };
+      v.total++; if (ok) v.correct++; s.set(q.skill, v);
+    }
+    bank.forEach((q) => { if (s.has(q.skill)) s.get(q.skill).pool++; });
+    return [...s.values()];
+  }
+
+  function readiness() {
+    const full = attempts.filter(isFull).slice(0, 3);
+    if (full.length < 3) return { label: "Take 3 full tests to see readiness", cls: "" };
+    const avg = Math.round(full.reduce((s, a) => s + a.score, 0) / 3);
+    if (full.every((a) => a.score >= 750)) return { label: `Exam ready: last 3 full tests all 750+ (avg ${avg})`, cls: "pass" };
+    if (avg >= CFG.passScore) return { label: `Close: last 3 full tests average ${avg}`, cls: "near" };
+    return { label: `Keep practicing: last 3 full tests average ${avg}`, cls: "fail" };
+  }
+
   /* ---------- test generation ---------- */
   function pick(pool, n, stats) {
-    // unseen first, then previously wrong, then the rest; random inside each group
     const tier = (q) => (!stats.seen.has(q.id) ? 0 : stats.latest.get(q.id) === false ? 1 : 2);
     return shuffle(pool).sort((a, b) => tier(a) - tier(b)).slice(0, n);
   }
@@ -120,32 +145,59 @@
   function generate(opts) {
     const stats = questionStats();
     let qs = [], minutes = 0;
-    if (opts.mode === "mock") {
-      qs = shuffle(bank.filter((q) => q.mock === opts.mock));
-      minutes = CFG.mockMinutes;
-    } else if (opts.mode === "random") {
+    if (opts.mode === "mock") { qs = shuffle(bank.filter((q) => q.mock === opts.mock)); minutes = CFG.mockMinutes; }
+    else if (opts.mode === "random") {
       for (const [d, info] of Object.entries(DOMAINS)) qs.push(...pick(bank.filter((q) => q.domain === d), info.perMock, stats));
       qs = shuffle(qs); minutes = CFG.mockMinutes;
-    } else if (opts.mode === "domain") {
-      qs = pick(bank.filter((q) => q.domain === opts.domain), opts.count, stats);
-      minutes = Math.round(qs.length * 3);
-    } else if (opts.mode === "review") {
-      qs = shuffle(bank.filter((q) => stats.latest.get(q.id) === false)).slice(0, opts.count || 40);
-      minutes = Math.round(qs.length * 3);
+    } else if (opts.mode === "domain") { qs = pick(bank.filter((q) => q.domain === opts.domain), opts.count, stats); minutes = qs.length * 3; }
+    else if (opts.mode === "skill") { qs = pick(bank.filter((q) => q.skill === opts.skill), opts.count || 10, stats); minutes = qs.length * 3; }
+    else if (opts.mode === "review") {
+      const pool = opts.ids ? opts.ids.map((id) => byId.get(id)).filter(Boolean) : bank.filter((q) => stats.latest.get(q.id) === false);
+      qs = shuffle(pool).slice(0, opts.count || 40); minutes = qs.length * 3;
     }
     if (!qs.length) return null;
+    const study = !!opts.study;
     return {
-      id: uuid(), mode: opts.mode, mock: opts.mock || null, domain: opts.domain || null,
-      ids: qs.map((q) => q.id), answers: {}, flags: {}, index: 0,
-      timed: opts.timed !== false, limitSec: minutes * 60, startedAt: Date.now()
+      id: uuid(), mode: opts.mode, mock: opts.mock || null, domain: opts.domain || null, skill: opts.skill || null,
+      ids: qs.map((q) => q.id), answers: {}, flags: {}, checked: {}, index: 0, study,
+      timed: !study && opts.timed !== false, limitSec: minutes * 60, startedAt: Date.now()
     };
   }
 
-  /* ---------- views ---------- */
-  function setView(html) { clearInterval(timerHandle); app.innerHTML = html; window.scrollTo(0, 0); }
+  function startTest(t) {
+    if (!t) { alert("No questions available for this choice yet."); return; }
+    const cur = lsGet(LS_CURRENT, null);
+    if (cur && !confirm("Start a new test? Your test in progress will be discarded.")) return;
+    lsSet(LS_CURRENT, t); location.hash = "#/test";
+  }
 
-  function bar(value, passLine) {
-    return `<div class="bar"><div class="fill ${value >= passLine ? "good" : "low"}" style="width:${value}%"></div><div class="passline" style="left:${passLine}%"></div></div>`;
+  /* ---------- views ---------- */
+  function setView(html) {
+    clearInterval(timerHandle);
+    if (keyHandler) { document.removeEventListener("keydown", keyHandler); keyHandler = null; }
+    app.innerHTML = html; window.scrollTo(0, 0);
+  }
+
+  function bar(value, passLine, label) {
+    return `<div class="bar" role="img" aria-label="${esc(label || value + "%")}"><div class="fill ${value >= passLine ? "good" : "low"}" style="width:${value}%"></div><div class="passline" style="left:${passLine}%"></div></div>`;
+  }
+
+  function trendChart() {
+    const pts = attempts.filter(isFull).slice(0, 12).reverse();
+    if (pts.length < 2) return `<p class="muted small">Your score trend appears after 2 full tests (mock or smart mixed).</p>`;
+    const W = 600, H = 170, L = 34, R = 10, T = 12, B = 26;
+    const x = (i) => L + (i * (W - L - R)) / (pts.length - 1);
+    const y = (v) => T + (1 - v / 1000) * (H - T - B);
+    const line = pts.map((a, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(a.score).toFixed(1)}`).join(" ");
+    const summary = pts.map((a) => `${modeLabel(a)} ${a.score}`).join(", ");
+    return `<svg class="trend" viewBox="0 0 ${W} ${H}" role="img" aria-label="Score trend, oldest to newest: ${esc(summary)}">
+      ${[0, 500, 1000].map((v) => `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" class="grid"/><text x="${L - 6}" y="${y(v) + 4}" class="axis" text-anchor="end">${v}</text>`).join("")}
+      <line x1="${L}" x2="${W - R}" y1="${y(CFG.passScore)}" y2="${y(CFG.passScore)}" class="pass"/><text x="${W - R}" y="${y(CFG.passScore) - 5}" class="axis" text-anchor="end">pass ${CFG.passScore}</text>
+      <path d="${line}" class="line"/>
+      ${pts.map((a, i) => `<circle cx="${x(i)}" cy="${y(a.score)}" r="4" class="${a.passed ? "pt good" : "pt bad"}"><title>${esc(modeLabel(a))} · ${fmtShortDate(a.submitted_at)} · ${a.score}</title></circle>`).join("")}
+      <text x="${L}" y="${H - 6}" class="axis">${fmtShortDate(pts[0].submitted_at)}</text>
+      <text x="${W - R}" y="${H - 6}" class="axis" text-anchor="end">${fmtShortDate(pts[pts.length - 1].submitted_at)}</text>
+    </svg>`;
   }
 
   function renderDashboard() {
@@ -154,17 +206,18 @@
     const passLine = CFG.passScore / 10;
     const answered = [...stats.latest.entries()].map(([id, ok]) => ({ q: byId.get(id), ok })).filter((x) => x.q);
     const dom = domainBreakdown(answered);
-    const totalCorrect = answered.filter((x) => x.ok).length;
-    const overall = scaled(totalCorrect, answered.length);
+    const overall = scaled(answered.filter((x) => x.ok).length, answered.length);
     const scores = attempts.map((a) => a.score);
     const avg = scores.length ? Math.round(scores.reduce((s, x) => s + x, 0) / scores.length) : 0;
     const passed = attempts.filter((a) => a.passed).length;
     const wrongCount = [...stats.latest.values()].filter((v) => v === false).length;
     const bestMock = {};
     attempts.filter((a) => a.mode === "mock").forEach((a) => { bestMock[a.mock] = Math.max(bestMock[a.mock] || 0, a.score); });
+    const weak = skillBreakdown(stats).filter((s) => s.total >= 2).sort((a, b) => a.correct / a.total - b.correct / b.total || b.total - a.total).slice(0, 5);
+    const ready = readiness();
 
     setView(`
-      ${current ? `<div class="banner"><span>You have a test in progress (${esc(modeLabel(current))}, ${Object.keys(current.answers).length}/${current.ids.length} answered).</span><span><a class="btn small" href="#/test">Resume</a> <button class="btn small ghost" id="discard">Discard</button></span></div>` : ""}
+      ${current ? `<div class="banner"><span>Test in progress: <b>${esc(modeLabel(current))}</b>, ${Object.values(current.answers).filter((v) => v.length).length}/${current.ids.length} answered.</span><span><a class="btn small primary" href="#/test">Resume</a> <button class="btn small ghost" id="discard">Discard</button></span></div>` : ""}
       <section class="hero">
         <div>
           <h1>Exam AI-200 practice</h1>
@@ -172,7 +225,7 @@
         </div>
         <div class="overall ${answered.length ? (overall >= CFG.passScore ? "pass" : "fail") : ""}">
           <div class="big">${answered.length ? overall : "—"}</div>
-          <div class="small">Overall score<br>${answered.length ? (overall >= CFG.passScore ? "On track to pass" : `Pass mark ${CFG.passScore}`) : "Take a test to start"}</div>
+          <div class="small">Overall score<br>${answered.length ? (overall >= CFG.passScore ? "✓ Above the pass mark" : `✗ Below the pass mark (${CFG.passScore})`) : "Take a test to start"}</div>
         </div>
       </section>
 
@@ -185,14 +238,29 @@
 
       <section class="card">
         <h2>Generate questions</h2>
-        <div class="seg" role="tablist">
-          <button data-mode="mock" class="on">Full mock test</button>
-          <button data-mode="random">Smart mixed test</button>
-          <button data-mode="domain">One domain</button>
-          <button data-mode="review">Review mistakes</button>
+        <div class="seg" role="radiogroup" aria-label="Test type">
+          <button role="radio" aria-checked="true" data-mode="mock" class="on">Full mock test</button>
+          <button role="radio" aria-checked="false" data-mode="random">Smart mixed test</button>
+          <button role="radio" aria-checked="false" data-mode="domain">One domain</button>
+          <button role="radio" aria-checked="false" data-mode="review">Review mistakes</button>
         </div>
         <div id="modeOpts"></div>
+        <label class="check studychk"><input type="checkbox" id="studyChk"> <span><b>Study mode</b>: check each answer and see the explanation right away (no timer)</span></label>
         <button class="btn primary wide" id="gen">Generate questions</button>
+      </section>
+
+      <section class="card">
+        <div class="rowhead"><h2>Progress</h2><span class="ready ${ready.cls}">${esc(ready.label)}</span></div>
+        ${trendChart()}
+      </section>
+
+      <section class="card">
+        <h2>Weakest skills</h2>
+        ${weak.length ? `<p class="muted small">Skills you've answered at least twice, weakest first. Drills use Study mode.</p>
+          <ul class="weak">${weak.map((s) => { const v = pct(s.correct, s.total); return `<li>
+            <div class="weakhead"><span><span class="tag">${s.domain}</span> ${esc(s.name)}</span><span class="${v >= passLine ? "okc" : "errc"}">${v}% · ${s.correct}/${s.total}</span></div>
+            <div class="weakrow">${bar(v, passLine, `${s.name}: ${v}% correct`)}<button class="btn small" data-drill="${esc(s.skill)}">Drill ${Math.min(10, s.pool)}</button></div></li>`; }).join("")}</ul>`
+          : `<p class="muted small">After a test or two, your weakest skills show up here with a one-click drill.</p>`}
       </section>
 
       <section class="card">
@@ -201,49 +269,46 @@
         ${Object.entries(DOMAINS).map(([k, d]) => { const v = pct(dom[k].correct, dom[k].total); return `
           <div class="domrow">
             <div class="domhead"><span><b>${k}</b> ${esc(d.name)} <span class="muted">(${d.weight})</span></span><span>${dom[k].total ? v + "% · " + dom[k].correct + "/" + dom[k].total : "not started"}</span></div>
-            ${bar(dom[k].total ? v : 0, passLine)}
+            ${bar(dom[k].total ? v : 0, passLine, `${k}: ${dom[k].total ? v + "% correct" : "not started"}`)}
           </div>`; }).join("")}
       </section>
 
       <section class="card">
         <h2>Mock tests</h2>
         <div class="mocks">
-          ${Array.from({ length: 10 }, (_, i) => i + 1).map((n) => `
-            <button class="mock ${bestMock[n] === undefined ? "" : bestMock[n] >= CFG.passScore ? "pass" : "fail"}" data-mock="${n}">
-              <span>Mock ${n}</span><b>${bestMock[n] === undefined ? "Not taken" : "Best " + bestMock[n]}</b>
-            </button>`).join("")}
+          ${Array.from({ length: 10 }, (_, i) => i + 1).map((n) => { const b = bestMock[n]; return `
+            <button class="mock ${b === undefined ? "" : b >= CFG.passScore ? "pass" : "fail"}" data-mock="${n}">
+              <span>Mock ${n}</span><b>${b === undefined ? "Not taken" : `${b >= CFG.passScore ? "✓" : "✗"} Best ${b}`}</b>
+            </button>`; }).join("")}
         </div>
       </section>
       ${remoteOk ? "" : `<p class="muted small center">Offline mode: results are saved in this browser and will sync when the database is reachable.</p>`}
     `);
 
     let mode = "mock";
-    const opts = document.getElementById("modeOpts");
+    const opts = document.getElementById("modeOpts"), studyChk = document.getElementById("studyChk");
     const nextMock = (Array.from({ length: 10 }, (_, i) => i + 1).find((n) => bestMock[n] === undefined)) || 1;
     function drawOpts() {
-      if (mode === "mock") opts.innerHTML = `<label>Mock test <select id="mockSel">${Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}" ${i + 1 === nextMock ? "selected" : ""}>Mock ${i + 1}${bestMock[i + 1] !== undefined ? " (best " + bestMock[i + 1] + ")" : ""}</option>`).join("")}</select></label><p class="muted small">40 questions in exam proportions, 120-minute timer.</p>`;
+      studyChk.checked = mode === "domain" || mode === "review";
+      if (mode === "mock") opts.innerHTML = `<label>Mock test <select id="mockSel">${Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}" ${i + 1 === nextMock ? "selected" : ""}>Mock ${i + 1}${bestMock[i + 1] !== undefined ? " (best " + bestMock[i + 1] + ")" : ""}</option>`).join("")}</select></label><p class="muted small">40 questions in exam proportions with a 120-minute timer, like the real exam.</p>`;
       if (mode === "random") opts.innerHTML = `<p class="muted small">40 questions in exam proportions, picked from questions you haven't seen yet first, then ones you got wrong. 120-minute timer.</p>`;
-      if (mode === "domain") opts.innerHTML = `<label>Domain <select id="domSel">${Object.entries(DOMAINS).map(([k, d]) => `<option value="${k}">${k} · ${esc(d.name)}</option>`).join("")}</select></label><label>Questions <select id="cntSel"><option>10</option><option selected>20</option><option>40</option></select></label><label class="check"><input type="checkbox" id="timedChk"> Timed (3 min per question)</label>`;
-      if (mode === "review") opts.innerHTML = wrongCount ? `<p class="muted small">${wrongCount} question${wrongCount > 1 ? "s" : ""} you last answered incorrectly (up to 40 per test, untimed).</p>` : `<p class="muted small">No mistakes to review yet. Take a test first.</p>`;
+      if (mode === "domain") opts.innerHTML = `<label>Domain <select id="domSel">${Object.entries(DOMAINS).map(([k, d]) => `<option value="${k}">${k} · ${esc(d.name)}</option>`).join("")}</select></label><label>Questions <select id="cntSel"><option>10</option><option selected>20</option><option>40</option></select></label>`;
+      if (mode === "review") opts.innerHTML = wrongCount ? `<p class="muted small">${wrongCount} question${wrongCount > 1 ? "s" : ""} you last answered incorrectly (up to 40 per test).</p>` : `<p class="muted small">No mistakes to review yet. Take a test first.</p>`;
     }
     drawOpts();
     document.querySelectorAll(".seg button").forEach((b) => b.onclick = () => {
-      document.querySelectorAll(".seg button").forEach((x) => x.classList.remove("on")); b.classList.add("on"); mode = b.dataset.mode; drawOpts();
+      document.querySelectorAll(".seg button").forEach((x) => { x.classList.remove("on"); x.setAttribute("aria-checked", "false"); });
+      b.classList.add("on"); b.setAttribute("aria-checked", "true"); mode = b.dataset.mode; drawOpts();
     });
     document.getElementById("gen").onclick = () => {
-      if (lsGet(LS_CURRENT, null) && !confirm("Start a new test? Your test in progress will be discarded.")) return;
-      let t = null;
-      if (mode === "mock") t = generate({ mode, mock: +document.getElementById("mockSel").value });
-      if (mode === "random") t = generate({ mode });
-      if (mode === "domain") t = generate({ mode, domain: document.getElementById("domSel").value, count: +document.getElementById("cntSel").value, timed: document.getElementById("timedChk").checked });
-      if (mode === "review") t = generate({ mode, count: 40, timed: false });
-      if (!t) { alert("No questions available for this choice yet."); return; }
-      lsSet(LS_CURRENT, t); location.hash = "#/test";
+      const study = studyChk.checked;
+      if (mode === "mock") startTest(generate({ mode, mock: +document.getElementById("mockSel").value, study }));
+      if (mode === "random") startTest(generate({ mode, study }));
+      if (mode === "domain") startTest(generate({ mode, domain: document.getElementById("domSel").value, count: +document.getElementById("cntSel").value, study, timed: false }));
+      if (mode === "review") startTest(generate({ mode, count: 40, study, timed: false }));
     };
-    document.querySelectorAll(".mock").forEach((b) => b.onclick = () => {
-      if (lsGet(LS_CURRENT, null) && !confirm("Start a new test? Your test in progress will be discarded.")) return;
-      lsSet(LS_CURRENT, generate({ mode: "mock", mock: +b.dataset.mock })); location.hash = "#/test";
-    });
+    document.querySelectorAll(".mock").forEach((b) => b.onclick = () => startTest(generate({ mode: "mock", mock: +b.dataset.mock })));
+    document.querySelectorAll("[data-drill]").forEach((b) => b.onclick = () => startTest(generate({ mode: "skill", skill: b.dataset.drill, count: 10, study: true })));
     const discard = document.getElementById("discard");
     if (discard) discard.onclick = () => { if (confirm("Discard the test in progress?")) { lsDel(LS_CURRENT); renderDashboard(); } };
   }
@@ -251,64 +316,103 @@
   function renderTest() {
     const t = lsGet(LS_CURRENT, null);
     if (!t) { location.hash = "#/"; return; }
+    t.checked = t.checked || {};
     const qs = t.ids.map((id) => byId.get(id)).filter(Boolean);
     const save = () => lsSet(LS_CURRENT, t);
+    const announced = {};
 
     function draw() {
       const q = qs[t.index];
       const multi = q.type === "multi";
       const need = q.correct.length;
       const chosen = t.answers[q.id] || [];
+      const checked = t.study && t.checked[q.id];
+      const isOk = checked && sameSet(chosen, q.correct);
       const answeredCount = Object.values(t.answers).filter((v) => v.length).length;
+      const last = t.index === qs.length - 1;
+      const allDone = answeredCount === qs.length;
       setView(`
         <div class="testbar">
-          <span><b>${esc(modeLabel(t))}</b> · ${answeredCount}/${qs.length} answered</span>
-          ${t.timed ? `<span class="timer" id="timer"></span>` : `<span class="muted small">Untimed</span>`}
+          <span><b>${esc(modeLabel(t))}</b>${t.study ? ` <span class="tag">Study mode</span>` : ""} · ${answeredCount}/${qs.length} answered</span>
+          ${t.timed ? `<span class="timer" id="timer" aria-label="Time remaining"></span>` : `<span class="muted small">Untimed</span>`}
         </div>
+        <div class="progress" aria-hidden="true"><div style="width:${pct(answeredCount, qs.length)}%"></div></div>
         <section class="card question">
-          <div class="qmeta"><span>Question ${t.index + 1} of ${qs.length}</span><span class="tag">${q.domain}</span></div>
-          <p class="stem">${esc(q.stem)}</p>
-          ${multi ? `<p class="hint">Select ${need} answers.</p>` : ""}
-          <div class="options">
-            ${q.options.map((o) => `
-              <label class="opt ${chosen.includes(o.key) ? "sel" : ""}">
-                <input type="${multi ? "checkbox" : "radio"}" name="opt" value="${o.key}" ${chosen.includes(o.key) ? "checked" : ""}>
-                <span class="key">${o.key}</span><span class="txt">${esc(o.text)}</span>
-              </label>`).join("")}
-          </div>
+          <div class="qmeta"><span>Question ${t.index + 1} of ${qs.length}</span>${t.study ? `<span class="tag">${q.domain} · ${esc(q.skill_name || "")}</span>` : ""}</div>
+          <fieldset ${checked ? "disabled" : ""}>
+            <legend class="stem">${esc(q.stem)}</legend>
+            ${multi ? `<p class="hint">Select ${need} answers.</p>` : ""}
+            <div class="options">
+              ${q.options.map((o) => {
+                const mine = chosen.includes(o.key), right = q.correct.includes(o.key);
+                const state = checked ? (right ? "right" : mine ? "wrong" : "") : "";
+                return `<label class="opt ${mine ? "sel" : ""} ${state}">
+                  <input type="${multi ? "checkbox" : "radio"}" name="opt" value="${o.key}" ${mine ? "checked" : ""}>
+                  <span class="key">${o.key}</span><span class="txt">${esc(o.text)}</span>
+                  ${state === "right" ? `<span class="mark okc">✓ Correct</span>` : state === "wrong" ? `<span class="mark errc">✗ Your answer</span>` : ""}
+                </label>`; }).join("")}
+            </div>
+          </fieldset>
+          ${checked ? `<div class="feedback ${isOk ? "ok" : "bad"}" role="status">
+              <b>${isOk ? "✓ Correct." : "✗ Not quite."}</b> ${esc(q.explanation)}
+              ${q.source_url ? `<p class="src">Source: <a href="${esc(q.source_url)}" target="_blank" rel="noopener">${esc(q.source_title || q.source_url)}</a></p>` : ""}
+            </div>` : ""}
           <div class="qnav">
             <button class="btn ghost" id="prev" ${t.index === 0 ? "disabled" : ""}>← Prev</button>
-            <button class="btn ghost ${t.flags[q.id] ? "flagged" : ""}" id="flag">${t.flags[q.id] ? "★ Flagged" : "☆ Flag"}</button>
-            ${t.index < qs.length - 1 ? `<button class="btn primary" id="next">Next →</button>` : `<button class="btn primary" id="submit2">Submit test</button>`}
+            <button class="btn ghost ${t.flags[q.id] ? "flagged" : ""}" id="flag" aria-pressed="${!!t.flags[q.id]}">${t.flags[q.id] ? "★ Flagged" : "☆ Flag"}</button>
+            ${t.study && !checked ? `<button class="btn primary" id="check" ${chosen.length === need ? "" : "disabled"}>Check answer</button>`
+              : last ? `<button class="btn primary" id="submit2">Finish test</button>` : `<button class="btn primary" id="next">Next →</button>`}
           </div>
+          <p class="muted small keys">Keyboard: A–${q.options[q.options.length - 1].key} choose · ${t.study ? "Enter check/next · " : "Enter next · "}←/→ move · F flag</p>
         </section>
         <section class="card">
-          <div class="palette">
-            ${qs.map((x, i) => `<button class="pq ${i === t.index ? "cur" : ""} ${(t.answers[x.id] || []).length ? "ans" : ""} ${t.flags[x.id] ? "flag" : ""}" data-i="${i}" aria-label="Question ${i + 1}">${i + 1}</button>`).join("")}
+          <div class="palette" role="list">
+            ${qs.map((x, i) => { const a = (t.answers[x.id] || []).length, f = t.flags[x.id], c = t.study && t.checked[x.id];
+              const res = c ? (sameSet(t.answers[x.id] || [], x.correct) ? "right" : "wrong") : "";
+              return `<button role="listitem" class="pq ${i === t.index ? "cur" : ""} ${a ? "ans" : ""} ${f ? "flag" : ""} ${res}" data-i="${i}" aria-label="Question ${i + 1}, ${a ? "answered" : "not answered"}${f ? ", flagged" : ""}${res ? ", " + (res === "right" ? "correct" : "incorrect") : ""}"${i === t.index ? ' aria-current="true"' : ""}>${i + 1}${f ? "<i>★</i>" : ""}</button>`; }).join("")}
           </div>
-          <p class="muted small legend"><span class="dot ans"></span> answered <span class="dot flag"></span> flagged <span class="dot"></span> not answered</p>
-          <button class="btn primary wide" id="submit">Submit test</button>
+          <p class="muted small legend"><span class="dot ans"></span> answered <span class="dot flag">★</span> flagged <span class="dot"></span> not answered${t.study ? ` <span class="dot right"></span> correct <span class="dot wrong"></span> incorrect` : ""}</p>
+          <button class="btn ${allDone ? "primary" : "ghost"} wide" id="submit">Submit test${allDone ? "" : ` (${qs.length - answeredCount} unanswered)`}</button>
         </section>`);
 
-      document.querySelectorAll(".opt input").forEach((inp) => inp.onchange = () => {
-        let sel = [...document.querySelectorAll(".opt input:checked")].map((x) => x.value);
-        if (multi && sel.length > need) { inp.checked = false; sel = sel.filter((v) => v !== inp.value); }
-        t.answers[q.id] = sel.sort(); save();
-        document.querySelectorAll(".opt").forEach((l) => l.classList.toggle("sel", l.querySelector("input").checked));
-        const p = document.querySelector(`.pq[data-i="${t.index}"]`); if (p) p.classList.toggle("ans", sel.length > 0);
-      });
-      const go = (i) => { t.index = i; save(); draw(); };
+      const pickKey = (key) => {
+        if (checked) return;
+        let sel = (t.answers[q.id] || []).slice();
+        if (multi) { sel = sel.includes(key) ? sel.filter((v) => v !== key) : sel.length < need ? [...sel, key] : sel; }
+        else sel = [key];
+        t.answers[q.id] = sel.sort(); save(); draw();
+        const el = document.querySelector(`.opt input[value="${key}"]`); if (el) el.focus();
+      };
+      document.querySelectorAll(".opt input").forEach((inp) => inp.onchange = () => pickKey(inp.value));
+      const go = (i) => { if (i < 0 || i >= qs.length) return; t.index = i; save(); draw(); };
+      const doCheck = () => { if (chosen.length !== need) return; t.checked[q.id] = true; save(); draw(); announce(sameSet(chosen, q.correct) ? "Correct" : "Incorrect"); };
       document.getElementById("prev").onclick = () => go(t.index - 1);
       const nx = document.getElementById("next"); if (nx) nx.onclick = () => go(t.index + 1);
+      const ck = document.getElementById("check"); if (ck) ck.onclick = doCheck;
       document.getElementById("flag").onclick = () => { t.flags[q.id] = !t.flags[q.id]; save(); draw(); };
       document.querySelectorAll(".pq").forEach((b) => b.onclick = () => go(+b.dataset.i));
       const submit = () => {
         const left = qs.filter((x) => !(t.answers[x.id] || []).length).length;
-        if (left && !confirm(`${left} question${left > 1 ? "s are" : " is"} unanswered and will be marked wrong. Submit anyway?`)) return;
-        finish(t, qs);
+        const msg = left ? `${left} question${left > 1 ? "s are" : " is"} unanswered and will be marked wrong. Submit anyway?` : "Submit your test? You can't change answers afterwards.";
+        if (confirm(msg)) finish(t, qs);
       };
       document.getElementById("submit").onclick = submit;
       const s2 = document.getElementById("submit2"); if (s2) s2.onclick = submit;
+
+      keyHandler = (e) => {
+        if (typing(e) || e.ctrlKey || e.metaKey || e.altKey) return;
+        const k = e.key.toUpperCase();
+        const opt = q.options.find((o) => o.key === k) || (/^[1-6]$/.test(k) ? q.options[+k - 1] : null);
+        if (opt) { e.preventDefault(); pickKey(opt.key); }
+        else if (e.key === "ArrowRight") { e.preventDefault(); go(t.index + 1); }
+        else if (e.key === "ArrowLeft") { e.preventDefault(); go(t.index - 1); }
+        else if (k === "F") { e.preventDefault(); t.flags[q.id] = !t.flags[q.id]; save(); draw(); }
+        else if (e.key === "Enter" && !/^(BUTTON|A)$/.test(e.target.tagName)) {
+          e.preventDefault();
+          if (t.study && !checked) doCheck(); else if (!last) go(t.index + 1);
+        }
+      };
+      document.addEventListener("keydown", keyHandler);
       if (t.timed) tick();
     }
     function tick() {
@@ -316,6 +420,8 @@
       const update = () => {
         const left = t.limitSec - (Date.now() - t.startedAt) / 1000;
         if (el) { el.textContent = "⏱ " + fmtTime(left); el.classList.toggle("warn", left < 600); }
+        if (left < 600 && !announced.ten) { announced.ten = true; announce("10 minutes remaining"); }
+        if (left < 60 && !announced.one) { announced.one = true; announce("1 minute remaining"); }
         if (left <= 0) { clearInterval(timerHandle); alert("Time is up. Your test will be submitted."); finish(t, qs); }
       };
       update(); timerHandle = setInterval(update, 1000);
@@ -332,14 +438,13 @@
     Object.entries(dom).forEach(([k, v]) => { if (v.total) domain_scores[k] = v; });
     const score = scaled(correct, qs.length);
     const attempt = {
-      id: t.id, mode: t.mode, mock: t.mock, domain: t.domain, total: qs.length, correct, score,
+      id: t.id, mode: t.mode, mock: t.mock, domain: t.domain, skill: t.skill || null, study: !!t.study, total: qs.length, correct, score,
       passed: score >= CFG.passScore, domain_scores, duration_sec: Math.round((Date.now() - t.startedAt) / 1000),
       submitted_at: new Date().toISOString(), answers, flags: t.flags
     };
     setView(`<p class="muted center pad">Saving your result…</p>`);
-    const { flags, ...toSave } = attempt;
-    attempt.synced = await pushAttempt(toSave);
-    if (!attempt.synced) { const local = lsGet(LS_LOCAL, []); local.push({ ...toSave, synced: false }); lsSet(LS_LOCAL, local); }
+    attempt.synced = await pushAttempt(attempt);
+    if (!attempt.synced) { const { flags, ...keep } = attempt; const local = lsGet(LS_LOCAL, []); local.push(keep); lsSet(LS_LOCAL, local); }
     attempts.unshift(attempt);
     lsDel(LS_CURRENT);
     location.hash = `#/result/${attempt.id}`;
@@ -349,51 +454,65 @@
     const a = attempts.find((x) => x.id === id);
     if (!a) { setView(`<p class="center pad">Result not found. <a href="#/history">See history</a></p>`); return; }
     const passLine = CFG.passScore / 10;
-    const items = a.answers.map((ans) => ({ ans, q: byId.get(ans.question_id) })).filter((x) => x.q);
-    const wrong = items.filter((x) => !x.ans.is_correct).length;
+    const items = a.answers.map((ans, i) => ({ ans, q: byId.get(ans.question_id), n: i + 1 })).filter((x) => x.q);
+    const wrongIds = items.filter((x) => !x.ans.is_correct).map((x) => x.q.id);
+    const flags = a.flags || {};
+    const flagged = items.filter((x) => flags[x.q.id]).length;
     setView(`
       <section class="result ${a.passed ? "pass" : "fail"}">
         <div>
-          <p class="muted">${esc(modeLabel(a))} · ${fmtDate(a.submitted_at)} · ${fmtTime(a.duration_sec || 0)}</p>
-          <h1>${a.passed ? "Passed" : "Not passed yet"}</h1>
+          <p class="muted">${esc(modeLabel(a))}${a.study ? " · Study mode" : ""} · ${fmtDate(a.submitted_at)} · ${fmtTime(a.duration_sec || 0)}</p>
+          <h1>${a.passed ? "✓ Passed" : "✗ Not passed yet"}</h1>
           <p>${a.correct} of ${a.total} correct (${pct(a.correct, a.total)}%). Pass mark: ${CFG.passScore}.</p>
           ${a.synced === false ? `<p class="muted small">Saved in this browser only; it will sync to the database later.</p>` : ""}
         </div>
         <div class="scorebig">${a.score}<span>/1000</span></div>
       </section>
+      <div class="actions">
+        ${wrongIds.length ? `<button class="btn primary" id="practiceWrong">Practice these ${wrongIds.length} mistake${wrongIds.length > 1 ? "s" : ""}</button>` : ""}
+        ${a.mode === "mock" ? `<button class="btn" id="retake">Retake mock ${a.mock}</button>` : ""}
+        <a class="btn ghost" href="#/">Dashboard</a>
+      </div>
       <section class="card">
         <h2>Score by domain</h2>
         ${Object.entries(a.domain_scores || {}).map(([k, v]) => { const p = pct(v.correct, v.total); return `
-          <div class="domrow"><div class="domhead"><span><b>${k}</b> ${esc(DOMAINS[k].name)}</span><span>${p}% · ${v.correct}/${v.total}</span></div>${bar(p, passLine)}</div>`; }).join("")}
+          <div class="domrow"><div class="domhead"><span><b>${k}</b> ${esc(DOMAINS[k].name)}</span><span>${p}% · ${v.correct}/${v.total}</span></div>${bar(p, passLine, `${k}: ${p}% correct`)}</div>`; }).join("")}
       </section>
       <section class="card">
         <div class="rowhead"><h2>Answers and explanations</h2>
-          <div class="seg small" id="filt"><button data-f="all" class="on">All (${items.length})</button><button data-f="wrong">Incorrect (${wrong})</button></div></div>
+          <div class="seg small" id="filt" role="radiogroup" aria-label="Filter answers">
+            <button role="radio" data-f="wrong">Incorrect (${wrongIds.length})</button>
+            ${flagged ? `<button role="radio" data-f="flag">Flagged (${flagged})</button>` : ""}
+            <button role="radio" data-f="all">All (${items.length})</button>
+          </div></div>
         <div id="review"></div>
-      </section>
-      <div class="center"><a class="btn primary" href="#/">Back to dashboard</a></div>`);
+      </section>`);
 
-    const flags = a.flags || {};
-    function drawReview(f) {
-      document.getElementById("review").innerHTML = items.filter((x) => f === "all" || !x.ans.is_correct).map((x) => {
-        const n = items.indexOf(x) + 1;
-        return `<article class="rev ${x.ans.is_correct ? "ok" : "bad"}">
-          <div class="qmeta"><span>${n}. ${x.ans.is_correct ? "✔ Correct" : "✘ Incorrect"}${flags[x.q.id] ? " · ★ flagged" : ""}</span><span class="tag">${x.q.domain} · ${esc(x.q.skill_name || "")}</span></div>
-          <p class="stem">${esc(x.q.stem)}</p>
-          <ul class="ropts">${x.q.options.map((o) => {
-            const isC = x.q.correct.includes(o.key), mine = x.ans.selected.includes(o.key);
-            return `<li class="${isC ? "c" : ""} ${mine && !isC ? "w" : ""}"><span class="key">${o.key}</span><span>${esc(o.text)}</span>${isC ? `<em>correct</em>` : ""}${mine ? `<em class="mine">your answer</em>` : ""}</li>`;
-          }).join("")}</ul>
-          ${x.ans.selected.length ? "" : `<p class="muted small">Not answered.</p>`}
-          <div class="expl"><b>Explanation.</b> ${esc(x.q.explanation)}</div>
-          ${x.q.source_url ? `<p class="src">Source: <a href="${esc(x.q.source_url)}" target="_blank" rel="noopener">${esc(x.q.source_title || x.q.source_url)}</a></p>` : ""}
-        </article>`;
-      }).join("") || `<p class="muted">Nothing to show. Every answer was correct.</p>`;
+    function card(x, open) {
+      return `<details class="rev ${x.ans.is_correct ? "ok" : "bad"}" ${open ? "open" : ""}>
+        <summary><span class="qmeta"><span>${x.n}. ${x.ans.is_correct ? "✓ Correct" : "✗ Incorrect"}${flags[x.q.id] ? " · ★ flagged" : ""}</span><span class="tag">${x.q.domain} · ${esc(x.q.skill_name || "")}</span></span>
+          <span class="stem">${esc(x.q.stem)}</span></summary>
+        <ul class="ropts">${x.q.options.map((o) => {
+          const isC = x.q.correct.includes(o.key), mine = x.ans.selected.includes(o.key);
+          return `<li class="${isC ? "c" : ""} ${mine && !isC ? "w" : ""}"><span class="key">${o.key}</span><span>${esc(o.text)}</span>${isC ? `<em>✓ correct</em>` : ""}${mine ? `<em class="mine">${isC ? "your answer" : "✗ your answer"}</em>` : ""}</li>`;
+        }).join("")}</ul>
+        ${x.ans.selected.length ? "" : `<p class="muted small">Not answered.</p>`}
+        <div class="expl"><b>Explanation.</b> ${esc(x.q.explanation)}</div>
+        ${x.q.source_url ? `<p class="src">Source: <a href="${esc(x.q.source_url)}" target="_blank" rel="noopener">${esc(x.q.source_title || x.q.source_url)}</a></p>` : ""}
+      </details>`;
     }
-    drawReview("all");
-    document.querySelectorAll("#filt button").forEach((b) => b.onclick = () => {
-      document.querySelectorAll("#filt button").forEach((x) => x.classList.remove("on")); b.classList.add("on"); drawReview(b.dataset.f);
-    });
+    function drawReview(f) {
+      document.querySelectorAll("#filt button").forEach((b) => { const on = b.dataset.f === f; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
+      const list = items.filter((x) => f === "all" || (f === "wrong" ? !x.ans.is_correct : flags[x.q.id]));
+      document.getElementById("review").innerHTML = list.map((x) => card(x, f !== "all" || !x.ans.is_correct)).join("")
+        || `<p class="muted">Nothing to show. Every answer was correct. 🎉</p>`;
+    }
+    drawReview(wrongIds.length ? "wrong" : "all");
+    document.querySelectorAll("#filt button").forEach((b) => b.onclick = () => drawReview(b.dataset.f));
+    const pw = document.getElementById("practiceWrong");
+    if (pw) pw.onclick = () => startTest(generate({ mode: "review", ids: wrongIds, study: true, timed: false }));
+    const rt = document.getElementById("retake");
+    if (rt) rt.onclick = () => startTest(generate({ mode: "mock", mock: a.mock }));
   }
 
   function renderHistory() {
@@ -402,12 +521,10 @@
         <h2>Test history</h2>
         ${attempts.length ? `<div class="tablewrap"><table>
           <thead><tr><th>Date</th><th>Test</th><th>Correct</th><th>Score</th><th>Result</th></tr></thead>
-          <tbody>${attempts.map((a) => `<tr data-id="${a.id}"><td>${fmtDate(a.submitted_at)}</td><td>${esc(modeLabel(a))}</td><td>${a.correct}/${a.total}</td><td><b>${a.score}</b></td><td><span class="pill ${a.passed ? "pass" : "fail"}">${a.passed ? "Pass" : "Fail"}</span></td></tr>`).join("")}</tbody>
+          <tbody>${attempts.map((a) => `<tr><td>${fmtDate(a.submitted_at)}</td><td><a href="#/result/${a.id}">${esc(modeLabel(a))}</a>${a.study ? ` <span class="muted small">(study)</span>` : ""}</td><td>${a.correct}/${a.total}</td><td><b>${a.score}</b></td><td><span class="pill ${a.passed ? "pass" : "fail"}">${a.passed ? "✓ Pass" : "✗ Fail"}</span></td></tr>`).join("")}</tbody>
         </table></div>` : `<p class="muted">No tests yet. <a href="#/">Generate your first test</a>.</p>`}
       </section>`);
-    document.querySelectorAll("tr[data-id]").forEach((r) => r.onclick = () => (location.hash = `#/result/${r.dataset.id}`));
   }
-
 
   /* ---------- bulk upload ---------- */
   const CSV_COLS = ["id", "domain", "skill", "mock", "question", "option_a", "option_b", "option_c", "option_d", "option_e", "option_f", "correct", "explanation", "source_title", "source_url"];

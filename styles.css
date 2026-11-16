@@ -163,3 +163,67 @@ tr.static { cursor: default; } tr.static:hover { background: transparent; } tr.r
 .uploadform input { font: inherit; font-weight: 400; padding: .5rem .6rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); }
 .uploadform p { flex-basis: 100%; margin: 0; }
 .btn.danger { color: var(--bad); border-color: var(--bad); }
+
+/* study mode, feedback, progress */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+legend.stem { padding: 0; display: block; }
+.progress { height: 4px; background: var(--line); border-radius: 999px; margin: -.4rem 0 .8rem; overflow: hidden; }
+.progress div { height: 100%; background: var(--accent); transition: width .2s ease-out; }
+.opt { position: relative; }
+.opt .mark { margin-left: auto; font-size: .8rem; white-space: nowrap; align-self: center; }
+.opt.right { border-color: var(--good); background: var(--good-soft); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+fieldset:disabled .opt { cursor: default; }
+.feedback { margin-top: .9rem; padding: .8rem .9rem; border-radius: 10px; border-left: 4px solid; }
+.feedback.ok { background: var(--good-soft); border-color: var(--good); }
+.feedback.bad { background: var(--bad-soft); border-color: var(--bad); }
+.feedback .src { margin-bottom: 0; }
+.keys { margin: .8rem 0 0; }
+@media (hover: none) { .keys { display: none; } }
+.studychk { display: flex !important; gap: .55rem; align-items: flex-start; margin: .4rem 0 .6rem; font-size: .92rem; }
+.studychk input { margin-top: .3rem; }
+.pq.right { background: var(--good-soft); border-color: var(--good); }
+.pq.wrong { background: var(--bad-soft); border-color: var(--bad); }
+.pq.ans { font-weight: 700; }
+.pq.flag::after { content: none; }
+.pq i { position: absolute; top: -2px; right: 2px; font-style: normal; font-size: .65rem; color: var(--flag); }
+.dot.flag { background: transparent; border: 0; color: var(--flag); width: auto; height: auto; font-size: .8rem; }
+.dot.right { background: var(--good-soft); border-color: var(--good); }
+.dot.wrong { background: var(--bad-soft); border-color: var(--bad); }
+/* progress card */
+.trend { width: 100%; height: auto; display: block; }
+.trend .grid { stroke: var(--line); stroke-width: 1; }
+.trend .pass { stroke: var(--text); stroke-dasharray: 4 4; opacity: .5; }
+.trend .line { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; }
+.trend .pt.good { fill: var(--good); } .trend .pt.bad { fill: var(--bad); }
+.trend .axis { fill: var(--muted); font-size: 11px; }
+.ready { font-size: .82rem; font-weight: 700; padding: .2rem .6rem; border-radius: 999px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+.ready.pass { background: var(--good-soft); color: var(--good); border-color: var(--good); }
+.ready.near { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.ready.fail { background: var(--bad-soft); color: var(--bad); border-color: var(--bad); }
+.weak { list-style: none; margin: 0; padding: 0; display: grid; gap: .8rem; }
+.weakhead { display: flex; justify-content: space-between; gap: .6rem; font-size: .9rem; margin-bottom: .3rem; }
+.weakhead > span:last-child { white-space: nowrap; }
+.weakrow { display: flex; align-items: center; gap: .8rem; }
+.weakrow .bar { flex: 1; }
+/* results */
+.actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+details.rev summary { list-style: none; cursor: pointer; }
+details.rev summary::-webkit-details-marker { display: none; }
+details.rev summary .qmeta { display: flex; }
+details.rev summary .stem { display: block; margin-bottom: .3rem; }
+details.rev:not([open]) summary .stem { color: var(--muted); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+details.rev summary::after { content: "Show answer ▾"; font-size: .8rem; color: var(--accent); font-weight: 600; }
+details.rev[open] summary::after { content: ""; }
+/* mobile header and test bar fixes */
+.brand, .topbar nav { white-space: nowrap; }
+.qmeta { flex-wrap: wrap; }
+@media (max-width: 640px) {
+  .topbar { padding: .65rem .8rem; }
+  .topbar nav a { margin-left: .75rem; font-size: .9rem; }
+  .brand span { display: none; }
+  .testbar { position: static; flex-wrap: wrap; }
+  .qmeta .tag { text-align: left; }
+  .weakrow .btn { flex: none; }
+}
