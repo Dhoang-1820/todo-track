@@ -230,3 +230,7 @@ details.rev[open] summary::after { content: ""; }
 .tag.fu { background: var(--bad-soft); color: var(--bad); margin-left: .3rem; }
 .srs .rowhead { margin-bottom: .3rem; }
 .srs p { margin: .2rem 0; }
+/* long code-like text must wrap instead of widening the page */
+.stem, .txt, .ropts li > span, .expl, .feedback, .src, .weakhead, table.prev td { overflow-wrap: anywhere; min-width: 0; }
+.ropts li > span:nth-child(2) { flex: 1; }
+main, .card { min-width: 0; max-width: 100%; }
