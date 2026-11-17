@@ -722,5 +722,97 @@
  "kv-sdk-net": [
   "Azure Key Vault secret client library for .NET",
   "https://learn.microsoft.com/en-us/dotnet/api/overview/azure/security.keyvault.secrets-readme?view=azure-dotnet"
+ ],
+ "m-instrument-app-opentelemetry": [
+  "Microsoft Learn module (AI-200T00): Instrument an app with OpenTelemetry",
+  "https://learn.microsoft.com/en-us/training/modules/instrument-app-opentelemetry/"
+ ],
+ "m-analyze-telemetry-logs-metrics": [
+  "Microsoft Learn module (AI-200T00): Analyze app telemetry with logs and metrics",
+  "https://learn.microsoft.com/en-us/training/modules/analyze-telemetry-logs-metrics/"
+ ],
+ "m-queue-process-operations-service-bus": [
+  "Microsoft Learn module (AI-200T00): Queue and process AI operations with Azure Service Bus",
+  "https://learn.microsoft.com/en-us/training/modules/queue-process-operations-service-bus/"
+ ],
+ "m-event-driven-workflows-event-grid": [
+  "Microsoft Learn module (AI-200T00): Develop event-driven AI workflows with Azure Event Grid",
+  "https://learn.microsoft.com/en-us/training/modules/event-driven-workflows-event-grid/"
+ ],
+ "m-build-backends-azure-functions": [
+  "Microsoft Learn module (AI-200T00): Build serverless AI backends with Azure Functions",
+  "https://learn.microsoft.com/en-us/training/modules/build-backends-azure-functions/"
+ ],
+ "m-build-query-azure-database-postgresql": [
+  "Microsoft Learn module (AI-200T00): Build and query with Azure Database for PostgreSQL",
+  "https://learn.microsoft.com/en-us/training/modules/build-query-azure-database-postgresql/"
+ ],
+ "m-implement-vector-search-azure-database-postgresql": [
+  "Microsoft Learn module (AI-200T00): Implement vector search with Azure Database for PostgreSQL",
+  "https://learn.microsoft.com/en-us/training/modules/implement-vector-search-azure-database-postgresql/"
+ ],
+ "m-optimize-vector-search-azure-database-postgresql": [
+  "Microsoft Learn module (AI-200T00): Optimize vector search in Azure Database for PostgreSQL",
+  "https://learn.microsoft.com/en-us/training/modules/optimize-vector-search-azure-database-postgresql/"
+ ],
+ "m-implement-data-operations-azure-managed-redis": [
+  "Microsoft Learn module (AI-200T00): Implement data operations in Azure Managed Redis",
+  "https://learn.microsoft.com/en-us/training/modules/implement-data-operations-azure-managed-redis/"
+ ],
+ "m-implement-vector-storage-azure-managed-redis": [
+  "Microsoft Learn module (AI-200T00): Implement vector storage in Azure Managed Redis",
+  "https://learn.microsoft.com/en-us/training/modules/implement-vector-storage-azure-managed-redis/"
+ ],
+ "m-deploy-containers-azure-container-apps": [
+  "Microsoft Learn module (AI-200T00): Deploy containers to Azure Container Apps",
+  "https://learn.microsoft.com/en-us/training/modules/deploy-containers-azure-container-apps/"
+ ],
+ "m-manage-containers-azure-container-apps": [
+  "Microsoft Learn module (AI-200T00): Manage containers in Azure Container Apps",
+  "https://learn.microsoft.com/en-us/training/modules/manage-containers-azure-container-apps/"
+ ],
+ "m-scale-containers-azure-container-apps": [
+  "Microsoft Learn module (AI-200T00): Scale containers in Azure Container Apps",
+  "https://learn.microsoft.com/en-us/training/modules/scale-containers-azure-container-apps/"
+ ],
+ "m-build-query-azure-cosmos-db": [
+  "Microsoft Learn module (AI-200T00): Build queries for Azure Cosmos DB for NoSQL",
+  "https://learn.microsoft.com/en-us/training/modules/build-query-azure-cosmos-db/"
+ ],
+ "m-implement-vector-search-azure-cosmos-db": [
+  "Microsoft Learn module (AI-200T00): Implement vector search on Azure Cosmos DB for NoSQL",
+  "https://learn.microsoft.com/en-us/training/modules/implement-vector-search-azure-cosmos-db/"
+ ],
+ "m-optimize-query-performance-azure-cosmos-db": [
+  "Microsoft Learn module (AI-200T00): Optimize query performance for Azure Cosmos DB for NoSQL",
+  "https://learn.microsoft.com/en-us/training/modules/optimize-query-performance-azure-cosmos-db/"
+ ],
+ "m-manage-app-secrets-key-vault": [
+  "Microsoft Learn module (AI-200T00): Manage application secrets with Azure Key Vault",
+  "https://learn.microsoft.com/en-us/training/modules/manage-app-secrets-key-vault/"
+ ],
+ "m-manage-app-settings-app-config": [
+  "Microsoft Learn module (AI-200T00): Manage application settings with Azure App Configuration",
+  "https://learn.microsoft.com/en-us/training/modules/manage-app-settings-app-config/"
+ ],
+ "m-deploy-apps-azure-kubernetes-service": [
+  "Microsoft Learn module (AI-200T00): Deploy applications to Azure Kubernetes Service",
+  "https://learn.microsoft.com/en-us/training/modules/deploy-apps-azure-kubernetes-service/"
+ ],
+ "m-configure-apps-azure-kubernetes-service": [
+  "Microsoft Learn module (AI-200T00): Configure applications on Azure Kubernetes Service",
+  "https://learn.microsoft.com/en-us/training/modules/configure-apps-azure-kubernetes-service/"
+ ],
+ "m-monitor-apps-azure-kubernetes-service": [
+  "Microsoft Learn module (AI-200T00): Monitor and troubleshoot applications on Azure Kubernetes Service",
+  "https://learn.microsoft.com/en-us/training/modules/monitor-apps-azure-kubernetes-service/"
+ ],
+ "m-store-manage-containers-azure-container-registry": [
+  "Microsoft Learn module (AI-200T00): Store and manage containers in Azure Container Registry",
+  "https://learn.microsoft.com/en-us/training/modules/store-manage-containers-azure-container-registry/"
+ ],
+ "m-deploy-containers-azure-app-service": [
+  "Microsoft Learn module (AI-200T00): Deploy containers to Azure App Service",
+  "https://learn.microsoft.com/en-us/training/modules/deploy-containers-azure-app-service/"
  ]
 }

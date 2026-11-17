@@ -1,0 +1,497 @@
+[
+ {
+  "s": "acr",
+  "q": "Your registry holds production and team images. The ML team must push only to its own images, while production images stay protected. How should you organize the repositories?",
+  "o": [
+   "Use repository namespaces such as ml-team/model-server and production/inference-api, and scope permissions per namespace",
+   "Push every team's images to one shared repository and give each team its own tag prefix to control who can push",
+   "Create one geo-replica per team and grant each team access to its replica",
+   "Store each team's images as separate layers inside one shared manifest and lock the production layers"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Repositories can use forward-slash namespaces (for example ml-team/ and production/). Namespaces group related images and let you grant a team push rights to its namespace only. Tags identify versions within one repository and aren't a permission boundary, geo-replicas are copies of the whole registry for other regions, and layers are parts of an image, not an access unit.",
+  "r": "m-store-manage-containers-azure-container-registry"
+ },
+ {
+  "s": "acr",
+  "q": "Your AKS production deployment must guarantee that every node runs exactly the same image and that you can prove which build ran during an incident. Which tagging approach fits?",
+  "o": [
+   "Unique tags that are never reused, such as v1.2.0-build456",
+   "A stable tag such as latest that you push again for every release",
+   "A stable major-version tag such as v1 that tracks new builds",
+   "No tag, so Docker resolves the newest image at pull time"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Unique tags are never reused, so every node pulls the same image, you keep an audit trail, and rollbacks can reference a known build. Stable tags such as latest or v1 move to new images when you push again, so two pulls can get different images. Pushing or pulling without a tag uses latest, which is a stable tag.",
+  "r": "m-store-manage-containers-azure-container-registry"
+ },
+ {
+  "s": "acr",
+  "t": "yesno",
+  "q": "Evaluate each statement about Azure Container Registry.",
+  "o": [
+   "Private endpoints and content trust require the Premium service tier.",
+   "If you push an image without specifying a tag, the image is tagged latest.",
+   "A stable tag such as inference-api:1 always points to the same image digest.",
+   "One registry can store Docker images, Helm charts, and other OCI artifacts."
+  ],
+  "a": [
+   0,
+   1,
+   3
+  ],
+  "e": "Most developer workflows are the same across Basic, Standard, and Premium, but private endpoints and content trust need Premium. Docker uses latest when no tag is given. A stable tag like inference-api:1 is moved to each new 1.x build, so its digest changes over time. ACR stores Docker images, Helm charts, and OCI artifacts in one registry.",
+  "r": "m-store-manage-containers-azure-container-registry"
+ },
+ {
+  "s": "acr",
+  "q": "You follow semantic versioning for an inference API image. A release fixes a preprocessing bug without changing the API. The current version is 1.1.0. Which tag should the new image get?",
+  "o": [
+   "1.1.1",
+   "1.2.0",
+   "2.0.0",
+   "1.1.0-latest"
+  ],
+  "a": [
+   0
+  ],
+  "e": "In MAJOR.MINOR.PATCH, a bug or security fix that doesn't change the API increments PATCH, so 1.1.0 becomes 1.1.1. MINOR is for backward-compatible new features, MAJOR is for breaking changes, and reusing 1.1.0 with a suffix doesn't follow the scheme.",
+  "r": "m-store-manage-containers-azure-container-registry"
+ },
+ {
+  "s": "acrt",
+  "q": "A developer has no Docker installed and doesn't want to clone a GitHub repository locally. They need an image built from the repository's Dockerfile and pushed to myregistry. Which command does this?",
+  "o": [
+   "az acr build --registry myregistry --image api:v1 https://github.com/org/api.git",
+   "az acr import --name myregistry --source github.com/org/api:v1",
+   "docker build -t myregistry.azurecr.io/api:v1 https://github.com/org/api.git",
+   "az acr repository update --name myregistry --image api:v1 --git"
+  ],
+  "a": [
+   0
+  ],
+  "e": "An ACR quick task (az acr build) runs the build in Azure and accepts a local folder, a Git repository URL, or a remote tarball as the build context, so no local Docker or clone is needed. az acr import copies an existing image from another registry, docker build needs a local Docker engine, and az acr repository update changes repository attributes, not builds.",
+  "r": "m-store-manage-containers-azure-container-registry"
+ },
+ {
+  "s": "acrt",
+  "q": "Which three locations can you use as the build context for an ACR quick task? Choose three.",
+  "o": [
+   "A directory on your local file system",
+   "A public or private GitHub or Azure DevOps repository",
+   "A compressed tarball on a web server reachable by URL",
+   "An Azure Files share mounted on an App Service plan",
+   "A running container in Azure Container Instances"
+  ],
+  "a": [
+   0,
+   1,
+   2
+  ],
+  "e": "ACR Tasks retrieves source files from a local directory, a Git repository (GitHub or Azure DevOps), or a remote tarball at a URL. A file share or a running container isn't a supported build context.",
+  "r": "m-store-manage-containers-azure-container-registry"
+ },
+ {
+  "s": "app",
+  "q": "Your custom container on Azure App Service listens on port 8000. Requests to the app time out. What should you configure?",
+  "o": [
+   "Set the app setting WEBSITES_PORT to 8000",
+   "Add EXPOSE 80 to the Dockerfile and rebuild",
+   "Set the startup command to --port 80",
+   "Open port 8000 in the App Service plan firewall"
+  ],
+  "a": [
+   0
+  ],
+  "e": "App Service routes traffic automatically only when the container listens on port 80 or 8080. For any other port, set the WEBSITES_PORT app setting so the platform forwards HTTP and HTTPS traffic to that port. EXPOSE alone doesn't change where the app listens, and there's no plan firewall setting for this. App Service exposes one HTTP port per custom container.",
+  "r": "m-deploy-containers-azure-app-service"
+ },
+ {
+  "s": "app",
+  "q": "In App Service, you add a connection string named Db with the type PostgreSQL. Which environment variable does your Python container read?",
+  "o": [
+   "POSTGRESQLCONNSTR_Db",
+   "CUSTOMCONNSTR_Db",
+   "ConnectionStrings__Db",
+   "APPSETTING_Db"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Connection strings are injected as environment variables with a prefix based on their type: SQLCONNSTR_, SQLAZURECONNSTR_, MYSQLCONNSTR_, POSTGRESQLCONNSTR_, or CUSTOMCONNSTR_. A PostgreSQL connection string named Db becomes POSTGRESQLCONNSTR_Db. CUSTOMCONNSTR_ applies only to the Custom type.",
+  "r": "m-deploy-containers-azure-app-service"
+ },
+ {
+  "s": "app",
+  "q": "A .NET container expects the setting ConnectionStrings:Default, but App Service app setting names can't contain a colon. What name do you use?",
+  "o": [
+   "ConnectionStrings__Default",
+   "ConnectionStrings.Default",
+   "ConnectionStrings-Default",
+   "CONNSTR_ConnectionStrings_Default"
+  ],
+  "a": [
+   0
+  ],
+  "e": "App setting names can contain only letters, numbers, and underscores. Replace the colon with a double underscore (ConnectionStrings__Default), which .NET configuration maps back to the hierarchical key.",
+  "r": "m-deploy-containers-azure-app-service"
+ },
+ {
+  "s": "app",
+  "q": "Before your container's app starts, App Service must run python migrate.py and then start gunicorn. Which startup command works?",
+  "o": [
+   "/bin/bash -c 'python migrate.py && gunicorn app:application'",
+   "python migrate.py && gunicorn app:application (without a shell prefix)",
+   "CMD [\"python\", \"migrate.py\", \"gunicorn\"]",
+   "--entrypoint migrate.py --cmd 'gunicorn app:application'"
+  ],
+  "a": [
+   0
+  ],
+  "e": "The startup command replaces the Dockerfile CMD. Chaining with && needs shell processing, so you prefix it with a shell such as /bin/bash -c. Without the shell, && isn't interpreted. A CMD array is Dockerfile syntax, not a startup command.",
+  "r": "m-deploy-containers-azure-app-service"
+ },
+ {
+  "s": "app",
+  "q": "You configure an App Service web app to pull from Azure Container Registry with its system-assigned managed identity. Image pulls fail with an authorization error. What's missing?",
+  "o": [
+   "An AcrPull role assignment for the identity on the registry",
+   "The registry admin user must be turned on for managed identity pulls",
+   "A Key Vault reference for the registry password",
+   "The AcrPush role assigned to the identity on the web app resource"
+  ],
+  "a": [
+   0
+  ],
+  "e": "With managed identity authentication, the identity (system- or user-assigned) must have the AcrPull role on the registry. The admin user is only needed for the admin-credentials option, and pulling never requires AcrPush.",
+  "r": "m-deploy-containers-azure-app-service"
+ },
+ {
+  "s": "aca",
+  "q": "A container app already has five environment variables. You want to change LOG_LEVEL to debug and keep the others. Which command should you run?",
+  "o": [
+   "az containerapp update -n ai-api -g rg --set-env-vars LOG_LEVEL=debug",
+   "az containerapp create -n ai-api -g rg --env-vars LOG_LEVEL=debug",
+   "az containerapp secret set -n ai-api -g rg --secrets LOG_LEVEL=debug",
+   "az containerapp env update -n ai-env -g rg --env-vars LOG_LEVEL=debug"
+  ],
+  "a": [
+   0
+  ],
+  "e": "--set-env-vars on az containerapp update adds or updates variables without removing existing ones, and it creates a new revision. Running create again redeploys the app, secrets are meant for sensitive values, and az containerapp env update changes the environment, not app variables.",
+  "r": "m-deploy-containers-azure-container-apps"
+ },
+ {
+  "s": "aca",
+  "t": "order",
+  "q": "You're preparing a new workstation and deploying your first container app with the Azure CLI. Put the steps in order.",
+  "o": [
+   "Sign in with az login",
+   "Update the CLI with az upgrade",
+   "Add the extension: az extension add --name containerapp --upgrade",
+   "Register the provider: az provider register --namespace Microsoft.App",
+   "Deploy with az containerapp up"
+  ],
+  "e": "You sign in, update the CLI, add the containerapp extension, and register the Microsoft.App resource provider before deploying. az containerapp up then creates the environment and supporting resources if they don't exist and returns the app's FQDN.",
+  "r": "m-deploy-containers-azure-container-apps"
+ },
+ {
+  "s": "aca",
+  "q": "You set a container app's CPU to 0.5 cores. What's the smallest memory value you can set?",
+  "o": [
+   "1.0 GiB",
+   "0.5 GiB",
+   "0.25 GiB",
+   "2.0 GiB"
+  ],
+  "a": [
+   0
+  ],
+  "e": "In Container Apps, memory must be at least twice the CPU value in GiB. With 0.5 cores, you need at least 1.0 GiB.",
+  "r": "m-scale-containers-azure-container-apps"
+ },
+ {
+  "s": "aca",
+  "t": "yesno",
+  "q": "Evaluate each statement about Azure Container Apps revisions and resources.",
+  "o": [
+   "You can edit an existing revision's container image in place.",
+   "Single revision mode is the default for a new container app.",
+   "A replica that exceeds its memory limit is terminated and restarted.",
+   "A replica that exceeds its CPU allocation is throttled rather than restarted."
+  ],
+  "a": [
+   1,
+   2,
+   3
+  ],
+  "e": "Revisions are immutable snapshots. To change a revision-scope setting such as the image, you deploy a new revision. New apps use single revision mode by default. A replica over its memory limit is terminated and restarted, while a replica over its CPU allocation is throttled.",
+  "r": "m-scale-containers-azure-container-apps"
+ },
+ {
+  "s": "aca",
+  "q": "During an incident you must make sure a container app runs no replicas at all until you finish your fix, regardless of scale rules. What should you do?",
+  "o": [
+   "Run az containerapp stop",
+   "Set the minimum replicas to zero",
+   "Restart the active revision",
+   "Remove the ingress configuration"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Stopping is an explicit app-level action that guarantees no replicas start while you mitigate an incident. A minimum of zero still lets scale rules add replicas, a restart brings replicas back, and removing ingress doesn't stop the app.",
+  "r": "m-manage-containers-azure-container-apps"
+ },
+ {
+  "s": "keda",
+  "q": "A container app has ingress turned off, no minimum replica count, and no custom scale rules. What happens after it scales in?",
+  "o": [
+   "It scales to zero and can't start again because nothing triggers it",
+   "It keeps one replica running at all times because ingress is turned off",
+   "It scales between 1 and 10 replicas based on average CPU usage",
+   "It scales to zero and restarts on the next HTTP request"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Without ingress, there's no HTTP trigger. With no minimum and no custom rule, the app scales to zero and has nothing to activate it again. Set a minimum of one replica or add an event-driven rule. With ingress on and no custom rules, the default is 0 to 10 replicas on HTTP traffic.",
+  "r": "m-scale-containers-azure-container-apps"
+ },
+ {
+  "s": "keda",
+  "q": "How often does Azure Container Apps poll an event source, such as a Service Bus queue, to calculate a custom scale rule's replica count?",
+  "o": [
+   "Every 30 seconds",
+   "Every 5 seconds",
+   "Every 5 minutes",
+   "Only when a message arrives"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Custom KEDA-based scalers in Container Apps poll the event source every 30 seconds and calculate the desired replica count from the current metric value.",
+  "r": "m-scale-containers-azure-container-apps"
+ },
+ {
+  "s": "keda",
+  "q": "A worker in Container Apps reads from Apache Kafka. Which metric does the Kafka scaler use to add replicas?",
+  "o": [
+   "Consumer group lag",
+   "Broker CPU utilization",
+   "Number of topic partitions",
+   "Producer message rate"
+  ],
+  "a": [
+   0
+  ],
+  "e": "The Kafka KEDA scaler changes the replica count based on consumer group lag: how far the group's committed offsets are behind the latest messages.",
+  "r": "m-scale-containers-azure-container-apps"
+ },
+ {
+  "s": "aks",
+  "q": "A vector search service runs in two AKS pods. Only other workloads in the cluster call it. Which Service type should you use?",
+  "o": [
+   "ClusterIP",
+   "LoadBalancer",
+   "NodePort",
+   "ExternalName"
+  ],
+  "a": [
+   0
+  ],
+  "e": "ClusterIP, the default, gives the Service an internal IP reachable only inside the cluster, which fits backend services. LoadBalancer creates a public Azure Load Balancer, NodePort opens a port on every node, and ExternalName maps to an external DNS name.",
+  "r": "m-deploy-apps-azure-kubernetes-service"
+ },
+ {
+  "s": "aks",
+  "q": "A Deployment uses selector.matchLabels app: inference-api, but the pod template has the label app: inference. What happens when you apply it?",
+  "o": [
+   "The API server rejects it because the selector doesn't match the template labels",
+   "The pods start, and any Service that selects app: inference load balances across them",
+   "Kubernetes renames the template label to inference-api",
+   "The Deployment creates no pods, but kubectl apply still reports success"
+  ],
+  "a": [
+   0
+  ],
+  "e": "A Deployment manages pods by its label selector, and the pod template labels must match spec.selector. When they don't match, the API server rejects the Deployment as invalid.",
+  "r": "m-deploy-apps-azure-kubernetes-service"
+ },
+ {
+  "s": "aks",
+  "q": "Pods read FEATURE_X_ENABLED from a ConfigMap by using env with configMapKeyRef. You change the value in the ConfigMap. What must you do for the pods to see it?",
+  "o": [
+   "Restart the pods, for example with a rollout restart",
+   "Nothing. Environment variables refresh within a minute",
+   "Mark the ConfigMap immutable",
+   "Increase the Deployment's replica count"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Environment variables are set when a container starts, so pods that consume a ConfigMap through env don't get updates until they restart. Values mounted as a volume are refreshed in the files. An immutable ConfigMap can't be changed at all.",
+  "r": "m-configure-apps-azure-kubernetes-service"
+ },
+ {
+  "s": "aks",
+  "t": "yesno",
+  "q": "Evaluate each statement about Kubernetes ConfigMaps on AKS.",
+  "o": [
+   "The data in one ConfigMap is limited to 1 MiB.",
+   "After you mark a ConfigMap immutable, you can still edit its data with kubectl edit.",
+   "envFrom with configMapRef loads all of a ConfigMap's keys as environment variables.",
+   "You can mount a ConfigMap as files in a volume."
+  ],
+  "a": [
+   0,
+   2,
+   3
+  ],
+  "e": "A ConfigMap holds at most 1 MiB. An immutable ConfigMap's data can't be changed, and the setting can't be reverted. You delete and recreate it. envFrom loads every key as an environment variable, and a ConfigMap can also be mounted as files.",
+  "r": "m-configure-apps-azure-kubernetes-service"
+ },
+ {
+  "s": "aks",
+  "q": "Several pods on different AKS nodes must read and write the same shared folder of cached model files. Which built-in storage class fits?",
+  "o": [
+   "azurefile-csi",
+   "managed-csi",
+   "managed-csi-premium",
+   "default"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Azure Files classes (azurefile-csi, azurefile-csi-premium) support ReadWriteMany, so pods on many nodes can mount the same volume. Azure Disk classes (managed-csi, managed-csi-premium, and default) use ReadWriteOnce because the disk attaches to one node.",
+  "r": "m-configure-apps-azure-kubernetes-service"
+ },
+ {
+  "s": "mon",
+  "q": "A new pod on AKS shows the status ImagePullBackOff. What's the most likely cause?",
+  "o": [
+   "The image reference or the registry credentials are wrong",
+   "The container exits with an error right after it starts",
+   "The cluster has no node with enough free memory",
+   "The readiness probe uses the wrong path"
+  ],
+  "a": [
+   0
+  ],
+  "e": "ImagePullBackOff means the kubelet can't pull the image, usually because of a wrong name or tag or missing pull permission. A container that keeps exiting causes CrashLoopBackOff, missing resources leave the pod Pending, and probe failures affect readiness, not image pulls.",
+  "r": "m-monitor-apps-azure-kubernetes-service"
+ },
+ {
+  "s": "mon",
+  "q": "An AKS Service of type LoadBalancer has an external IP, but requests fail. In the portal, the Service's Endpoints list is empty. What should you check first?",
+  "o": [
+   "Whether the Service selector matches the pod labels",
+   "Whether the load balancer has a public IP SKU",
+   "Whether the pods have liveness probes",
+   "Whether the node pool has autoscaling on"
+  ],
+  "a": [
+   0
+  ],
+  "e": "An empty endpoints list means the Service has no backing pods. The most common cause is a selector that doesn't match the pods' labels (or no ready pods). The external IP already exists, so the load balancer isn't the problem.",
+  "r": "m-monitor-apps-azure-kubernetes-service"
+ },
+ {
+  "s": "mon",
+  "q": "An AI API on Container Apps loads a large model at startup. During rollouts, users get errors from new replicas that are still loading. What should you configure?",
+  "o": [
+   "A readiness probe that passes only after the model is loaded",
+   "A liveness probe with a shorter timeout so slow replicas restart sooner",
+   "A higher maximum replica count so more replicas share the load",
+   "A restart of the app after each deployment"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Readiness answers whether a replica can receive traffic now. A readiness probe that waits for model loading keeps traffic away until the replica is ready. A short liveness timeout can kill replicas that are still loading, which makes things worse.",
+  "r": "m-manage-containers-azure-container-apps"
+ },
+ {
+  "s": "mon",
+  "q": "You need to see all environment variables that App Service passes to your custom container. Which tool shows them?",
+  "o": [
+   "The Kudu (SCM) site's Environment page",
+   "The App Service log stream in the portal or az webapp log tail",
+   "The container's Dockerfile",
+   "Azure Advisor recommendations for the App Service plan"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Kudu, the SCM site at https://<app-name>.scm.azurewebsites.net, has an Environment page that lists every environment variable available to the container. The log stream shows output, not settings, and the Dockerfile doesn't include App Service settings.",
+  "r": "m-deploy-containers-azure-app-service"
+ },
+ {
+  "s": "aca",
+  "c": "c1",
+  "q": "How should the apps pull images from fabrikamacr to meet Fabrikam's requirements?",
+  "o": [
+   "Use a managed identity with the AcrPull role on fabrikamacr",
+   "Turn on the admin user and store the password as a secret",
+   "Store a registry token in an environment variable",
+   "Make the registry public so no credentials are needed"
+  ],
+  "a": [
+   0
+  ],
+  "e": "A managed identity with AcrPull lets Container Apps pull images with no stored password. The admin user and a token both put a credential in configuration, and making a registry public removes access control.",
+  "r": "m-deploy-containers-azure-container-apps"
+ },
+ {
+  "s": "keda",
+  "c": "c1",
+  "q": "How should you configure scaling for the worker that reads docs-in?",
+  "o": [
+   "An azure-servicebus scale rule on docs-in with minimum replicas 0",
+   "An HTTP scale rule on the worker with minimum replicas set to 1",
+   "A CPU utilization scale rule on the worker with minimum replicas 0",
+   "A fixed replica count of 3"
+  ],
+  "a": [
+   0
+  ],
+  "e": "A Service Bus (KEDA) scale rule scales on queue length and supports scale to zero, so the worker uses no compute when docs-in is empty. The worker receives no HTTP requests, CPU rules can't scale from zero, and a fixed count always uses compute.",
+  "r": "m-scale-containers-azure-container-apps"
+ },
+ {
+  "s": "aca",
+  "c": "c1",
+  "q": "How do you send about 10% of API traffic to a new model build?",
+  "o": [
+   "Use multiple revision mode and split traffic 90/10 between revisions",
+   "Use single revision mode and deploy the new image",
+   "Create a second environment for the new build and add weighted DNS records",
+   "Lower the old revision's maximum replicas to 1 so the new one gets more traffic"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Multiple revision mode keeps several revisions active, and traffic splitting sends a percentage of requests to each. Single revision mode replaces the old revision completely, and replica limits don't control the share of traffic.",
+  "r": "m-scale-containers-azure-container-apps"
+ },
+ {
+  "s": "acr",
+  "c": "c1",
+  "q": "How should the apps reference images so operations can tell exactly which build served a request?",
+  "o": [
+   "By digest or by a unique build tag such as 2.3.0-build118",
+   "By the latest tag, which always points to the most recent push",
+   "By a stable major tag such as v2 that moves with each new build",
+   "By repository name only"
+  ],
+  "a": [
+   0
+  ],
+  "e": "A digest (repo@sha256:...) or a never-reused build tag identifies one exact image, which gives traceability. latest and v2 are stable tags that move to new builds, and a repository name alone defaults to latest.",
+  "r": "m-manage-containers-azure-container-apps"
+ }
+]

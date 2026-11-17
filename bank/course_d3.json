@@ -1,0 +1,297 @@
+[
+ {
+  "s": "sb",
+  "q": "Several worker instances read inference jobs from the same Service Bus queue. How many workers receive each message?",
+  "o": [
+   "Exactly one, because consumers on a queue compete for messages",
+   "All of them, because each worker gets its own copy of the queue",
+   "One per partition, chosen by the message's session ID",
+   "Every worker whose SQL filter matches the message properties"
+  ],
+  "a": [
+   0
+  ],
+  "e": "A queue delivers each message to one of the competing consumers, so you can add workers to share the load. Fan-out to several receivers needs a topic with subscriptions, and filters belong to subscriptions, not queues.",
+  "r": "m-queue-process-operations-service-bus"
+ },
+ {
+  "s": "sb",
+  "q": "A document pipeline must process each document's extraction, classification, and summary messages in order, by one consumer at a time. Which Service Bus feature should you use?",
+  "o": [
+   "Sessions, with the document ID as the session ID",
+   "Receive-and-delete mode with one queue per step",
+   "Scheduled messages with one-second delays",
+   "Duplicate detection with a 10-minute window"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Sessions group related messages by session ID and give FIFO, single-receiver processing per group. Separate queues don't guarantee order, delays aren't ordering, and duplicate detection only drops repeated message IDs.",
+  "r": "m-queue-process-operations-service-bus"
+ },
+ {
+  "s": "sb",
+  "q": "Losing a request is unacceptable in your AI pipeline. Which receive mode should the processors use, and why?",
+  "o": [
+   "Peek-lock, because the message stays until the consumer settles it",
+   "Receive-and-delete, because it has the highest throughput",
+   "Receive-and-delete, because failed messages go to the DLQ",
+   "Peek-lock, because it removes the message as soon as it's read"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Peek-lock, the default, locks the message and waits for an explicit settlement (complete, abandon, dead-letter, or defer), giving at-least-once delivery. Receive-and-delete removes the message on delivery, so a crash loses it. It suits telemetry where occasional loss is fine.",
+  "r": "m-queue-process-operations-service-bus"
+ },
+ {
+  "s": "sb",
+  "t": "yesno",
+  "q": "Evaluate each statement about Azure Service Bus messages.",
+  "o": [
+   "A message has a body, application properties, and system properties.",
+   "AMQP 1.0 is the primary wire protocol.",
+   "Setting content_type to application/json changes how Service Bus stores the body.",
+   "Microsoft Entra ID with a managed identity is the recommended way for AI apps to authenticate."
+  ],
+  "a": [
+   0,
+   1,
+   3
+  ],
+  "e": "Messages have a body plus application and system properties, and AMQP 1.0 is the main protocol. content_type is metadata that tells consumers how the body is encoded. Service Bus doesn't change the bytes. Managed identity avoids storing connection strings or rotating keys.",
+  "r": "m-queue-process-operations-service-bus"
+ },
+ {
+  "s": "sb",
+  "t": "order",
+  "q": "A processor receives a message in peek-lock mode and the model call succeeds. Put the steps in order.",
+  "o": [
+   "Service Bus locks the message and delivers it to the processor",
+   "The processor deserializes the JSON body and calls the model",
+   "The processor stores the result",
+   "The processor calls complete_message()",
+   "Service Bus removes the message from the queue"
+  ],
+  "e": "In peek-lock, the broker locks and delivers the message. The processor does its work and persists the result before completing the message, so a crash before completion makes the message available again. Completing tells Service Bus to remove it.",
+  "r": "m-queue-process-operations-service-bus"
+ },
+ {
+  "s": "eg",
+  "q": "An Event Grid webhook handler takes about 45 seconds to process each event, and Event Grid keeps retrying events that succeeded. Why?",
+  "o": [
+   "Event Grid waits 30 seconds for a response, then treats the delivery as failed",
+   "Event Grid needs status 202 with a Location header to stop retries",
+   "The handler must delete the event from the topic after it finishes processing",
+   "Event Grid retries every event three times by design, even after success"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Event Grid waits 30 seconds for a success code (200 to 204). A slower handler looks like a failure and gets retries. Return quickly, for example by queuing work, and make the handler idempotent because delivery is at least once.",
+  "r": "m-event-driven-workflows-event-grid"
+ },
+ {
+  "s": "eg",
+  "q": "You create a new Event Grid custom topic for AI pipeline events and want a vendor-neutral, standard event format. Which input schema should you set?",
+  "o": [
+   "cloudeventschemav1_0",
+   "eventgridschema",
+   "customeventschema",
+   "azureeventschemav2"
+  ],
+  "a": [
+   0
+  ],
+  "e": "CloudEvents v1.0 is the recommended schema for new implementations: it's open, CNCF-backed, and protocol-agnostic. The Event Grid schema remains for backward compatibility, and you can't convert CloudEvents to the Event Grid schema.",
+  "r": "m-event-driven-workflows-event-grid"
+ },
+ {
+  "s": "eg",
+  "t": "yesno",
+  "q": "Evaluate each statement about Azure Event Grid delivery.",
+  "o": [
+   "Event Grid guarantees each event is delivered exactly once.",
+   "By default, each delivery contains an array with a single event.",
+   "Event Grid can send undeliverable events to a dead-letter storage location.",
+   "A 400 Bad Request from the handler is retried on the normal schedule."
+  ],
+  "a": [
+   1,
+   2
+  ],
+  "e": "Event Grid gives at-least-once delivery, so handlers must be idempotent. By default it sends one event per request, in an array. You can configure a dead-letter destination in Blob Storage. Configuration-type errors such as 400 and 413 aren't retried like transient errors.",
+  "r": "m-event-driven-workflows-event-grid"
+ },
+ {
+  "s": "eg",
+  "q": "An AI app publishes to an Event Grid custom topic in production. Which authentication method is recommended?",
+  "o": [
+   "Microsoft Entra ID with the app's managed identity",
+   "An access key sent in the aeg-sas-key header",
+   "A SAS token generated once and stored in code",
+   "An anonymous endpoint protected by IP filtering"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Event Grid supports access keys (aeg-sas-key header), SAS tokens, and Microsoft Entra ID. Entra ID is recommended for production because there's no shared secret to store or rotate.",
+  "r": "m-event-driven-workflows-event-grid"
+ },
+ {
+  "s": "fn",
+  "q": "You start a Python Functions project locally with func start. Where is an HTTP-triggered function served by default?",
+  "o": [
+   "http://localhost:7071/api/<function-name>",
+   "http://localhost:8080/<function-name>",
+   "https://localhost:443/api/<function-name>",
+   "http://127.0.0.1:5000/functions/<function-name>"
+  ],
+  "a": [
+   0
+  ],
+  "e": "The local Functions host listens on port 7071 by default, and HTTP functions are under the /api route prefix.",
+  "r": "m-build-backends-azure-functions"
+ },
+ {
+  "s": "fn",
+  "q": "What's the main benefit of using an output binding to write to Azure Blob Storage instead of calling the Storage SDK directly?",
+  "o": [
+   "The runtime handles connection and serialization for you",
+   "Output bindings write faster because they skip HTTPS and authentication",
+   "Output bindings are the only way to write blobs from Functions",
+   "Output bindings retry forever, so a blob write can never fail"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Triggers and bindings are declarative: the runtime manages authentication, connections, and serialization, which removes boilerplate. You can still use the SDK when you need more control, and bindings don't skip HTTPS or guarantee writes.",
+  "r": "m-build-backends-azure-functions"
+ },
+ {
+  "s": "fn",
+  "q": "An HTTP-triggered inference function must require a key from callers. Which authorization level should it use?",
+  "o": [
+   "function",
+   "anonymous",
+   "keyed",
+   "private"
+  ],
+  "a": [
+   0
+  ],
+  "e": "With the function level, callers must send a function or host key (for example in the x-functions-key header or the code query parameter). anonymous needs no key, and admin requires the master key. keyed and private aren't authorization levels.",
+  "r": "m-build-backends-azure-functions"
+ },
+ {
+  "s": "fdep",
+  "q": "You're creating a new serverless function app for an AI backend on Linux and want per-function scaling and always-ready instances. Which hosting plan is the recommended default?",
+  "o": [
+   "Flex Consumption",
+   "Consumption (Windows)",
+   "Dedicated (App Service) plan",
+   "Premium with Windows workers"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Flex Consumption is the recommended default for new serverless apps. It's Linux-only and offers per-function scaling and optional always-ready instances to reduce cold starts. Premium is the alternative when you need pre-warmed instances on other configurations.",
+  "r": "m-build-backends-azure-functions"
+ },
+ {
+  "s": "fdep",
+  "q": "A function app's Service Bus trigger should use the app's managed identity instead of a connection string. Which app setting do you add for a connection named SB?",
+  "o": [
+   "SB__fullyQualifiedNamespace set to myns.servicebus.windows.net",
+   "SB set to the namespace's primary connection string",
+   "SB__accountKey set to the namespace's shared access key",
+   "SB_IDENTITY set to SystemAssigned"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Identity-based connections use a named connection with a __fullyQualifiedNamespace (or service URI) suffix instead of a full connection string. The app's managed identity also needs a role on the namespace, such as Azure Service Bus Data Receiver.",
+  "r": "m-build-backends-azure-functions"
+ },
+ {
+  "s": "fdep",
+  "q": "Your local.settings.json contains a test API key. You publish the project to Azure. What happens to that file's values?",
+  "o": [
+   "They aren't deployed. You set app settings in Azure separately",
+   "They become the function app's application settings",
+   "They're copied to Key Vault and referenced automatically",
+   "They're baked into the deployment package as environment variables"
+  ],
+  "a": [
+   0
+  ],
+  "e": "local.settings.json is for local development and isn't published. In Azure, values come from application settings, which can use Key Vault references for secrets.",
+  "r": "m-build-backends-azure-functions"
+ },
+ {
+  "s": "fdep",
+  "t": "yesno",
+  "q": "Evaluate each statement about Azure Functions hosting and configuration.",
+  "o": [
+   "Cold start affects only the first request routed to a new instance.",
+   "Application settings are injected into the function process as environment variables.",
+   "Application settings are stored in plaintext on disk.",
+   "A Key Vault reference lets an app setting resolve a secret at runtime."
+  ],
+  "a": [
+   0,
+   1,
+   3
+  ],
+  "e": "Cold start is a per-instance delay. App settings are encrypted at rest and decrypted only when injected as environment variables. A Key Vault reference (@Microsoft.KeyVault(...)) lets the setting resolve a secret through the app's managed identity.",
+  "r": "m-build-backends-azure-functions"
+ },
+ {
+  "s": "sb",
+  "c": "c3",
+  "q": "How should Northwind keep orders that repeatedly fail processing so they can be inspected?",
+  "o": [
+   "Use each subscription's dead-letter queue (max delivery count)",
+   "Use receive-and-delete mode and write each failure to the log",
+   "Set the message time-to-live to 30 days",
+   "Create a second topic and resend every failed order to it"
+  ],
+  "a": [
+   0
+  ],
+  "e": "When a message's delivery count exceeds the subscription's max delivery count (default 10), Service Bus moves it to that subscription's dead-letter subqueue, where it stays for inspection and reprocessing. Receive-and-delete would lose failed orders.",
+  "r": "m-queue-process-operations-service-bus"
+ },
+ {
+  "s": "eg",
+  "c": "c3",
+  "q": "How should Northwind make sure only .pdf invoice blobs start the second function?",
+  "o": [
+   "Add a subject filter on the event subscription: subject ends with .pdf",
+   "Check the file extension inside the function and return early",
+   "Create a separate storage account for PDF files",
+   "Set the system topic's input schema to CloudEvents v1.0"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Event subscription filters (subjectEndsWith, subjectBeginsWith, event types, and advanced filters) stop unwanted events before delivery, so the function isn't invoked for other blobs. Filtering in code still runs and bills the function for every blob.",
+  "r": "m-event-driven-workflows-event-grid"
+ },
+ {
+  "s": "sb",
+  "c": "c3",
+  "q": "Billing and enrichment must each receive every order. What does Northwind need on the orders topic?",
+  "o": [
+   "One subscription per consumer, billing and enrichment",
+   "One subscription shared by both the billing and enrichment consumers",
+   "A session ID set to billing or enrichment",
+   "Two queues that the HTTP function writes each order to"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Each subscription on a topic gets its own copy of every matching message. Two consumers that share one subscription compete for messages, so each order would reach only one of them.",
+  "r": "m-queue-process-operations-service-bus"
+ }
+]

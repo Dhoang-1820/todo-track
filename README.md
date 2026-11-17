@@ -14,6 +14,14 @@ Practice tests for **Microsoft Exam AI-200: Developing AI Cloud Solutions on Azu
 - `index.html`, `app.js`, `styles.css`, `config.js` – the static app (no build step)
 - Supabase tables: `questions`, `attempts`, `attempt_answers`
 
+## Question formats
+- `bank/d*.json`: the original 400 questions. `bank/course_*.json`: questions written from the AI-200T00 course modules.
+- Choice (default): `o` options, `a` indexes of correct options.
+- `"t": "order"`: `o` lists the steps in the correct order (shuffled for the learner).
+- `"t": "yesno"`: `o` lists statements, `a` lists the indexes that are Yes.
+- `"c": "<case id>"`: attaches a case study from `bank/cases.json`. All questions of a case go in the same mock.
+- Original question IDs and mocks never change when course questions are added. Some D2 course questions are practice-only (no mock) so mocks keep the exam's 25-30% D2 weight.
+
 ## Add or change questions
 1. Edit a file in `bank/`.
 2. Run `python3 tools/build_bank.py`.

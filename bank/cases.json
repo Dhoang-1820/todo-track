@@ -1,0 +1,14 @@
+{
+ "c1": {
+  "title": "Fabrikam document AI",
+  "text": "Fabrikam is building a document-processing AI solution on Azure.\nThe solution has two parts: an inference API that clients call over HTTPS, and a background worker that reads jobs from an Azure Service Bus queue named docs-in. Both run in the same Azure Container Apps environment. Images are built and stored in an Azure Container Registry named fabrikamacr.\nRequirements: the apps must pull images without any registry password stored in configuration. The worker must use no compute when the queue is empty and add replicas as the queue grows. A new model build must first receive about 10% of API traffic before full rollout. Operations must be able to tell exactly which image build served any request."
+ },
+ "c2": {
+  "title": "Contoso support assistant",
+  "text": "Contoso runs an AI support assistant. Conversation history and 1536-dimension embeddings of help articles are stored in Azure Database for PostgreSQL flexible server (General Purpose, 4 vCores). Hot answers are cached in Azure Managed Redis.\nThe articles table has about 3 million rows and a category_id column. Most searches filter to one category before ranking by similarity.\nRequirements: semantic search must return in under 100 ms at 99% recall. The app runs as many short-lived serverless instances that each open database connections, and the team has seen 'too many connections' errors at peak. Cached answers must expire after 10 minutes and be removed immediately when an article is edited."
+ },
+ "c3": {
+  "title": "Northwind order pipeline",
+  "text": "Northwind processes AI-enriched orders. An Azure Function app receives orders over HTTP and sends them to an Azure Service Bus topic named orders. A billing subscription and an enrichment subscription each process every order. Blob uploads of invoices raise Azure Event Grid events that start a second function.\nAll services read connection settings from Azure App Configuration and secrets from Azure Key Vault by using managed identities, and send telemetry to Application Insights through OpenTelemetry.\nRequirements: messages that fail processing repeatedly must be kept for inspection, not lost. Only invoice blobs with a .pdf suffix should start the second function. Operators must be able to follow one order across all services in a single end-to-end trace."
+ }
+}

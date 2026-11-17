@@ -1,0 +1,245 @@
+[
+ {
+  "s": "kv",
+  "q": "Your app stores a new value for the secret cosmos-conn with set_secret(). What happens in Key Vault?",
+  "o": [
+   "A new version is created, and get_secret() without a version returns it",
+   "The old value is overwritten in place and can't be recovered",
+   "The call fails because the secret name already exists",
+   "The new value is saved as a pending draft until someone approves it"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Setting a secret with an existing name creates a new version with its own version ID. get_secret() returns the latest version by default, so apps pick up a rotated value when they fetch it again. Older versions stay available by version ID.",
+  "r": "m-manage-app-secrets-key-vault"
+ },
+ {
+  "s": "kv",
+  "q": "An inference service handles hundreds of requests per second and reads an API key from Key Vault on every request. It starts getting HTTP 429 responses. What should you do?",
+  "o": [
+   "Cache the secret in memory and refresh it periodically",
+   "Move the secret to an app setting in plaintext",
+   "Create a second vault and alternate requests between the two",
+   "Retry every 429 response immediately until the call succeeds"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Key Vault throttles at about 4,000 secret GETs per vault per 10 seconds and returns 429 when you exceed it. Caching the secret, with a refresh interval and a refresh on authentication failure, removes per-request vault calls while still picking up rotations. Immediate retries make throttling worse.",
+  "r": "m-manage-app-secrets-key-vault"
+ },
+ {
+  "s": "kv",
+  "q": "Your compliance team requires that encryption keys be protected by FIPS 140-3 Level 3 validated hardware security modules. Which Key Vault tier do you need?",
+  "o": [
+   "Premium",
+   "Standard",
+   "Basic",
+   "Free"
+  ],
+  "a": [
+   0
+  ],
+  "e": "The Standard tier protects keys with software validated to FIPS 140 Level 1. The Premium tier uses HSMs validated to FIPS 140-3 Level 3. Key Vault has no Basic or Free tier.",
+  "r": "m-manage-app-secrets-key-vault"
+ },
+ {
+  "s": "kv",
+  "t": "order",
+  "q": "DefaultAzureCredential tries credentials in a fixed order until one works. Put these in the order it tries them.",
+  "o": [
+   "Environment credential (service principal environment variables)",
+   "Workload identity credential",
+   "Managed identity credential",
+   "Azure CLI credential"
+  ],
+  "e": "DefaultAzureCredential checks environment variables first, then workload identity and managed identity (which work when running in Azure), and then developer tools such as the Azure CLI. That's why the same code works on a laptop and in Azure.",
+  "r": "m-manage-app-secrets-key-vault"
+ },
+ {
+  "s": "appc",
+  "q": "In Azure App Configuration, the key Pipeline:BatchSize has a value with no label and another with the label Production. The app loads keys with no label, then keys labeled Production. What value does it use in production?",
+  "o": [
+   "The Production value, because later-loaded values override earlier ones",
+   "The unlabeled value, because a key with no label is always the default",
+   "Both, as a list of two values",
+   "Neither, because labeled keys must be loaded before unlabeled ones"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Unlabeled (null-label) keys act as defaults. When the provider loads several selections, later ones override earlier ones for the same key, so loading Production after the null label gives environment-specific overrides.",
+  "r": "m-manage-app-settings-app-config"
+ },
+ {
+  "s": "appc",
+  "t": "yesno",
+  "q": "Evaluate each statement about Azure App Configuration key-values.",
+  "o": [
+   "Keys are case-sensitive.",
+   "A key and its value together can be up to 10 KB.",
+   "Keys can use : or / to create a hierarchy.",
+   "Labels must be unique across all keys in the store."
+  ],
+  "a": [
+   0,
+   1,
+   2
+  ],
+  "e": "Keys are case-sensitive and can use delimiters like : or / for hierarchy. The combined size of a key and value can't exceed 10 KB. Labels create variants of a key, so the same label (for example Production) is reused on many keys.",
+  "r": "m-manage-app-settings-app-config"
+ },
+ {
+  "s": "appc",
+  "q": "An app reads settings from App Configuration, and one setting is a Key Vault reference. What identity permissions does the app need?",
+  "o": [
+   "Read access to App Configuration and get access to the secret in Key Vault",
+   "Read access to App Configuration only. It fetches the secret for the app",
+   "Get access to Key Vault only. App Configuration is public",
+   "Owner on both resources so the reference can be resolved"
+  ],
+  "a": [
+   0
+  ],
+  "e": "App Configuration stores only the reference (the secret URI). The app's provider resolves it by calling Key Vault with the app's own identity, so the identity needs data read on the store and secret get on the vault. Owner is far more than needed.",
+  "r": "m-manage-app-settings-app-config"
+ },
+ {
+  "s": "appc",
+  "q": "Which setting should go in Azure Key Vault instead of App Configuration?",
+  "o": [
+   "The Azure OpenAI API key",
+   "The model deployment name gpt-4o",
+   "The embedding dimension 1536",
+   "The feature flag UseReranker"
+  ],
+  "a": [
+   0
+  ],
+  "e": "The deciding question is whether a value grants access or contains a credential. An API key does, so it belongs in Key Vault (or as a Key Vault reference). Deployment names, dimensions, endpoints, and feature flags are nonsensitive and benefit from App Configuration's labels and feature flags.",
+  "r": "m-manage-app-settings-app-config"
+ },
+ {
+  "s": "otel",
+  "q": "The automatic instrumentation shows HTTP and database calls, but nothing for embedding generation or prompt assembly. How do you make those steps appear in traces?",
+  "o": [
+   "Create custom spans with a tracer around each step",
+   "Turn up the sampling rate to 100 percent",
+   "Write the steps to stdout so they're collected",
+   "Add a metric alert for each step"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Automatic instrumentation covers common libraries but can't see your business logic. Get a tracer from opentelemetry.trace and wrap steps like embedding generation in custom spans, optionally with attributes. Sampling or logging doesn't create spans.",
+  "r": "m-instrument-app-opentelemetry"
+ },
+ {
+  "s": "otel",
+  "q": "With the Azure Monitor OpenTelemetry Distro, in which Application Insights table do server spans (SpanKind.SERVER and CONSUMER) appear?",
+  "o": [
+   "requests",
+   "dependencies",
+   "traces",
+   "customMetrics"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Server and consumer spans land in requests. Client, producer, and internal spans land in dependencies, and log records land in traces.",
+  "r": "m-instrument-app-opentelemetry"
+ },
+ {
+  "s": "otel",
+  "q": "A RAG request takes 10 seconds. You want a visual of all services with average response time and failure rate on each node to find the slow one. Which Application Insights feature should you open?",
+  "o": [
+   "Application Map",
+   "Availability tests",
+   "Usage funnels",
+   "Smart detection settings"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Application Map shows the topology of the distributed app with response time, request count, and failure rate on each node and edge, so a slow service stands out. You can then drill into the end-to-end transaction details.",
+  "r": "m-instrument-app-opentelemetry"
+ },
+ {
+  "s": "kql",
+  "q": "Application Insights sampling is active. Which query gives an accurate count of exceptions per hour?",
+  "o": [
+   "exceptions | summarize sum(itemCount) by bin(timestamp, 1h)",
+   "exceptions | summarize count() by bin(timestamp, 1h)",
+   "exceptions | count | bin(timestamp, 1h)",
+   "exceptions | take 1000 | summarize count()"
+  ],
+  "a": [
+   0
+  ],
+  "e": "With sampling, each stored record stands for itemCount original events. sum(itemCount) gives the true total, while count() counts only the sampled records and undercounts.",
+  "r": "m-analyze-telemetry-logs-metrics"
+ },
+ {
+  "s": "kql",
+  "t": "order",
+  "q": "Put the parts of this KQL query in a valid order to chart failed requests per hour over the last day.",
+  "o": [
+   "requests",
+   "| where timestamp > ago(1d) and success == false",
+   "| summarize failures = sum(itemCount) by bin(timestamp, 1h)",
+   "| render timechart"
+  ],
+  "e": "A KQL query starts with a table, then pipes the rows through operators in order: filter with where, aggregate with summarize and bin(), and finally visualize with render.",
+  "r": "m-analyze-telemetry-logs-metrics"
+ },
+ {
+  "s": "kql",
+  "q": "You need a reusable, interactive report that combines text, KQL queries, and parameters such as a time range picker for incident investigation. What should you build?",
+  "o": [
+   "An Azure Monitor workbook",
+   "An Azure portal dashboard",
+   "A metric alert rule",
+   "An action group"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Workbooks are interactive reports that combine text, queries, metrics, and parameters. Dashboards are for at-a-glance status, alert rules detect conditions, and action groups define the notifications.",
+  "r": "m-analyze-telemetry-logs-metrics"
+ },
+ {
+  "s": "kql",
+  "t": "yesno",
+  "q": "Evaluate each statement about Azure Monitor alert rules.",
+  "o": [
+   "Every alert rule has a scope, a condition, an action group, and a severity.",
+   "Severity 0 means Critical.",
+   "Severity 4 is the most urgent level.",
+   "An action group defines the notifications and automated actions that run when the alert fires."
+  ],
+  "a": [
+   0,
+   1,
+   3
+  ],
+  "e": "An alert rule has four parts: scope, condition, action group, and severity. Severity runs from 0 (Critical) to 4 (Verbose), so 4 is the least urgent. The action group holds the notifications and actions.",
+  "r": "m-analyze-telemetry-logs-metrics"
+ },
+ {
+  "s": "otel",
+  "c": "c3",
+  "q": "What makes Northwind's order show up as one end-to-end trace across the HTTP function, Service Bus, and the processors?",
+  "o": [
+   "Trace context passed along with every call and message",
+   "A separate Application Insights resource for each service",
+   "Logging the order ID to stdout in each service",
+   "The same cloud role name set on every service in the solution"
+  ],
+  "a": [
+   0
+  ],
+  "e": "OpenTelemetry propagates W3C trace context (traceparent) on HTTP calls and in message properties, so every span gets the same trace ID, which Application Insights shows as operation_Id. The cloud role name identifies each service on the map. It doesn't link spans.",
+  "r": "m-instrument-app-opentelemetry"
+ }
+]

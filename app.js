@@ -35,6 +35,11 @@
   const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } };
   const lsDel = (k) => { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } };
   const sameSet = (a, b) => a.length === b.length && a.every((x) => b.includes(x));
+  // "order" questions: correct = keys in sequence. "yesno": correct[i] is "Y"/"N" for statement i.
+  const seqType = (q) => q.type === "order" || q.type === "yesno";
+  const isRight = (q, sel) => seqType(q) ? sel.length === q.correct.length && sel.every((x, i) => x === q.correct[i]) : sameSet(sel, q.correct);
+  const isDone = (q, sel) => !!sel && (q.type === "yesno" ? sel.length === q.options.length && sel.every(Boolean) : q.type === "order" ? sel.length === q.options.length : sel.length > 0);
+  const caseBlock = (q, open) => q.case_text ? `<details class="case" ${open ? "open" : ""}><summary>Case study: ${esc(q.case_title || "")}</summary>${q.case_text.split(/\n+/).map((p) => `<p>${esc(p)}</p>`).join("")}</details>` : "";
   const isFull = (a) => a.mode === "mock" || a.mode === "random";
   const skillName = (code) => (bank.find((q) => q.skill === code) || {}).skill_name || code;
   const modeLabel = (a) => a.mode === "mock" ? `Mock test ${a.mock}` : a.mode === "domain" ? `${a.domain} practice`
@@ -130,7 +135,7 @@
   /* ---------- learning model: first attempts and spaced repetition ---------- */
   const DAY = 86400000, INTERVALS = [1, 3, 7];
   const dayStart = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
-  const optOrder = (o, q) => { const ord = o && o.order && o.order[q.id]; return ord ? ord.map((k) => q.options.find((x) => x.key === k)).filter(Boolean) : q.options; };
+  const optOrder = (o, q) => { if (q.type === "yesno") return q.options; const ord = o && o.order && o.order[q.id]; return ord ? ord.map((k) => q.options.find((x) => x.key === k)).filter(Boolean) : q.options; };
 
   function learning() {
     const seen = new Set(), fresh = [], srs = new Map();
@@ -249,7 +254,7 @@
     const ready = readiness(L);
 
     setView(`
-      ${current ? `<div class="banner"><span>Test in progress: <b>${esc(modeLabel(current))}</b>, ${Object.values(current.answers).filter((v) => v.length).length}/${current.ids.length} answered.</span><span><a class="btn small primary" href="#/test">Resume</a> <button class="btn small ghost" id="discard">Discard</button></span></div>` : ""}
+      ${current ? `<div class="banner"><span>Test in progress: <b>${esc(modeLabel(current))}</b>, ${current.ids.filter((id) => byId.get(id) && isDone(byId.get(id), current.answers[id] || [])).length}/${current.ids.length} answered.</span><span><a class="btn small primary" href="#/test">Resume</a> <button class="btn small ghost" id="discard">Discard</button></span></div>` : ""}
       <section class="hero">
         <div>
           <h1>Exam AI-200 practice</h1>
@@ -328,7 +333,7 @@
     const nextMock = (Array.from({ length: 10 }, (_, i) => i + 1).find((n) => bestMock[n] === undefined)) || 1;
     function drawOpts() {
       studyChk.checked = mode === "domain" || mode === "review";
-      if (mode === "mock") opts.innerHTML = `<label>Mock test <select id="mockSel">${Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}" ${i + 1 === nextMock ? "selected" : ""}>Mock ${i + 1}${bestMock[i + 1] !== undefined ? " (best " + bestMock[i + 1] + ")" : ""}</option>`).join("")}</select></label><p class="muted small">40 questions in exam proportions with a 120-minute timer, like the real exam.</p>`;
+      if (mode === "mock") opts.innerHTML = `<label>Mock test <select id="mockSel">${Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}" ${i + 1 === nextMock ? "selected" : ""}>Mock ${i + 1}${bestMock[i + 1] !== undefined ? " (best " + bestMock[i + 1] + ")" : ""}</option>`).join("")}</select></label><p class="muted small">About ${Math.round(bank.filter((q) => q.mock).length / 10)} questions in exam proportions, including case studies, ordering, and yes/no sets, with a 120-minute timer, like the real exam.</p>`;
       if (mode === "random") opts.innerHTML = `<p class="muted small">40 questions in exam proportions, picked from questions you haven't seen yet first, then ones you got wrong. 120-minute timer.</p>`;
       if (mode === "domain") opts.innerHTML = `<label>Domain <select id="domSel">${Object.entries(DOMAINS).map(([k, d]) => `<option value="${k}">${k} · ${esc(d.name)}</option>`).join("")}</select></label><label>Questions <select id="cntSel"><option>10</option><option selected>20</option><option>40</option></select></label>`;
       if (mode === "review") opts.innerHTML = wrongCount ? `<p class="muted small">${wrongCount} question${wrongCount > 1 ? "s" : ""} you last answered incorrectly (up to 40 per test).</p>` : `<p class="muted small">No mistakes to review yet. Take a test first.</p>`;
@@ -363,13 +368,13 @@
 
     function draw() {
       const q = qs[t.index];
-      const multi = q.type === "multi";
-      const need = q.correct.length;
+      const multi = q.type === "multi", ord = q.type === "order", yn = q.type === "yesno";
+      const need = seqType(q) ? q.options.length : q.correct.length;
       const chosen = t.answers[q.id] || [];
       const opts = optOrder(t, q);
       const checked = t.study && t.checked[q.id];
-      const isOk = checked && sameSet(chosen, q.correct);
-      const answeredCount = Object.values(t.answers).filter((v) => v.length).length;
+      const isOk = checked && isRight(q, chosen);
+      const answeredCount = qs.filter((x) => isDone(x, t.answers[x.id] || [])).length;
       const last = t.index === qs.length - 1;
       const allDone = answeredCount === qs.length;
       setView(`
@@ -380,19 +385,31 @@
         <div class="progress" aria-hidden="true"><div style="width:${pct(answeredCount, qs.length)}%"></div></div>
         <section class="card question">
           <div class="qmeta"><span>Question ${t.index + 1} of ${qs.length}${t.follow[q.id] ? ` <span class="tag fu">Follow-up: same concept</span>` : ""}</span>${t.study ? `<span class="tag">${q.domain} · ${esc(q.skill_name || "")}</span>` : ""}</div>
+          ${caseBlock(q, true)}
           <fieldset ${checked ? "disabled" : ""}>
             <legend class="stem">${esc(q.stem)}</legend>
-            ${multi ? `<p class="hint">Select ${need} answers.</p>` : ""}
-            <div class="options">
+            ${multi ? `<p class="hint">Select ${need} answers.</p>` : ord ? `<p class="hint">Select the steps in the order you'd do them. Select a step again to remove it.</p>` : yn ? `<p class="hint">For each statement, choose Yes if it's true. Otherwise, choose No.</p>` : ""}
+            ${yn ? `<div class="yn">${q.options.map((o, i) => {
+                const mine = chosen[i] || "", right = q.correct[i];
+                const state = checked ? (mine === right ? "right" : "wrong") : "";
+                return `<div class="ynrow ${state}" role="radiogroup" aria-label="Statement ${i + 1}">
+                  <span class="txt">${esc(o.text)}</span>
+                  <span class="ynbtns">${["Y", "N"].map((v) => `<label class="ynb ${mine === v ? "sel" : ""}"><input type="radio" name="yn${i}" value="${v}" data-i="${i}" ${mine === v ? "checked" : ""}> ${v === "Y" ? "Yes" : "No"}</label>`).join("")}</span>
+                  ${state ? `<span class="mark ${state === "right" ? "okc" : "errc"}">${state === "right" ? "✓" : "✗"} Answer: ${right === "Y" ? "Yes" : "No"}</span>` : ""}
+                </div>`; }).join("")}</div>`
+            : `<div class="options">
               ${opts.map((o, i) => {
-                const mine = chosen.includes(o.key), right = q.correct.includes(o.key);
-                const state = checked ? (right ? "right" : mine ? "wrong" : "") : "";
+                const mine = chosen.includes(o.key), pos = chosen.indexOf(o.key) + 1, cpos = q.correct.indexOf(o.key) + 1;
+                const right = ord ? pos === cpos : q.correct.includes(o.key);
+                const state = checked ? (ord ? (right ? "right" : "wrong") : right ? "right" : mine ? "wrong" : "") : "";
                 return `<label class="opt ${mine ? "sel" : ""} ${state}">
-                  <input type="${multi ? "checkbox" : "radio"}" name="opt" value="${o.key}" ${mine ? "checked" : ""}>
+                  <input type="${multi || ord ? "checkbox" : "radio"}" name="opt" value="${o.key}" ${mine ? "checked" : ""}>
                   <span class="key">${"ABCDEF"[i]}</span><span class="txt">${esc(o.text)}</span>
-                  ${state === "right" ? `<span class="mark okc">✓ Correct</span>` : state === "wrong" ? `<span class="mark errc">✗ Your answer</span>` : ""}
+                  ${ord && pos && !checked ? `<span class="ordn" aria-label="Step ${pos}">${pos}</span>` : ""}
+                  ${ord && checked ? `<span class="mark ${right ? "okc" : "errc"}">${right ? "✓ Step " + cpos : "✗ You: " + (pos || "–") + " · Correct: " + cpos}</span>`
+                    : state === "right" ? `<span class="mark okc">✓ Correct</span>` : state === "wrong" ? `<span class="mark errc">✗ Your answer</span>` : ""}
                 </label>`; }).join("")}
-            </div>
+            </div>`}
           </fieldset>
           ${checked ? `<div class="feedback ${isOk ? "ok" : "bad"}" role="status">
               <b>${isOk ? "✓ Correct." : "✗ Not quite."}</b> ${esc(q.explanation)}
@@ -402,15 +419,15 @@
           <div class="qnav">
             <button class="btn ghost" id="prev" ${t.index === 0 ? "disabled" : ""}>← Prev</button>
             <button class="btn ghost ${t.flags[q.id] ? "flagged" : ""}" id="flag" aria-pressed="${!!t.flags[q.id]}">${t.flags[q.id] ? "★ Flagged" : "☆ Flag"}</button>
-            ${t.study && !checked ? `<button class="btn primary" id="check" ${chosen.length === need ? "" : "disabled"}>Check answer</button>`
+            ${t.study && !checked ? `<button class="btn primary" id="check" ${isDone(q, chosen) && (seqType(q) || chosen.length === need) ? "" : "disabled"}>Check answer</button>`
               : last ? `<button class="btn primary" id="submit2">Finish test</button>` : `<button class="btn primary" id="next">Next →</button>`}
           </div>
-          <p class="muted small keys">Keyboard: A–${"ABCDEF"[opts.length - 1]} choose · ${t.study ? "Enter check/next · " : "Enter next · "}←/→ move · F flag</p>
+          <p class="muted small keys">Keyboard: ${yn ? "" : `A–${"ABCDEF"[opts.length - 1]} choose · `}${t.study ? "Enter check/next · " : "Enter next · "}←/→ move · F flag</p>
         </section>
         <section class="card">
           <div class="palette" role="list">
-            ${qs.map((x, i) => { const a = (t.answers[x.id] || []).length, f = t.flags[x.id], c = t.study && t.checked[x.id];
-              const res = c ? (sameSet(t.answers[x.id] || [], x.correct) ? "right" : "wrong") : "";
+            ${qs.map((x, i) => { const a = isDone(x, t.answers[x.id] || []), f = t.flags[x.id], c = t.study && t.checked[x.id];
+              const res = c ? (isRight(x, t.answers[x.id] || []) ? "right" : "wrong") : "";
               return `<button role="listitem" class="pq ${i === t.index ? "cur" : ""} ${a ? "ans" : ""} ${f ? "flag" : ""} ${res}" data-i="${i}" aria-label="Question ${i + 1}, ${a ? "answered" : "not answered"}${f ? ", flagged" : ""}${res ? ", " + (res === "right" ? "correct" : "incorrect") : ""}"${i === t.index ? ' aria-current="true"' : ""}>${i + 1}${f ? "<i>★</i>" : ""}</button>`; }).join("")}
           </div>
           <p class="muted small legend"><span class="dot ans"></span> answered <span class="dot flag">★</span> flagged <span class="dot"></span> not answered${t.study ? ` <span class="dot right"></span> correct <span class="dot wrong"></span> incorrect` : ""}</p>
@@ -420,17 +437,24 @@
       const pickKey = (key) => {
         if (checked) return;
         let sel = (t.answers[q.id] || []).slice();
-        if (multi) { sel = sel.includes(key) ? sel.filter((v) => v !== key) : sel.length < need ? [...sel, key] : sel; }
+        if (ord) sel = sel.includes(key) ? sel.filter((v) => v !== key) : [...sel, key];
+        else if (multi) { sel = (sel.includes(key) ? sel.filter((v) => v !== key) : sel.length < need ? [...sel, key] : sel).sort(); }
         else sel = [key];
-        t.answers[q.id] = sel.sort(); save(); draw();
+        t.answers[q.id] = sel; save(); draw();
         const el = document.querySelector(`.opt input[value="${key}"]`); if (el) el.focus();
       };
       document.querySelectorAll(".opt input").forEach((inp) => inp.onchange = () => pickKey(inp.value));
+      document.querySelectorAll(".yn input").forEach((inp) => inp.onchange = () => {
+        if (checked) return;
+        const sel = Array.from({ length: q.options.length }, (_, i) => (t.answers[q.id] || [])[i] || "");
+        sel[+inp.dataset.i] = inp.value; t.answers[q.id] = sel; save(); draw();
+        const el = document.querySelector(`.yn input[name="${inp.name}"][value="${inp.value}"]`); if (el) el.focus();
+      });
       const go = (i) => { if (i < 0 || i >= qs.length) return; t.index = i; save(); draw(); };
       const doCheck = () => {
-        if (chosen.length !== need) return;
+        if (!isDone(q, chosen) || (!seqType(q) && chosen.length !== need)) return;
         t.checked[q.id] = true;
-        const ok = sameSet(chosen, q.correct);
+        const ok = isRight(q, chosen);
         if (!ok && !t.follow[q.id] && q.skill) {
           const used = new Set(t.ids);
           const f = pick(bank.filter((x) => x.skill === q.skill && !used.has(x.id)), 1, questionStats())[0];
@@ -444,7 +468,7 @@
       document.getElementById("flag").onclick = () => { t.flags[q.id] = !t.flags[q.id]; save(); draw(); };
       document.querySelectorAll(".pq").forEach((b) => b.onclick = () => go(+b.dataset.i));
       const submit = () => {
-        const left = qs.filter((x) => !(t.answers[x.id] || []).length).length;
+        const left = qs.filter((x) => !isDone(x, t.answers[x.id] || [])).length;
         const msg = left ? `${left} question${left > 1 ? "s are" : " is"} unanswered and will be marked wrong. Submit anyway?` : "Submit your test? You can't change answers afterwards.";
         if (confirm(msg)) finish(t, qs);
       };
@@ -455,7 +479,7 @@
         if (typing(e) || e.ctrlKey || e.metaKey || e.altKey) return;
         const k = e.key.toUpperCase();
         const pos = k.length === 1 ? "ABCDEF".indexOf(k) : -1;
-        const opt = (pos >= 0 ? opts[pos] : null) || (/^[1-6]$/.test(k) ? opts[+k - 1] : null);
+        const opt = yn ? null : (pos >= 0 ? opts[pos] : null) || (/^[1-6]$/.test(k) ? opts[+k - 1] : null);
         if (opt) { e.preventDefault(); pickKey(opt.key); }
         else if (e.key === "ArrowRight") { e.preventDefault(); go(t.index + 1); }
         else if (e.key === "ArrowLeft") { e.preventDefault(); go(t.index - 1); }
@@ -484,7 +508,7 @@
 
   async function finish(t, qs) {
     clearInterval(timerHandle);
-    const answers = qs.map((q) => { const sel = t.answers[q.id] || []; return { question_id: q.id, selected: sel, is_correct: sameSet(sel, q.correct) }; });
+    const answers = qs.map((q) => { const sel = t.answers[q.id] || []; return { question_id: q.id, selected: sel, is_correct: isRight(q, sel) }; });
     const correct = answers.filter((a) => a.is_correct).length;
     const dom = domainBreakdown(answers.map((a) => ({ q: byId.get(a.question_id), ok: a.is_correct })));
     const domain_scores = {};
@@ -546,14 +570,25 @@
         <div id="review"></div>
       </section>`);
 
+    function reviewBody(x) {
+      const q = x.q, sel = x.ans.selected || [];
+      if (q.type === "yesno") return `<ul class="ropts">${q.options.map((o, i) => {
+        const ok = sel[i] === q.correct[i], yes = (v) => (v === "Y" ? "Yes" : v === "N" ? "No" : "–");
+        return `<li class="${ok ? "c" : "w"}"><span class="key">${i + 1}</span><span>${esc(o.text)}</span><em>Answer: ${yes(q.correct[i])}</em>${sel.length ? `<em class="mine">${ok ? "you: " : "✗ you: "}${yes(sel[i])}</em>` : ""}</li>`; }).join("")}</ul>`;
+      if (q.type === "order") return `<p class="small"><b>Correct order</b></p><ol class="ropts">${q.correct.map((k, i) => {
+        const o = q.options.find((y) => y.key === k), mine = sel.indexOf(k) + 1, ok = mine === i + 1;
+        return `<li class="${ok ? "c" : "w"}"><span class="key">${i + 1}</span><span>${esc(o ? o.text : k)}</span>${sel.length ? `<em class="mine">${ok ? "your step " + mine : "✗ your step " + (mine || "–")}</em>` : ""}</li>`; }).join("")}</ol>`;
+      return `<ul class="ropts">${optOrder(a, q).map((o, i) => {
+          const isC = q.correct.includes(o.key), mine = sel.includes(o.key);
+          return `<li class="${isC ? "c" : ""} ${mine && !isC ? "w" : ""}"><span class="key">${"ABCDEF"[i]}</span><span>${esc(o.text)}</span>${isC ? `<em>✓ correct</em>` : ""}${mine ? `<em class="mine">${isC ? "your answer" : "✗ your answer"}</em>` : ""}</li>`;
+        }).join("")}</ul>`;
+    }
     function card(x, open) {
       return `<details class="rev ${x.ans.is_correct ? "ok" : "bad"}" ${open ? "open" : ""}>
         <summary><span class="qmeta"><span>${x.n}. ${x.ans.is_correct ? "✓ Correct" : "✗ Incorrect"}${flags[x.q.id] ? " · ★ flagged" : ""}</span><span class="tag">${x.q.domain} · ${esc(x.q.skill_name || "")}</span></span>
           <span class="stem">${esc(x.q.stem)}</span></summary>
-        <ul class="ropts">${optOrder(a, x.q).map((o, i) => {
-          const isC = x.q.correct.includes(o.key), mine = x.ans.selected.includes(o.key);
-          return `<li class="${isC ? "c" : ""} ${mine && !isC ? "w" : ""}"><span class="key">${"ABCDEF"[i]}</span><span>${esc(o.text)}</span>${isC ? `<em>✓ correct</em>` : ""}${mine ? `<em class="mine">${isC ? "your answer" : "✗ your answer"}</em>` : ""}</li>`;
-        }).join("")}</ul>
+        ${caseBlock(x.q, false)}
+        ${reviewBody(x)}
         ${x.ans.selected.length ? "" : `<p class="muted small">Not answered.</p>`}
         <div class="expl"><b>Explanation.</b> ${esc(x.q.explanation)}</div>
         ${x.q.source_url ? `<p class="src">Source: <a href="${esc(x.q.source_url)}" target="_blank" rel="noopener">${esc(x.q.source_title || x.q.source_url)}</a></p>` : ""}

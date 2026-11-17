@@ -1,0 +1,772 @@
+[
+ {
+  "s": "pconn",
+  "q": "A container app uses its managed identity to connect to Azure Database for PostgreSQL with Microsoft Entra authentication. For which resource does it request the access token?",
+  "o": [
+   "https://ossrdbms-aad.database.windows.net/.default",
+   "https://database.windows.net/.default",
+   "https://management.azure.com/.default",
+   "https://postgres.database.azure.com/.default"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Entra identities get a token for the https://ossrdbms-aad.database.windows.net resource (scope .../.default) and pass it as the password. database.windows.net is the Azure SQL resource, and management.azure.com is Azure Resource Manager.",
+  "r": "m-build-query-azure-database-postgresql"
+ },
+ {
+  "s": "pconn",
+  "q": "For production, your app must encrypt PostgreSQL connections and confirm it's talking to the genuine Azure server whose certificate hostname matches. Which sslmode should you use?",
+  "o": [
+   "verify-full",
+   "require (encryption on, certificate not checked)",
+   "verify-ca",
+   "prefer (encrypt only when the server offers it)"
+  ],
+  "a": [
+   0
+  ],
+  "e": "verify-full encrypts, validates the certificate chain against a trusted CA, and checks that the certificate hostname matches the server. require encrypts but doesn't validate the certificate, verify-ca skips the hostname check, and prefer doesn't validate at all.",
+  "r": "m-build-query-azure-database-postgresql"
+ },
+ {
+  "s": "pconn",
+  "t": "yesno",
+  "q": "Evaluate each statement about connecting to Azure Database for PostgreSQL flexible server.",
+  "o": [
+   "A client that uses sslmode=disable is rejected.",
+   "Built-in PgBouncer listens on port 6432.",
+   "With private access (VNet integration), you can connect from any internet address that's in the firewall rules.",
+   "The server accepts TLS 1.2 and TLS 1.3 connections."
+  ],
+  "a": [
+   0,
+   1,
+   3
+  ],
+  "e": "Azure requires TLS, so sslmode=disable connections are rejected, and only TLS 1.2 and 1.3 are accepted. PgBouncer uses port 6432 instead of 5432. With private access, the server has only a private IP, so you connect from the VNet, peered networks, or VPN/ExpressRoute. Firewall rules apply to public access.",
+  "r": "m-build-query-azure-database-postgresql"
+ },
+ {
+  "s": "pconn",
+  "q": "Your Python code builds a query with an f-string that inserts a user's search text. What's the right way to fix it with psycopg?",
+  "o": [
+   "Pass the value as a parameter: cur.execute(\"... WHERE title = %s\", (text,))",
+   "Escape quotes in the text with str.replace before formatting the string",
+   "Wrap the f-string in a transaction so a bad value rolls back",
+   "Call LOWER() on the value so it can't contain SQL keywords"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Parameterized queries keep SQL structure and data separate, and the driver handles escaping, which prevents SQL injection. Manual escaping is error prone, and transactions or LOWER() don't stop injected SQL from running.",
+  "r": "m-build-query-azure-database-postgresql"
+ },
+ {
+  "s": "pconn",
+  "q": "Your app's retry logic retries every failed PostgreSQL call with exponential backoff. Which error should it NOT retry?",
+  "o": [
+   "UniqueViolation from an INSERT",
+   "OperationalError from a dropped connection",
+   "OperationalError from a connection timeout",
+   "DeadlockDetected after the transaction rolls back"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Retries help with transient failures such as dropped connections, timeouts, and deadlocks, where PostgreSQL ends one transaction and a retry usually succeeds. A constraint violation like UniqueViolation fails again on every retry. It needs a code or data change.",
+  "r": "m-build-query-azure-database-postgresql"
+ },
+ {
+  "s": "pconn",
+  "q": "You load 200,000 rows into PostgreSQL from Python. Which approach gives the highest throughput?",
+  "o": [
+   "COPY ... FROM STDIN with cur.copy()",
+   "One INSERT per row in a loop",
+   "executemany with one INSERT statement",
+   "An upsert with ON CONFLICT DO NOTHING per row"
+  ],
+  "a": [
+   0
+  ],
+  "e": "For large datasets (10,000+ rows), COPY is the fastest option, often 2 to 10 times faster than individual inserts. executemany suits hundreds to a few thousand rows. Row-by-row inserts or upserts add a round trip per row.",
+  "r": "m-build-query-azure-database-postgresql"
+ },
+ {
+  "s": "pschema",
+  "q": "A messages table might grow past two billion rows. Which primary key type should you use?",
+  "o": [
+   "BIGSERIAL",
+   "SERIAL",
+   "SMALLSERIAL",
+   "INTEGER with a CHECK constraint"
+  ],
+  "a": [
+   0
+  ],
+  "e": "SERIAL is a 32-bit integer, so it runs out after about two billion values. BIGSERIAL is 64-bit and fits very large tables. Use UUIDs when IDs must be generated outside the database.",
+  "r": "m-build-query-azure-database-postgresql"
+ },
+ {
+  "s": "pschema",
+  "q": "An AI app stores message timestamps for users in many time zones. Which column type should you use?",
+  "o": [
+   "TIMESTAMP WITH TIME ZONE (TIMESTAMPTZ)",
+   "TIMESTAMP WITHOUT TIME ZONE, converted in the app",
+   "TEXT in ISO 8601 format",
+   "A DATE column plus a separate TIME column"
+  ],
+  "a": [
+   0
+  ],
+  "e": "TIMESTAMPTZ stores the moment in UTC and converts it to the session's time zone when displayed, which is right for apps across time zones. A plain TIMESTAMP loses the zone, and text or split columns lose date math and indexing benefits.",
+  "r": "m-build-query-azure-database-postgresql"
+ },
+ {
+  "s": "pschema",
+  "q": "Each conversation has many messages. Deleting a conversation must delete its messages too. How should you define messages.conversation_id?",
+  "o": [
+   "BIGINT REFERENCES conversations(id) ON DELETE CASCADE",
+   "BIGINT REFERENCES conversations(id) ON DELETE RESTRICT",
+   "BIGINT with a CHECK that the conversation exists",
+   "JSONB that stores the conversation ID and title"
+  ],
+  "a": [
+   0
+  ],
+  "e": "A foreign key with ON DELETE CASCADE removes referencing rows when the parent row is deleted. RESTRICT (the default behavior) blocks the delete instead. CHECK constraints can't look up other tables. Use CASCADE carefully, because it can remove more data than intended in complex relationships.",
+  "r": "m-build-query-azure-database-postgresql"
+ },
+ {
+  "s": "pschema",
+  "q": "You create an index on messages(conversation_id, created_at). Which query can use it most effectively?",
+  "o": [
+   "WHERE conversation_id = 42 ORDER BY created_at",
+   "WHERE created_at > now() - interval '1 day'",
+   "WHERE content ILIKE '%error%'",
+   "WHERE role = 'assistant'"
+  ],
+  "a": [
+   0
+  ],
+  "e": "A composite B-tree index helps queries that filter on its leading column, here conversation_id, and it can also return rows already sorted by created_at. A filter on created_at alone uses only the trailing column, and ILIKE with a leading wildcard or a role filter isn't covered.",
+  "r": "m-build-query-azure-database-postgresql"
+ },
+ {
+  "s": "pschema",
+  "q": "This query fails with 'column \"msg_date\" does not exist': SELECT DATE(created_at) AS msg_date FROM messages WHERE msg_date > '2024-01-01'. Why?",
+  "o": [
+   "WHERE runs before SELECT, so the alias isn't defined yet",
+   "Aliases can't be used with the DATE() function",
+   "msg_date must be quoted because it's a reserved word",
+   "DATE() returns text, so the comparison is invalid"
+  ],
+  "a": [
+   0
+  ],
+  "e": "SQL runs FROM, WHERE, GROUP BY, HAVING, SELECT, then ORDER BY and LIMIT. A SELECT alias is visible only to ORDER BY and LIMIT/OFFSET. Repeat the expression in WHERE, or sort by the alias in ORDER BY.",
+  "r": "m-build-query-azure-database-postgresql"
+ },
+ {
+  "s": "pschema",
+  "q": "You need to insert a user preference, or update its value if a row for that user and key already exists. Which statement does this in one step?",
+  "o": [
+   "INSERT ... ON CONFLICT (user_id, preference_key) DO UPDATE SET preference_value = EXCLUDED.preference_value",
+   "INSERT ... ON CONFLICT (user_id, preference_key) DO NOTHING, then a trigger that copies the new value over",
+   "MERGE INTO user_preferences USING EXCLUDED ON (user_id) WHEN MATCHED THEN DELETE",
+   "UPDATE user_preferences SET preference_value = :v WHERE ..., then an INSERT only if the UPDATE raises an error"
+  ],
+  "a": [
+   0
+  ],
+  "e": "INSERT ... ON CONFLICT ... DO UPDATE is PostgreSQL's upsert. EXCLUDED refers to the values that would have been inserted. DO NOTHING skips the row instead of updating it, and an UPDATE that matches no row doesn't throw an error.",
+  "r": "m-build-query-azure-database-postgresql"
+ },
+ {
+  "s": "pschema",
+  "q": "Page 1,000 of a message list with OFFSET is slow. Which query pattern keeps deep pages fast?",
+  "o": [
+   "Keyset pagination: WHERE (created_at, id) < (:ts, :id) ORDER BY created_at DESC, id DESC LIMIT 20",
+   "Keep OFFSET and raise work_mem before each page query so skipped rows are cached in memory",
+   "Run SELECT COUNT(*) first, then page backward with OFFSET from the end of the table",
+   "Order by RANDOM() and LIMIT 20 so every page costs the same"
+  ],
+  "a": [
+   0
+  ],
+  "e": "OFFSET makes PostgreSQL read and discard every skipped row. Keyset (cursor) pagination filters from the last row seen, so each page costs the same at any depth. Including id handles rows with equal timestamps.",
+  "r": "m-build-query-azure-database-postgresql"
+ },
+ {
+  "s": "pschema",
+  "t": "yesno",
+  "q": "Evaluate each statement about PostgreSQL schema design for AI apps.",
+  "o": [
+   "TEXT is slower than unconstrained VARCHAR in PostgreSQL.",
+   "Most DDL statements in PostgreSQL can run inside a transaction and be rolled back.",
+   "Adding a column with a default value rewrites every existing row.",
+   "GIN indexes can speed up JSONB containment (@>) and key-exists (?) filters."
+  ],
+  "a": [
+   1,
+   3
+  ],
+  "e": "TEXT and unconstrained VARCHAR perform the same. Most PostgreSQL DDL is transactional, so you can wrap related schema changes in BEGIN/COMMIT. Adding a column with a default stores the default in the catalog instead of updating every row. The @> and ? operators can use GIN indexes.",
+  "r": "m-build-query-azure-database-postgresql"
+ },
+ {
+  "s": "pidx",
+  "q": "You create an HNSW index with vector_l2_ops, but your queries use ORDER BY embedding <=> :q LIMIT 10. EXPLAIN ANALYZE shows a Seq Scan. What's the cause?",
+  "o": [
+   "The operator class doesn't match the cosine distance operator",
+   "HNSW indexes can't be used together with an ORDER BY clause",
+   "The session needs SET ivfflat.probes before an HNSW index scan",
+   "The table must be vacuumed and analyzed before HNSW is used"
+  ],
+  "a": [
+   0
+  ],
+  "e": "The index's operator class must match the query's distance operator: vector_cosine_ops for <=>, vector_l2_ops for <->, and vector_ip_ops for <#>. With a mismatch, the planner can't use the index and falls back to a sequential scan.",
+  "r": "m-implement-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "pidx",
+  "q": "You create an IVFFlat index on an empty documents table and then load 500,000 embeddings. Search quality is poor. Why?",
+  "o": [
+   "IVFFlat learns clusters from existing rows, so an empty-table build is useless",
+   "IVFFlat supports only up to 100,000 rows, so the extra rows are skipped",
+   "IVFFlat requires the column to be halfvec instead of vector",
+   "IVFFlat must use vector_ip_ops for any text embedding model"
+  ],
+  "a": [
+   0
+  ],
+  "e": "IVFFlat trains its clusters on the data that exists when you build it. Load data first, then create the index, and rebuild it when the data distribution changes a lot. HNSW, by contrast, can be created on an empty table and updates incrementally.",
+  "r": "m-implement-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "pidx",
+  "q": "A table has 4 million embeddings. Following the pgvector guidance, about how many lists should an IVFFlat index use?",
+  "o": [
+   "About 2,000 (the square root of the row count)",
+   "About 4,000 lists (rows / 1,000)",
+   "16 lists, the default that suits any size",
+   "About 4 million lists, one list per row"
+  ],
+  "a": [
+   0
+  ],
+  "e": "For up to 1 million rows, use rows / 1,000 lists. For larger tables, use sqrt(rows): the square root of 4,000,000 is 2,000.",
+  "r": "m-implement-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "pidx",
+  "t": "yesno",
+  "q": "Evaluate each statement about pgvector HNSW indexes.",
+  "o": [
+   "You can create an HNSW index on an empty table.",
+   "The default value of m (connections per node) is 16.",
+   "Raising hnsw.ef_search usually increases recall and query time.",
+   "HNSW uses less memory than IVFFlat for the same data."
+  ],
+  "a": [
+   0,
+   1,
+   2
+  ],
+  "e": "HNSW builds a graph that updates as rows arrive, so it works on empty tables. m defaults to 16. A higher ef_search (default 40) searches wider for better recall at some cost in latency. HNSW uses more memory than IVFFlat and takes longer to build.",
+  "r": "m-implement-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "pvec",
+  "q": "Your embedding model outputs 1,536 dimensions, and your queries rank help articles by meaning. Which column definition and operator should you use?",
+  "o": [
+   "embedding vector(1536) and the <=> operator",
+   "embedding vector(768) and the <-> operator",
+   "embedding float8[] and the @> operator",
+   "embedding sparsevec(1536) and the <#> operator"
+  ],
+  "a": [
+   0
+  ],
+  "e": "vector(n) must match the model's output dimension, so use vector(1536). Cosine distance (<=>) is the usual choice for text embeddings because it compares direction of meaning, not vector length. A plain float array has no vector operators, and sparsevec is for vectors that are mostly zero.",
+  "r": "m-implement-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "pvec",
+  "q": "Storage for 1536-dimension embeddings is too high. You benchmarked half precision and search quality is still acceptable. Which type should you use?",
+  "o": [
+   "halfvec(1536)",
+   "sparsevec(1536)",
+   "vector(768) with the same model",
+   "bytea with gzip compression"
+  ],
+  "a": [
+   0
+  ],
+  "e": "halfvec stores each element as a 16-bit float, about half the storage of vector, and is the option to use once benchmarks confirm acceptable quality. sparsevec suits mostly-zero vectors, a smaller vector column can't hold the model's 1,536 values, and bytea has no vector search operators.",
+  "r": "m-implement-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "pcomp",
+  "q": "About how much storage does the vector column need for 1 million 1536-dimension embeddings stored as vector (float4)?",
+  "o": [
+   "About 6 GB",
+   "About 1.5 GB",
+   "About 12 GB",
+   "About 600 MB"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Each dimension takes 4 bytes, so a 1,536-dimension vector is about 6 KB (6,144 bytes plus overhead). One million vectors need about 6 GB, and an HNSW index adds roughly 50% more.",
+  "r": "m-optimize-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "pcomp",
+  "q": "A vector search workload has a buffer cache hit ratio of 93%, and disk reads are high. What's the recommended first change?",
+  "o": [
+   "Increase shared_buffers, starting around 25% of server memory",
+   "Lower work_mem so that more sessions fit in server memory",
+   "Drop the HNSW index so queries use a sequential scan",
+   "Increase backup retention to 35 days to reduce disk reads"
+  ],
+  "a": [
+   0
+  ],
+  "e": "shared_buffers is PostgreSQL's shared page cache. For vector-heavy workloads, a cache hit ratio below 99% suggests it's too small. Start at about 25% of available memory and adjust from monitoring. The other options don't increase the cache.",
+  "r": "m-optimize-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "pcomp",
+  "q": "You plan to store 5 million embeddings with an HNSW index and need low-latency search. Which compute tier fits best?",
+  "o": [
+   "Memory Optimized, starting around 8 to 16 vCores",
+   "Burstable, scaling up when CPU bursts run out",
+   "General Purpose with 2 vCores and more storage",
+   "Any tier, because vector indexes are read from disk"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Memory Optimized has 8 GB per vCore (General Purpose has 4 GB and Burstable 2 GB), which keeps large indexes cached. For 1 to 10 million vectors, start at 8 to 16 vCores and make sure memory exceeds the vector index size by at least 50%.",
+  "r": "m-optimize-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "pcomp",
+  "q": "You're choosing an embedding size. Compared with 1,536 dimensions, what does a 3,072-dimension model cost in PostgreSQL?",
+  "o": [
+   "About twice the storage per vector and more compute per distance calculation",
+   "The same storage per vector, because pgvector compresses dimensions",
+   "Half the storage, because larger models are stored as halfvec",
+   "Less compute per query, because higher dimensions need fewer probes"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Each dimension adds 4 bytes, so 3,072 dimensions take about 12 KB instead of 6 KB, and every distance calculation processes twice as many values. For many search apps, 768 or 1,024 dimensions give enough quality at lower cost.",
+  "r": "m-optimize-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "pcomp",
+  "t": "yesno",
+  "q": "Evaluate each statement about scaling Azure Database for PostgreSQL for vector workloads.",
+  "o": [
+   "You can change the compute tier after deployment, with a brief restart.",
+   "Read replicas use asynchronous replication, so they can lag slightly behind the primary.",
+   "A read replica can accept writes when the primary is busy.",
+   "Scale up when CPU stays above 70% during peak load and you haven't hit the tier's limits."
+  ],
+  "a": [
+   0,
+   1,
+   3
+  ],
+  "e": "Compute tiers can be changed with a brief restart. Read replicas use asynchronous physical streaming replication, so they can be a little behind, and they serve reads only. The guidance is to scale up when peak CPU stays above about 70%, and add replicas or caching when one server can't handle the total query volume.",
+  "r": "m-optimize-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "pcomp",
+  "q": "How long are automatic backups kept by default, and what does a point-in-time restore create?",
+  "o": [
+   "7 days by default (up to 35), and the restore creates a new server",
+   "35 days by default, and the restore overwrites the current server",
+   "7 days fixed, and the restore rolls back the current database in place",
+   "14 days by default, and the restore creates a new database on the same server"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Backups are kept 7 days by default, and you can extend retention to 35 days. A point-in-time restore creates a new server with data as of the chosen time, which is useful after accidental changes.",
+  "r": "m-build-query-azure-database-postgresql"
+ },
+ {
+  "s": "ppool",
+  "q": "Your dev server uses the Burstable tier, and you try to turn on built-in PgBouncer. What happens?",
+  "o": [
+   "It fails: built-in PgBouncer needs General Purpose or Memory Optimized",
+   "It works, but only in session pooling mode on the Burstable tier",
+   "It works, but it listens on port 5432 instead of 6432",
+   "It works after you run CREATE EXTENSION pgbouncer"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Built-in PgBouncer is available only on General Purpose and Memory Optimized tiers. On Burstable, scale up or use client-side pooling.",
+  "r": "m-optimize-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "ppool",
+  "q": "A General Purpose 2-vCore server allows 859 connections. A serverless app opens a new connection per request and fails during spikes. Which change helps most?",
+  "o": [
+   "Turn on PgBouncer in transaction mode and connect on port 6432",
+   "Raise max_connections above 10,000 in the server parameters",
+   "Add a read replica and send the app's writes to it",
+   "Lower statement_timeout so connections close sooner"
+  ],
+  "a": [
+   0
+  ],
+  "e": "PgBouncer multiplexes many client connections onto a small pool of server connections. Transaction mode holds a server connection only during a transaction, which suits many short requests. Connection limits come from the tier, replicas don't accept writes, and a statement timeout doesn't reduce connection count.",
+  "r": "m-optimize-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "ppool",
+  "q": "Which PgBouncer pooling mode gives the most connection reuse but doesn't support multi-statement transactions?",
+  "o": [
+   "Statement mode",
+   "Transaction mode",
+   "Session mode",
+   "Replication mode"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Statement mode returns the server connection after every statement, so it reuses connections the most, but a multi-statement transaction can't run. Transaction mode holds the connection for a whole transaction, and session mode for the whole client session.",
+  "r": "m-optimize-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "ppool",
+  "q": "About how long does opening a new connection to Azure Database for PostgreSQL take, and why?",
+  "o": [
+   "50 to 200 ms, for TCP, TLS, authentication, and starting a backend process",
+   "Under 1 ms, because Azure keeps connections warm",
+   "About 5 seconds, because every connection takes a backup snapshot",
+   "1 to 2 seconds, because the server restarts its listener"
+  ],
+  "a": [
+   0
+  ],
+  "e": "A new connection needs a TCP handshake, TLS negotiation, authentication, a new server backend process, and session setup, which adds up to 50 to 200 ms. That's why connection pooling matters for apps that make many short calls.",
+  "r": "m-optimize-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "ppool",
+  "q": "In a Python service, how should you avoid opening a new database connection for every request?",
+  "o": [
+   "Create one psycopg_pool.ConnectionPool at startup and use pool.connection()",
+   "Open a connection in each request handler and close it with a context manager",
+   "Keep one global connection and share it across all threads without a pool",
+   "Set connect_timeout=0 so that connections never expire"
+  ],
+  "a": [
+   0
+  ],
+  "e": "A connection pool keeps reusable connections that requests borrow and return, which avoids the cost of each new connection. A context manager per request still opens new connections, and sharing one connection across threads isn't safe.",
+  "r": "m-optimize-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "ppool",
+  "t": "order",
+  "q": "You need to move an app to built-in PgBouncer on a General Purpose server. Put the steps in order.",
+  "o": [
+   "Confirm the server tier is General Purpose or Memory Optimized",
+   "Set the server parameter pgbouncer.enabled to true",
+   "Set pgbouncer.pool_mode to transaction and size default_pool_size",
+   "Change the app's connection string to port 6432",
+   "Monitor active server connections and client wait times under load"
+  ],
+  "e": "PgBouncer is available only on General Purpose and Memory Optimized, so you check the tier first. Then you turn it on with the pgbouncer.enabled parameter and configure pool_mode and pool size, point the app at port 6432, and finally watch connections and waits under load to tune the pool.",
+  "r": "m-optimize-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "cconn",
+  "q": "Your Python API creates a new CosmosClient for every HTTP request. What's the recommended change?",
+  "o": [
+   "Create one CosmosClient and reuse it for the life of the app",
+   "Create a new client per request but close it with a context manager",
+   "Create one client per container that the app queries",
+   "Use the REST API directly instead of the SDK"
+  ],
+  "a": [
+   0
+  ],
+  "e": "CosmosClient manages connections and caches metadata, so the best practice is a single instance reused for the app's lifetime. Creating clients per request or per container wastes connections and adds latency.",
+  "r": "m-build-query-azure-cosmos-db"
+ },
+ {
+  "s": "cconn",
+  "q": "You're choosing a partition key for a container of support tickets. Which property is the best choice?",
+  "o": [
+   "customerId, which has many distinct values",
+   "isResolved, a true or false flag",
+   "region, which has four values",
+   "createdYear, the year the ticket was opened"
+  ],
+  "a": [
+   0
+  ],
+  "e": "A good partition key exists in every item and has high cardinality, which spreads data and traffic evenly. A boolean or a property with few values creates hot partitions, and a year sends all current writes to one partition.",
+  "r": "m-build-query-azure-cosmos-db"
+ },
+ {
+  "s": "cconn",
+  "q": "An app authenticates to Azure Cosmos DB with DefaultAzureCredential. Queries fail with 403 Forbidden. What's missing?",
+  "o": [
+   "An RBAC data-plane role assignment for the app's identity on the account",
+   "The account's primary key added to the app settings as a fallback",
+   "A Cosmos DB firewall rule that allows the Microsoft Entra ID service tag",
+   "The enable_cross_partition_query flag set on every query"
+  ],
+  "a": [
+   0
+  ],
+  "e": "With Microsoft Entra authentication, the identity needs a Cosmos DB data-plane role (role-based access control) before it can read or write data. Account keys are the alternative to Entra auth, not an addition to it.",
+  "r": "m-build-query-azure-cosmos-db"
+ },
+ {
+  "s": "cidx",
+  "q": "Items contain a large embedding array and a long text body that you never filter on. RU cost for writes is high. What should you change in the indexing policy?",
+  "o": [
+   "Exclude /embedding/* and the text path, and index only filtered properties",
+   "Set indexingMode to none for the whole container to stop indexing",
+   "Add a composite index on the embedding path and the text path",
+   "Raise the container's provisioned throughput and keep the policy"
+  ],
+  "a": [
+   0
+  ],
+  "e": "By default every property is indexed, including big arrays and text you never query, which adds write RU cost. Exclude those paths and include only the properties you filter or sort on. Turning indexing off would make every query a scan.",
+  "r": "m-optimize-query-performance-azure-cosmos-db"
+ },
+ {
+  "s": "cidx",
+  "q": "A query filters on category and sorts by price DESC, then createdDate DESC. What index does it need?",
+  "o": [
+   "A composite index on (category, price DESC, createdDate DESC)",
+   "Separate range indexes on price and on createdDate only",
+   "A spatial index on the category path with a range on price",
+   "A vector index on the price path to rank the results"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Queries that ORDER BY more than one property need a composite index with matching paths and sort order, and including the filtered property helps. Separate range indexes don't serve a multi-property ORDER BY.",
+  "r": "m-optimize-query-performance-azure-cosmos-db"
+ },
+ {
+  "s": "cidx",
+  "t": "yesno",
+  "q": "Evaluate each statement about Azure Cosmos DB consistency levels.",
+  "o": [
+   "Strong consistency isn't available with multiple write regions.",
+   "Reads at Strong consistency cost about twice the RUs of weaker levels.",
+   "Eventual consistency guarantees reads see writes in order.",
+   "Strong consistency increases write latency for accounts that span regions."
+  ],
+  "a": [
+   0,
+   1,
+   3
+  ],
+  "e": "Strong consistency needs a global majority before a write is confirmed, which adds write latency across regions, and it isn't supported with multiple write regions. Strong reads use about twice the RUs. Eventual consistency gives no ordering guarantee. Consistent prefix is the level that guarantees order.",
+  "r": "m-optimize-query-performance-azure-cosmos-db"
+ },
+ {
+  "s": "cvec",
+  "q": "You run a Cosmos DB vector search. How should the query be structured?",
+  "o": [
+   "SELECT TOP 10 ... ORDER BY VectorDistance(c.embedding, @q)",
+   "SELECT * ... WHERE VectorDistance(c.embedding, @q) = 1",
+   "SELECT ... ORDER BY c.embedding DESC",
+   "SELECT ... GROUP BY VectorDistance(c.embedding, @q)"
+  ],
+  "a": [
+   0
+  ],
+  "e": "VectorDistance returns a similarity score. You rank by it with ORDER BY VectorDistance(...) and always limit results with TOP N. Equality, sorting on the raw array, or grouping don't perform a similarity search.",
+  "r": "m-implement-vector-search-azure-cosmos-db"
+ },
+ {
+  "s": "cvec",
+  "q": "You want to add a vector index for /embedding to an existing container's indexing policy. What must be in place first?",
+  "o": [
+   "A container vector policy with the embedding path, dimensions, and distance",
+   "A composite index that includes both the embedding path and the id path",
+   "A change feed processor that writes embeddings into the container",
+   "Strong consistency set as the account's default consistency level"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Vector indexes require a vector policy (vector embedding policy) on the container that describes the embedding properties. The indexing policy's vector index then refers to those paths.",
+  "r": "m-optimize-query-performance-azure-cosmos-db"
+ },
+ {
+  "s": "cfeed",
+  "q": "You use the change feed to regenerate embeddings when knowledge-base articles change. Which statement about the change feed is true?",
+  "o": [
+   "It's enabled on every container by default and records inserts and updates",
+   "It must be turned on per container, and it records inserts, updates, and deletes",
+   "It delivers all changes in one global order across every partition",
+   "It keeps only the last 24 hours of changes for each container"
+  ],
+  "a": [
+   0
+  ],
+  "e": "The change feed is on by default for all containers. It records inserts and updates (not deletes), keeps changes so you can process them later, and orders changes within each partition key value, not globally.",
+  "r": "m-implement-vector-search-azure-cosmos-db"
+ },
+ {
+  "s": "rcache",
+  "q": "Your Python app connects to Azure Managed Redis with redis-py on port 6380 and times out. What's the likely fix?",
+  "o": [
+   "Use port 10000, the Azure Managed Redis port",
+   "Use port 6379 and turn off TLS",
+   "Use port 443 through the management endpoint",
+   "Use port 5432, the default data port"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Azure Managed Redis (and Enterprise caches) use port 10000. Port 6380 is the TLS port for Azure Cache for Redis. The client libraries are the same for both services.",
+  "r": "m-implement-data-operations-azure-managed-redis"
+ },
+ {
+  "s": "rcache",
+  "q": "Your Azure Managed Redis instance uses the OSS clustering policy. Which redis-py client should you use?",
+  "o": [
+   "redis.cluster.RedisCluster",
+   "redis.Redis with a single host",
+   "redis.sentinel.Sentinel",
+   "redis.asyncio.Redis with db=1"
+  ],
+  "a": [
+   0
+  ],
+  "e": "With the OSS clustering policy, the client must be cluster-aware, so in redis-py you use redis.cluster.RedisCluster. With the Enterprise policy, a standard redis.Redis client works.",
+  "r": "m-implement-data-operations-azure-managed-redis"
+ },
+ {
+  "s": "rcache",
+  "t": "yesno",
+  "q": "Evaluate each statement about Azure Managed Redis data operations.",
+  "o": [
+   "You should use SCAN instead of KEYS to iterate over keys in production.",
+   "INCR and DECR are atomic, which makes them safe for counters and rate limits.",
+   "With OSS clustering, MGET works across keys in different hash slots.",
+   "The Memory Optimized tier has an 8:1 memory-to-vCPU ratio."
+  ],
+  "a": [
+   0,
+   1,
+   3
+  ],
+  "e": "KEYS blocks the server on large datasets, so use SCAN. INCR and DECR are atomic. With OSS clustering, multi-key commands need all keys in the same hash slot or they fail with CROSSSLOT, while Enterprise clustering allows MGET and a few others across slots. Memory Optimized is 8:1, and Balanced is 4:1.",
+  "r": "m-implement-data-operations-azure-managed-redis"
+ },
+ {
+  "s": "rvec",
+  "q": "You create a Redis vector index for 1536-dimension text embeddings. Which field settings are right?",
+  "o": [
+   "TYPE FLOAT32, DIM 1536, DISTANCE_METRIC COSINE",
+   "TYPE FLOAT64, DIM 768, DISTANCE_METRIC L2",
+   "TYPE FLOAT32, DIM 3072, DISTANCE_METRIC IP",
+   "TYPE INT8, DIM 1536, DISTANCE_METRIC HAMMING"
+  ],
+  "a": [
+   0
+  ],
+  "e": "DIM must match the model output exactly (1536). FLOAT32 is standard: FLOAT64 doubles memory with no real accuracy gain for embeddings. COSINE works best for text embeddings.",
+  "r": "m-implement-vector-storage-azure-managed-redis"
+ },
+ {
+  "s": "rvec",
+  "q": "Products are flat records (name, price, category) with an embedding, and you want the lowest memory use and fastest search. How should you store them in Redis?",
+  "o": [
+   "As Redis Hashes, with the embedding stored as FLOAT32 bytes",
+   "As Redis JSON documents with the embedding as a number array",
+   "As a Redis List of comma-separated values",
+   "As one String key per vector dimension"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Hashes store only the fields you define, with the vector as a binary blob, which gives the best memory efficiency and performance for flat data. JSON is better when you need nested structures. Lists and per-dimension strings can't be indexed for vector search.",
+  "r": "m-implement-vector-storage-azure-managed-redis"
+ },
+ {
+  "s": "pidx",
+  "c": "c2",
+  "q": "How should Contoso index the articles table to meet the search latency and recall requirements?",
+  "o": [
+   "An HNSW index with vector_cosine_ops, plus a B-tree index on category_id",
+   "An IVFFlat index built before loading data, with probes set to 1",
+   "No vector index, because filtering by category is enough",
+   "A GIN index on the embedding column"
+  ],
+  "a": [
+   0
+  ],
+  "e": "With 3 million rows, an ANN index is essential. HNSW gives the best recall at low latency, and a B-tree on category_id lets PostgreSQL narrow candidates with the filter. IVFFlat built on empty data isn't usable, and GIN doesn't support vector distance.",
+  "r": "m-optimize-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "pcomp",
+  "c": "c2",
+  "q": "Search is slow because the HNSW index doesn't fit in memory on the current server. Which change addresses it?",
+  "o": [
+   "Move to a Memory Optimized tier with memory well above the index size",
+   "Move to the Burstable tier so the server can use CPU credits",
+   "Add storage IOPS and stay on General Purpose with 4 vCores",
+   "Lower shared_buffers to leave more memory for client connections"
+  ],
+  "a": [
+   0
+  ],
+  "e": "About 18 GB of vectors (3 million × 6 KB) plus roughly 50% for HNSW needs more memory than 4 vCores × 4 GB. Memory Optimized gives 8 GB per vCore, and memory should exceed the index size by at least 50%.",
+  "r": "m-optimize-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "ppool",
+  "c": "c2",
+  "q": "How should Contoso stop the 'too many connections' errors at peak?",
+  "o": [
+   "Turn on built-in PgBouncer in transaction mode and use port 6432",
+   "Switch to the Burstable tier and run more instances of the app",
+   "Open a second connection in each instance for writes",
+   "Increase backup retention so idle connections are freed"
+  ],
+  "a": [
+   0
+  ],
+  "e": "Many short-lived instances each opening connections quickly hit the tier's limit. PgBouncer in transaction mode shares a small set of server connections. It's available on General Purpose, which Contoso uses, but not on Burstable.",
+  "r": "m-optimize-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "rcache",
+  "c": "c2",
+  "q": "How should the app manage cached answers to meet the freshness requirement?",
+  "o": [
+   "Set a 600-second TTL, and delete the key when its article changes",
+   "Run FLUSHALL every 10 minutes from a scheduled job",
+   "Store answers with no expiry and rely on memory eviction",
+   "Set a 10-minute TTL only, so edits appear when keys expire"
+  ],
+  "a": [
+   0
+  ],
+  "e": "A TTL (for example SET with EX 600) expires entries after 10 minutes, and deleting the key on edit invalidates it right away, which is the cache-aside pattern. FLUSHALL wipes everything, eviction doesn't happen on a schedule, and TTL alone leaves stale answers up to 10 minutes after an edit.",
+  "r": "m-implement-data-operations-azure-managed-redis"
+ }
+]
