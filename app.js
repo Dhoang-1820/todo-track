@@ -40,6 +40,13 @@
   const seqType = (q) => q.type === "order" || q.type === "yesno" || slotType(q);
   const isRight = (q, sel) => seqType(q) ? sel.length === q.correct.length && sel.every((x, i) => x === q.correct[i]) : sameSet(sel, q.correct);
   const isDone = (q, sel) => !!sel && (slotType(q) ? sel.length === q.slots.length && sel.every(Boolean) : q.type === "yesno" ? sel.length === q.options.length && sel.every(Boolean) : q.type === "order" ? sel.length === q.options.length : sel.length > 0);
+  // Points like the real exam: each correct selection in multi-select, yes/no, match, and fill questions is worth one point.
+  const points = (q, sel) => {
+    sel = sel || [];
+    if (slotType(q) || q.type === "yesno") return [q.correct.filter((c, i) => sel[i] === c).length, q.correct.length];
+    if (q.type === "multi") return [sel.filter((k) => q.correct.includes(k)).length, q.correct.length]; // selections are capped at the number required
+    return [isRight(q, sel) ? 1 : 0, 1];
+  };
   const caseBlock = (q, open) => q.case_text ? `<details class="case" ${open ? "open" : ""}><summary>Case study: ${esc(q.case_title || "")}</summary>${q.case_text.split(/\n+/).map((p) => `<p>${esc(p)}</p>`).join("")}</details>` : "";
   const isFull = (a) => a.mode === "mock" || a.mode === "random";
   const skillName = (code) => (bank.find((q) => q.skill === code) || {}).skill_name || code;
@@ -368,15 +375,24 @@
       ${keys.map((k) => `<option value="${k}" ${mine === k ? "selected" : ""}>${esc(optText(q, k))}</option>`).join("")}
     </select>`;
   }
-  function slotUI(q, chosen, checked) {
+  function slotUI(q, chosen, checked, picked) {
     const fix = (i) => checked && chosen[i] !== q.correct[i] ? `<span class="mark errc">✗ Answer: ${esc(optText(q, q.correct[i]))}</span>` : checked ? `<span class="mark okc">✓</span>` : "";
     if (q.type === "fill") {
       const parts = q.code.split(/\{\{(\d)\}\}/);
       return `<pre class="code">${parts.map((p, n) => n % 2 ? slotSelect(q, +p - 1, chosen[+p - 1], checked) : esc(p)).join("")}</pre>
         ${checked ? `<ol class="fillres">${q.slots.map((_, i) => `<li class="${chosen[i] === q.correct[i] ? "right" : "wrong"}">Blank ${i + 1}: ${fix(i)}</li>`).join("")}</ol>` : ""}`;
     }
-    return `<div class="match">${q.slots.map((sl, i) => `<div class="mrow ${checked ? (chosen[i] === q.correct[i] ? "right" : "wrong") : ""}">
-      <span class="txt">${esc(sl.text)}</span>${slotSelect(q, i, chosen[i], checked)}${fix(i)}</div>`).join("")}</div>`;
+    return `<div class="dnd">
+      <div class="dndvals"><p class="small"><b>Values</b></p>
+        ${q.options.map((o) => `<button type="button" class="tile ${picked === o.key ? "picked" : ""}" draggable="${!checked}" data-val="${o.key}" aria-pressed="${picked === o.key}" ${checked ? "disabled" : ""}>${esc(o.text)}</button>`).join("")}
+      </div>
+      <div class="dndarea"><p class="small"><b>Answer area</b></p>
+        ${q.slots.map((sl, i) => `<div class="mrow ${checked ? (chosen[i] === q.correct[i] ? "right" : "wrong") : ""}">
+          <span class="txt">${esc(sl.text)}</span>
+          <span class="dropwrap"><button type="button" class="drop ${chosen[i] ? "filled" : ""} ${picked ? "ready" : ""}" data-drop="${i}" aria-label="Target for ${esc(sl.text)}${chosen[i] ? ": " + esc(optText(q, chosen[i])) : ", empty"}" ${checked ? "disabled" : ""}>${chosen[i] ? esc(optText(q, chosen[i])) : picked ? "Place here" : "Drop a value here"}</button>
+          ${chosen[i] && !checked ? `<button type="button" class="clr" data-clear="${i}" aria-label="Clear ${esc(sl.text)}">×</button>` : ""}</span>
+          ${fix(i)}</div>`).join("")}
+      </div></div>`;
   }
 
   function renderTest() {
@@ -386,6 +402,7 @@
     const qs = t.ids.map((id) => byId.get(id)).filter(Boolean);
     const save = () => lsSet(LS_CURRENT, t);
     const announced = {};
+    let picked = null; // match questions: value chosen by tap/click, waiting to be placed
 
     function draw() {
       const q = qs[t.index];
@@ -409,8 +426,8 @@
           ${caseBlock(q, true)}
           <fieldset ${checked ? "disabled" : ""}>
             <legend class="stem">${esc(q.stem)}</legend>
-            ${multi ? `<p class="hint">Select ${need} answers.</p>` : ord ? `<p class="hint">Select the steps in the order you'd do them. Select a step again to remove it.</p>` : yn ? `<p class="hint">For each statement, choose Yes if it's true. Otherwise, choose No.</p>` : q.type === "match" ? `<p class="hint">Choose the matching answer for each item. An answer can be used once, more than once, or not at all.</p>` : q.type === "fill" ? `<p class="hint">Choose the correct value for each blank.</p>` : ""}
-            ${slot ? slotUI(q, chosen, checked) : yn ? `<div class="yn">${q.options.map((o, i) => {
+            ${multi ? `<p class="hint">Select ${need} answers. Each correct selection is worth one point.</p>` : ord ? `<p class="hint">Select the steps in the order you'd do them. Select a step again to remove it.</p>` : yn ? `<p class="hint">For each statement, select Yes if the statement is true. Otherwise, select No. Each correct selection is worth one point.</p>` : q.type === "match" ? `<p class="hint">Drag the values to the correct targets, or select a value and then a target. Each value may be used once, more than once, or not at all. Each correct selection is worth one point.</p>` : q.type === "fill" ? `<p class="hint">Select the correct option in each box. Each correct selection is worth one point.</p>` : ""}
+            ${slot ? slotUI(q, chosen, checked, picked) : yn ? `<div class="yn">${q.options.map((o, i) => {
                 const mine = chosen[i] || "", right = q.correct[i];
                 const state = checked ? (mine === right ? "right" : "wrong") : "";
                 return `<div class="ynrow ${state}" role="radiogroup" aria-label="Statement ${i + 1}">
@@ -425,13 +442,14 @@
                 const state = checked ? (ord ? (right ? "right" : "wrong") : right ? "right" : mine ? "wrong" : "") : "";
                 return `<label class="opt ${mine ? "sel" : ""} ${state}">
                   <input type="${multi || ord ? "checkbox" : "radio"}" name="opt" value="${o.key}" ${mine ? "checked" : ""}>
-                  <span class="key">${"ABCDEF"[i]}</span><span class="txt">${esc(o.text)}</span>
+                  <span class="key">${"ABCDEF"[i]}</span>${o.text.includes("\n") ? `<pre class="txt optcode">${esc(o.text)}</pre>` : `<span class="txt">${esc(o.text)}</span>`}
                   ${ord && pos && !checked ? `<span class="ordn" aria-label="Step ${pos}">${pos}</span>` : ""}
                   ${ord && checked ? `<span class="mark ${right ? "okc" : "errc"}">${right ? "✓ Step " + cpos : "✗ You: " + (pos || "–") + " · Correct: " + cpos}</span>`
                     : state === "right" ? `<span class="mark okc">✓ Correct</span>` : state === "wrong" ? `<span class="mark errc">✗ Your answer</span>` : ""}
                 </label>`; }).join("")}
             </div>`}
           </fieldset>
+          ${!checked && chosen.some(Boolean) ? `<button class="btn small ghost reset" id="reset">↺ Reset answer</button>` : ""}
           ${checked ? `<div class="feedback ${isOk ? "ok" : "bad"}" role="status">
               <b>${isOk ? "✓ Correct." : "✗ Not quite."}</b> ${esc(q.explanation)}
               ${!isOk && qs[t.index + 1] && t.follow[qs[t.index + 1].id] === q.id ? `<p class="small"><b>Next:</b> a follow-up question on the same concept, to check you've got it.</p>` : ""}
@@ -465,6 +483,24 @@
         const el = document.querySelector(`.opt input[value="${key}"]`); if (el) el.focus();
       };
       document.querySelectorAll(".opt input").forEach((inp) => inp.onchange = () => pickKey(inp.value));
+      const place = (i, key) => {
+        if (checked) return;
+        const sel = Array.from({ length: q.slots.length }, (_, n) => (t.answers[q.id] || [])[n] || "");
+        sel[i] = key; t.answers[q.id] = sel; picked = null; save(); draw();
+        const el = document.querySelector(`[data-drop="${i}"]`); if (el) el.focus();
+      };
+      document.querySelectorAll(".tile").forEach((b) => {
+        b.onclick = () => { picked = picked === b.dataset.val ? null : b.dataset.val; draw(); const el = document.querySelector(`.tile[data-val="${b.dataset.val}"]`); if (el) el.focus(); };
+        b.ondragstart = (e) => { e.dataTransfer.setData("text/plain", b.dataset.val); e.dataTransfer.effectAllowed = "copy"; };
+      });
+      document.querySelectorAll("[data-drop]").forEach((d) => {
+        d.ondragover = (e) => { e.preventDefault(); d.classList.add("over"); };
+        d.ondragleave = () => d.classList.remove("over");
+        d.ondrop = (e) => { e.preventDefault(); const k = e.dataTransfer.getData("text/plain"); if (k) place(+d.dataset.drop, k); };
+        d.onclick = () => { if (picked) place(+d.dataset.drop, picked); };
+      });
+      const rs = document.getElementById("reset"); if (rs) rs.onclick = () => { delete t.answers[q.id]; picked = null; save(); draw(); };
+      document.querySelectorAll("[data-clear]").forEach((c) => c.onclick = () => place(+c.dataset.clear, ""));
       document.querySelectorAll("select[data-slot]").forEach((el) => el.onchange = () => {
         if (checked) return;
         const sel = Array.from({ length: q.slots.length }, (_, i) => (t.answers[q.id] || [])[i] || "");
@@ -537,14 +573,15 @@
     clearInterval(timerHandle);
     const answers = qs.map((q) => { const sel = t.answers[q.id] || []; return { question_id: q.id, selected: sel, is_correct: isRight(q, sel) }; });
     const correct = answers.filter((a) => a.is_correct).length;
+    const pts = qs.reduce((acc, q) => { const [e, m] = points(q, t.answers[q.id]); return [acc[0] + e, acc[1] + m]; }, [0, 0]);
     const dom = domainBreakdown(answers.map((a) => ({ q: byId.get(a.question_id), ok: a.is_correct })));
     const domain_scores = {};
     Object.entries(dom).forEach(([k, v]) => { if (v.total) domain_scores[k] = v; });
-    const score = scaled(correct, qs.length);
+    const score = scaled(pts[0], pts[1]);
     const attempt = {
       id: t.id, mode: t.mode, mock: t.mock, domain: t.domain, skill: t.skill || null, study: !!t.study, total: qs.length, correct, score,
       passed: score >= CFG.passScore, domain_scores, duration_sec: Math.round((Date.now() - t.startedAt) / 1000),
-      submitted_at: new Date().toISOString(), answers, flags: t.flags, order: t.order
+      submitted_at: new Date().toISOString(), answers, flags: t.flags, order: t.order, points: pts
     };
     setView(`<p class="muted center pad">Saving your result…</p>`);
     attempt.synced = await pushAttempt(attempt);
@@ -571,7 +608,7 @@
         <div>
           <p class="muted">${esc(modeLabel(a))}${a.study ? " · Study mode" : ""} · ${fmtDate(a.submitted_at)} · ${fmtTime(a.duration_sec || 0)}</p>
           <h1>${a.passed ? "✓ Passed" : "✗ Not passed yet"}</h1>
-          <p>${a.correct} of ${a.total} correct (${pct(a.correct, a.total)}%). Pass mark: ${CFG.passScore}.</p>
+          <p>${a.correct} of ${a.total} fully correct${a.points && a.points[1] !== a.total ? ` · ${a.points[0]} of ${a.points[1]} points (each correct selection earns a point, like the real exam)` : ""}. Pass mark: ${CFG.passScore}.</p>
           ${freshAns.length < a.total ? `<p class="small">${freshAns.length ? `First-try score: <b>${scaled(freshOk, freshAns.length)}</b> (${freshOk}/${freshAns.length} questions you hadn't seen before). ` : ""}${a.total - freshAns.length} question${a.total - freshAns.length > 1 ? "s were" : " was"} repeats, which can inflate the score.</p>` : ""}
           ${a.synced === false ? `<p class="muted small">Saved in this browser only; it will sync to the database later.</p>` : ""}
         </div>
