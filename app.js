@@ -74,6 +74,22 @@
     }
   }
 
+  // Footer: show the deployed version and check whether a newer one is live.
+  async function checkVersion() {
+    const el = document.getElementById("ver"), st = document.getElementById("verstate");
+    if (!el || !st) return;
+    const mine = el.dataset.ver;
+    if (mine.startsWith("__")) { st.textContent = "· local copy"; return; }
+    try {
+      const html = await (await fetch("index.html", { cache: "no-store" })).text();
+      const live = (html.match(/data-ver="([^"]+)"/) || [])[1];
+      if (live && live !== mine) {
+        st.innerHTML = `· <b class="errc">update available (${esc(live)})</b> <button class="btn small primary" id="verReload">Reload</button>`;
+        document.getElementById("verReload").onclick = () => location.reload();
+      } else st.innerHTML = `· <span class="okc">✓ latest</span>`;
+    } catch (e) { st.textContent = ""; }
+  }
+
   async function loadBank() {
     try {
       const rows = await apiAll("questions?select=*&order=id");
@@ -904,6 +920,10 @@
     }
     window.addEventListener("hashchange", route);
     route();
+    const bi = document.getElementById("bankinfo");
+    if (bi) bi.textContent = ` · ${bank.length} questions (${remoteOk ? "online" : "offline copy"})`;
+    checkVersion();
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkVersion(); });
   }
 
   // Remove the service worker left by the previous version of this site
