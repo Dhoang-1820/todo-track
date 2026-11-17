@@ -19,6 +19,8 @@ Practice tests for **Microsoft Exam AI-200: Developing AI Cloud Solutions on Azu
 - Choice (default): `o` options, `a` indexes of correct options.
 - `"t": "order"`: `o` lists the steps in the correct order (shuffled for the learner).
 - `"t": "yesno"`: `o` lists statements, `a` lists the indexes that are Yes.
+- `"t": "match"`: `pairs` lists `[item, correct target]`, and `x` adds extra wrong targets (drag-and-drop style, answered with dropdowns).
+- `"t": "fill"`: `code` holds `{{1}}`, `{{2}}`... markers in order, and `blanks` lists the choices for each one with the correct choice first.
 - `"c": "<case id>"`: attaches a case study from `bank/cases.json`. All questions of a case go in the same mock.
 - Original question IDs and mocks never change when course questions are added. Some D2 course questions are practice-only (no mock) so mocks keep the exam's 25-30% D2 weight.
 

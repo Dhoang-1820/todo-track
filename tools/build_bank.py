@@ -71,9 +71,10 @@ def main():
         for i, item in enumerate(items):
             where = f"{os.path.basename(path)}[{i}]"
             kind = item.get("t", "choice")
-            if kind not in ("choice", "order", "yesno"):
+            if kind not in ("choice", "order", "yesno", "match", "fill"):
                 fail(f"{where}: unknown type {kind}")
-            for key in ("s", "q", "o", "e", "r") + (("a",) if kind != "order" else ()):
+            need = {"match": ("pairs",), "fill": ("code", "blanks"), "order": ("o",)}.get(kind, ("o", "a"))
+            for key in ("s", "q", "e", "r") + need:
                 if key not in item:
                     fail(f"{where}: missing '{key}'")
             if item["s"] not in SKILL_DOMAIN:
@@ -82,6 +83,27 @@ def main():
                 fail(f"{where}: unknown source {item['r']}")
             if "c" in item and item["c"] not in cases:
                 fail(f"{where}: unknown case {item['c']}")
+            if kind == "match":
+                pairs = item["pairs"]
+                if not 2 <= len(pairs) <= 6 or any(len(p) != 2 for p in pairs):
+                    fail(f"{where}: match needs 2-6 [item, target] pairs")
+                if len(set(p[0] for p in pairs)) != len(pairs):
+                    fail(f"{where}: duplicate match items")
+                if len(set(p[1] for p in pairs) | set(item.get("x", []))) > 8:
+                    fail(f"{where}: at most 8 targets")
+            if kind == "fill":
+                blanks = item["blanks"]
+                marks = re.findall(r"\{\{(\d)\}\}", item["code"])
+                if [int(m) for m in marks] != list(range(1, len(blanks) + 1)):
+                    fail(f"{where}: code needs {{{{1}}}}..{{{{n}}}} markers in order, one per blank")
+                if any(not 2 <= len(b) <= 5 or len(set(b)) != len(b) for b in blanks):
+                    fail(f"{where}: each blank needs 2-5 distinct choices")
+            if kind in ("match", "fill"):
+                if re.search(r"\b(option|answer|choice)s? [a-f]\b(?![a-z])", item["e"], re.I):
+                    fail(f"{where}: explanation refers to option letters")
+                item["_kind"], item["_course"] = kind, course
+                raw.append(item)
+                continue
             opts = item["o"]
             lo, hi = (2, 5) if kind == "yesno" else (3, 6)
             if not lo <= len(opts) <= hi:
@@ -138,8 +160,28 @@ def main():
             else:
                 mock = (n_bank % MOCKS) + 1
                 n_bank += 1
-            letters = "ABCDEF"
-            if kind == "yesno":
+            letters = "ABCDEFGH"
+            seed = int(hashlib.sha256(qid.encode()).hexdigest(), 16)
+            extra = {}
+            if kind == "match":
+                targets = sorted(set(p[1] for p in item["pairs"]) | set(item.get("x", [])))
+                random.Random(seed).shuffle(targets)
+                options = [{"key": letters[n], "text": t} for n, t in enumerate(targets)]
+                correct = [letters[targets.index(p[1])] for p in item["pairs"]]
+                extra["slots"] = [{"text": p[0], "keys": [o["key"] for o in options]} for p in item["pairs"]]
+                qtype = "match"
+            elif kind == "fill":
+                options, correct, slots = [], [], []
+                for b, choices in enumerate(item["blanks"], 1):
+                    order = list(range(len(choices)))
+                    random.Random(seed + b).shuffle(order)
+                    keys = [f"{b}{letters[n]}" for n in range(len(choices))]
+                    options += [{"key": keys[n], "text": choices[idx]} for n, idx in enumerate(order)]
+                    correct.append(keys[order.index(0)])
+                    slots.append({"text": f"Blank {b}", "keys": keys})
+                extra["slots"], extra["code"] = slots, item["code"]
+                qtype = "fill"
+            elif kind == "yesno":
                 options = [{"key": letters[n], "text": t} for n, t in enumerate(item["o"])]
                 correct = ["Y" if n in item["a"] else "N" for n in range(len(item["o"]))]
                 qtype = "yesno"
@@ -156,7 +198,7 @@ def main():
                     letter_count.update(correct)
                     qtype = "multi" if len(item["a"]) > 1 else "single"
             title, url = sources[item["r"]]
-            row = {
+            row = {**extra, 
                 "id": qid, "domain": domain, "skill": item["s"], "skill_name": SKILL_NAME[item["s"]],
                 "mock": mock, "type": qtype,
                 "stem": item["q"].strip(), "options": options, "correct": correct,

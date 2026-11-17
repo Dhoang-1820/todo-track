@@ -1,0 +1,551 @@
+[
+ {
+  "s": "aks",
+  "t": "match",
+  "q": "Match each workload to the Kubernetes Service type it should use on AKS.",
+  "pairs": [
+   [
+    "An internal vector search service that only other pods call",
+    "ClusterIP"
+   ],
+   [
+    "A public inference API that needs an Azure public IP",
+    "LoadBalancer"
+   ],
+   [
+    "Quick development access on a port of every node",
+    "NodePort"
+   ],
+   [
+    "Pods that call an outside database by its DNS name",
+    "ExternalName"
+   ]
+  ],
+  "e": "ClusterIP (the default) is reachable only inside the cluster. LoadBalancer creates an Azure Load Balancer with a public IP. NodePort opens the same port on every node. ExternalName maps the Service to an external DNS name without load balancing.",
+  "r": "m-deploy-apps-azure-kubernetes-service"
+ },
+ {
+  "s": "mon",
+  "t": "match",
+  "q": "Match each AKS pod symptom to the most likely status you'll see.",
+  "pairs": [
+   [
+    "The image tag doesn't exist in the registry",
+    "ImagePullBackOff"
+   ],
+   [
+    "The app throws an exception and exits right after it starts",
+    "CrashLoopBackOff"
+   ],
+   [
+    "No node has enough free memory for the pod's requests",
+    "Pending"
+   ]
+  ],
+  "x": [
+   "Completed",
+   "Terminating"
+  ],
+  "e": "A failed image pull (wrong name, tag, or credentials) shows ImagePullBackOff. A container that keeps exiting shows CrashLoopBackOff, and you read kubectl logs to find out why. A pod that can't be scheduled because of resource requests stays Pending.",
+  "r": "m-monitor-apps-azure-kubernetes-service"
+ },
+ {
+  "s": "keda",
+  "t": "match",
+  "q": "Match each Container Apps workload to the scale rule that fits it.",
+  "pairs": [
+   [
+    "A REST API that clients call over HTTPS",
+    "HTTP scale rule"
+   ],
+   [
+    "A worker that reads jobs from a Service Bus queue",
+    "azure-servicebus scale rule"
+   ],
+   [
+    "A consumer that reads from Apache Kafka",
+    "kafka scale rule (consumer lag)"
+   ],
+   [
+    "A batch job that must run every night at 2 AM",
+    "cron scale rule"
+   ]
+  ],
+  "e": "HTTP rules scale on concurrent requests. Event-driven KEDA rules scale on the event source: queue length for Service Bus and consumer group lag for Kafka. The cron scaler scales replicas up for a scheduled time window.",
+  "r": "m-scale-containers-azure-container-apps"
+ },
+ {
+  "s": "app",
+  "t": "match",
+  "q": "In App Service, you add connection strings with these types. Match each type to the environment variable prefix your container sees.",
+  "pairs": [
+   [
+    "SQL Azure",
+    "SQLAZURECONNSTR_"
+   ],
+   [
+    "MySQL",
+    "MYSQLCONNSTR_"
+   ],
+   [
+    "PostgreSQL",
+    "POSTGRESQLCONNSTR_"
+   ],
+   [
+    "Custom",
+    "CUSTOMCONNSTR_"
+   ]
+  ],
+  "x": [
+   "APPSETTING_",
+   "SQLCONNSTR_"
+  ],
+  "e": "App Service injects each connection string as an environment variable whose prefix depends on its type: SQLCONNSTR_ for SQL Server, SQLAZURECONNSTR_ for SQL Azure, MYSQLCONNSTR_, POSTGRESQLCONNSTR_, and CUSTOMCONNSTR_ for Custom.",
+  "r": "m-deploy-containers-azure-app-service"
+ },
+ {
+  "s": "pvec",
+  "t": "match",
+  "q": "Match each pgvector distance operator to what it measures.",
+  "pairs": [
+   [
+    "<->",
+    "L2 (Euclidean) distance"
+   ],
+   [
+    "<=>",
+    "Cosine distance"
+   ],
+   [
+    "<#>",
+    "Negative inner product"
+   ]
+  ],
+  "x": [
+   "JSONB containment"
+  ],
+  "e": "pgvector provides <-> for L2 distance, <=> for cosine distance (the usual choice for text embeddings), and <#> for negative inner product. @> is the JSONB containment operator, not a vector operator.",
+  "r": "m-implement-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "pcomp",
+  "t": "match",
+  "q": "Match each Azure Database for PostgreSQL workload to the compute tier that fits it best.",
+  "pairs": [
+   [
+    "A dev/test server with occasional use",
+    "Burstable"
+   ],
+   [
+    "A production web backend with steady load",
+    "General Purpose"
+   ],
+   [
+    "Five million embeddings with an HNSW index kept in memory",
+    "Memory Optimized"
+   ]
+  ],
+  "e": "Burstable (B-series, 2 GB per vCore) suits development and intermittent loads. General Purpose (D-series, 4 GB per vCore) suits typical production apps. Memory Optimized (E-series, 8 GB per vCore) suits large in-memory working sets such as vector indexes.",
+  "r": "m-optimize-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "cidx",
+  "t": "match",
+  "q": "Match each requirement to the Azure Cosmos DB consistency level that provides it.",
+  "pairs": [
+   [
+    "Reads always return the most recent committed write",
+    "Strong"
+   ],
+   [
+    "Reads lag behind writes by at most K versions or T seconds",
+    "Bounded staleness"
+   ],
+   [
+    "A client always reads its own writes within its session",
+    "Session"
+   ],
+   [
+    "Reads never see writes out of order, but may be stale",
+    "Consistent prefix"
+   ],
+   [
+    "No ordering guarantee, lowest latency",
+    "Eventual"
+   ]
+  ],
+  "e": "From strongest to weakest: Strong (linearizable), Bounded staleness (lag limited by versions or time), Session (read your own writes, the default), Consistent prefix (order preserved), and Eventual (no ordering guarantee).",
+  "r": "m-optimize-query-performance-azure-cosmos-db"
+ },
+ {
+  "s": "rcache",
+  "t": "match",
+  "q": "Match each piece of data to the Redis data type that fits it best.",
+  "pairs": [
+   [
+    "A user profile with name, plan, and locale fields",
+    "Hash"
+   ],
+   [
+    "The 20 most recent activity events, in order",
+    "List"
+   ],
+   [
+    "A per-minute request counter for rate limiting",
+    "String with INCR"
+   ]
+  ],
+  "x": [
+   "Set",
+   "Stream consumer group"
+  ],
+  "e": "Hashes store an object's fields under one key. Lists keep ordered items, which suits feeds and recent items. Atomic INCR on a string value suits counters and rate limiting without race conditions.",
+  "r": "m-implement-data-operations-azure-managed-redis"
+ },
+ {
+  "s": "sb",
+  "t": "match",
+  "q": "A processor uses peek-lock. Match each situation to the settlement operation it should call.",
+  "pairs": [
+   [
+    "The model call succeeded and the result is saved",
+    "Complete"
+   ],
+   [
+    "A transient timeout: make the message available again now",
+    "Abandon"
+   ],
+   [
+    "The payload is invalid and must be kept for inspection",
+    "Dead-letter"
+   ],
+   [
+    "Process this later and retrieve it by sequence number",
+    "Defer"
+   ]
+  ],
+  "e": "Complete removes the message. Abandon releases the lock so it can be received again (raising its delivery count). Dead-letter moves it to the dead-letter subqueue for inspection. Defer sets it aside so you can receive it later by sequence number.",
+  "r": "m-queue-process-operations-service-bus"
+ },
+ {
+  "s": "appc",
+  "t": "match",
+  "q": "Match each value to where it should be stored.",
+  "pairs": [
+   [
+    "The Azure OpenAI API key",
+    "Azure Key Vault"
+   ],
+   [
+    "The model deployment name gpt-4o",
+    "Azure App Configuration"
+   ],
+   [
+    "A feature flag that turns reranking on",
+    "Azure App Configuration"
+   ],
+   [
+    "The TLS certificate for the API's domain",
+    "Azure Key Vault"
+   ]
+  ],
+  "x": [
+   "App Service app settings in plaintext"
+  ],
+  "e": "Values that grant access (keys, passwords, certificates) belong in Key Vault. Nonsensitive settings and feature flags belong in App Configuration, where they get labels, feature flags, and higher throughput. An App Configuration Key Vault reference can point to a secret when you want one place to read from.",
+  "r": "m-manage-app-settings-app-config"
+ },
+ {
+  "s": "kql",
+  "t": "match",
+  "q": "Match each kind of telemetry to the Application Insights table where you query it.",
+  "pairs": [
+   [
+    "Incoming HTTP requests to your API (server spans)",
+    "requests"
+   ],
+   [
+    "Outgoing calls to databases and other APIs",
+    "dependencies"
+   ],
+   [
+    "Log messages written by the app",
+    "traces"
+   ],
+   [
+    "Unhandled and logged exceptions",
+    "exceptions"
+   ]
+  ],
+  "x": [
+   "customEvents",
+   "pageViews"
+  ],
+  "e": "Server and consumer spans land in requests, client and internal spans in dependencies, log records in traces, and exceptions in exceptions. customEvents and pageViews hold custom events and browser page views.",
+  "r": "m-analyze-telemetry-logs-metrics"
+ },
+ {
+  "s": "acrt",
+  "t": "fill",
+  "q": "Complete the command so ACR builds the image in Azure straight from a GitHub repository, with no local Docker and no clone.",
+  "code": "az acr {{1}} --registry myregistry \\\n  --image inference-api:v1.0.0 \\\n  {{2}}",
+  "blanks": [
+   [
+    "build",
+    "import",
+    "run"
+   ],
+   [
+    "https://github.com/myorg/inference-api.git",
+    "--source docker.io/myorg/inference-api",
+    "--git-clone ./inference-api"
+   ]
+  ],
+  "e": "az acr build runs an ACR quick task, and its build context can be a local folder, a Git repository URL, or a remote tarball. az acr import copies an existing image from another registry instead of building one.",
+  "r": "m-store-manage-containers-azure-container-registry"
+ },
+ {
+  "s": "aca",
+  "t": "fill",
+  "q": "Complete the commands so the container app gets the OpenAI key as a secret and exposes it to the app as OPENAI_KEY, keeping its other environment variables.",
+  "code": "az containerapp secret set -n ai-api -g rg-ai \\\n  --secrets openai-key=$KEY\n\naz containerapp update -n ai-api -g rg-ai \\\n  {{1}} OPENAI_KEY={{2}}",
+  "blanks": [
+   [
+    "--set-env-vars",
+    "--replace-env-vars",
+    "--secrets"
+   ],
+   [
+    "secretref:openai-key",
+    "$KEY",
+    "keyvaultref:openai-key"
+   ]
+  ],
+  "e": "--set-env-vars adds or updates variables without removing the others, while --replace-env-vars replaces the whole set. secretref:<name> points an environment variable at a Container Apps secret, so the value never appears in the app's configuration.",
+  "r": "m-deploy-containers-azure-container-apps"
+ },
+ {
+  "s": "aks",
+  "t": "fill",
+  "q": "Complete the Deployment manifest so it manages pods labeled app: inference-api and reads API_KEY from the Kubernetes secret api-secrets.",
+  "code": "spec:\n  replicas: 2\n  selector:\n    {{1}}:\n      app: inference-api\n  template:\n    metadata:\n      labels:\n        app: inference-api\n    spec:\n      containers:\n      - name: api\n        image: myregistry.azurecr.io/inference-api:v1.0\n        env:\n        - name: API_KEY\n          valueFrom:\n            {{2}}:\n              name: api-secrets\n              key: api-key",
+  "blanks": [
+   [
+    "matchLabels",
+    "labels",
+    "matchSelector"
+   ],
+   [
+    "secretKeyRef",
+    "configMapKeyRef",
+    "secretRef"
+   ]
+  ],
+  "e": "spec.selector.matchLabels must match the pod template's labels. valueFrom.secretKeyRef reads one key from a Secret. configMapKeyRef reads from a ConfigMap, and secretRef is used under envFrom to load a whole Secret.",
+  "r": "m-deploy-apps-azure-kubernetes-service"
+ },
+ {
+  "s": "app",
+  "t": "fill",
+  "q": "Your container listens on port 8000. Complete the command so App Service sends traffic to it.",
+  "code": "az webapp config appsettings set \\\n  --resource-group rg-ai --name doc-processor \\\n  --settings {{1}}={{2}}",
+  "blanks": [
+   [
+    "WEBSITES_PORT",
+    "PORT",
+    "WEBSITE_HTTP_PORT"
+   ],
+   [
+    "8000",
+    "80",
+    "8080"
+   ]
+  ],
+  "e": "App Service routes automatically only to ports 80 and 8080. For any other port, set the WEBSITES_PORT app setting to the port your container listens on.",
+  "r": "m-deploy-containers-azure-app-service"
+ },
+ {
+  "s": "pidx",
+  "t": "fill",
+  "q": "Complete the SQL so the index supports ranking documents by cosine distance and the query uses it.",
+  "code": "CREATE INDEX ON documents\n  USING {{1}} (embedding {{2}});\n\nSELECT id, title\nFROM documents\nORDER BY embedding {{3}} :query_vector\nLIMIT 10;",
+  "blanks": [
+   [
+    "hnsw",
+    "gin",
+    "btree"
+   ],
+   [
+    "vector_cosine_ops",
+    "vector_l2_ops",
+    "vector_ip_ops"
+   ],
+   [
+    "<=>",
+    "<->",
+    "<#>"
+   ]
+  ],
+  "e": "HNSW is a pgvector approximate nearest-neighbor index. The operator class must match the query's operator: vector_cosine_ops goes with <=>. With a mismatched class, PostgreSQL falls back to a sequential scan.",
+  "r": "m-implement-vector-search-azure-database-postgresql"
+ },
+ {
+  "s": "ppool",
+  "t": "fill",
+  "q": "Complete the connection string so the app connects through built-in PgBouncer and fully validates the server certificate.",
+  "code": "postgresql://app@myserver.postgres.database.azure.com:{{1}}/mydb?sslmode={{2}}",
+  "blanks": [
+   [
+    "6432",
+    "5432",
+    "10000"
+   ],
+   [
+    "verify-full",
+    "require",
+    "allow"
+   ]
+  ],
+  "e": "Built-in PgBouncer listens on port 6432 (5432 is direct PostgreSQL). verify-full checks the certificate chain and the hostname. require encrypts without checking the certificate.",
+  "r": "m-build-query-azure-database-postgresql"
+ },
+ {
+  "s": "cvec",
+  "t": "fill",
+  "q": "Complete the Cosmos DB query so it returns the 5 most similar articles in one category.",
+  "code": "SELECT {{1}} 5 c.id, c.title\nFROM c\nWHERE c.category = @category\nORDER BY {{2}}(c.embedding, @queryVector)",
+  "blanks": [
+   [
+    "TOP",
+    "LIMIT",
+    "FIRST"
+   ],
+   [
+    "VectorDistance",
+    "VECTOR_SEARCH",
+    "CosineSimilarity"
+   ]
+  ],
+  "e": "Cosmos DB for NoSQL limits results with TOP N (there's no LIMIT clause) and ranks by the VectorDistance function. A WHERE filter combines metadata filtering with the vector search.",
+  "r": "m-implement-vector-search-azure-cosmos-db"
+ },
+ {
+  "s": "rcache",
+  "t": "fill",
+  "q": "Complete the cache-aside code so answers expire after 10 minutes and are removed right away when an article is edited.",
+  "code": "cached = r.get(key)\nif cached is None:\n    answer = load_answer(article_id)\n    r.set(key, answer, {{1}}=600)\n\ndef on_article_edited(article_id):\n    r.{{2}}(key_for(article_id))",
+  "blanks": [
+   [
+    "ex",
+    "px",
+    "ttl"
+   ],
+   [
+    "delete",
+    "persist",
+    "expire"
+   ]
+  ],
+  "e": "In redis-py, set(..., ex=600) sets a time-to-live in seconds (px is milliseconds). Deleting the key when the source changes invalidates the cache immediately. persist removes the expiry instead.",
+  "r": "m-implement-data-operations-azure-managed-redis"
+ },
+ {
+  "s": "sb",
+  "t": "fill",
+  "q": "Complete the Python receiver so it uses at-least-once delivery, completes processed messages, and keeps invalid payloads for inspection.",
+  "code": "with client.get_queue_receiver(\n        \"docs-in\",\n        receive_mode=ServiceBusReceiveMode.{{1}}) as receiver:\n    for msg in receiver:\n        try:\n            process(msg)\n            receiver.{{2}}(msg)\n        except InvalidPayload:\n            receiver.{{3}}(msg, reason=\"bad-payload\")",
+  "blanks": [
+   [
+    "PEEK_LOCK",
+    "RECEIVE_AND_DELETE"
+   ],
+   [
+    "complete_message",
+    "abandon_message",
+    "defer_message"
+   ],
+   [
+    "dead_letter_message",
+    "abandon_message",
+    "complete_message"
+   ]
+  ],
+  "e": "PEEK_LOCK keeps the message until it's settled, giving at-least-once delivery. complete_message removes it after success, and dead_letter_message moves an invalid one to the dead-letter subqueue. Abandoning a bad payload would only redeliver it until the max delivery count.",
+  "r": "m-queue-process-operations-service-bus"
+ },
+ {
+  "s": "kv",
+  "t": "fill",
+  "q": "Complete the Python code that reads the openai-key secret with the app's identity.",
+  "code": "from azure.keyvault.secrets import SecretClient\n\nclient = SecretClient(\n    vault_url=\"https://kv-ai.{{1}}/\",\n    credential={{2}}())\napi_key = client.{{3}}(\"openai-key\").value",
+  "blanks": [
+   [
+    "vault.azure.net",
+    "keyvault.azure.com",
+    "vault.windows.net"
+   ],
+   [
+    "DefaultAzureCredential",
+    "AzureKeyCredential",
+    "SecretCredential"
+   ],
+   [
+    "get_secret",
+    "read_secret",
+    "fetch_secret"
+   ]
+  ],
+  "e": "DefaultAzureCredential uses a managed identity in Azure and developer credentials locally. Vault URLs follow https://<vault-name>.vault.azure.net/, and SecretClient.get_secret returns the latest version unless you pass a version.",
+  "r": "m-manage-app-secrets-key-vault"
+ },
+ {
+  "s": "kql",
+  "t": "fill",
+  "q": "Complete the KQL query so it charts failed requests per hour for the last day and stays accurate when sampling is on.",
+  "code": "requests\n| where timestamp > {{1}}(1d) and success == false\n| summarize failures = {{2}}(itemCount) by {{3}}(timestamp, 1h)\n| render timechart",
+  "blanks": [
+   [
+    "ago",
+    "now",
+    "since"
+   ],
+   [
+    "sum",
+    "count",
+    "dcount"
+   ],
+   [
+    "bin",
+    "round",
+    "group"
+   ]
+  ],
+  "e": "ago(1d) gives the time one day back, and bin() groups timestamps into one-hour buckets. With sampling, each record stands for itemCount events, so sum(itemCount) counts accurately while count() undercounts.",
+  "r": "m-analyze-telemetry-logs-metrics"
+ },
+ {
+  "s": "otel",
+  "t": "fill",
+  "q": "Complete the Python code so embedding generation shows up as its own span in Application Insights.",
+  "code": "from azure.monitor import opentelemetry as azmon\nfrom opentelemetry import trace\n\nazmon.{{1}}()\ntracer = trace.{{2}}(__name__)\n\nwith tracer.{{3}}(\"generate-embedding\") as span:\n    span.set_attribute(\"model\", model_name)\n    vector = embed(text)",
+  "blanks": [
+   [
+    "configure_azure_monitor",
+    "enable_azure_monitor",
+    "AzureMonitorTraceExporter"
+   ],
+   [
+    "get_tracer",
+    "create_tracer",
+    "Tracer"
+   ],
+   [
+    "start_as_current_span",
+    "create_span",
+    "begin_span"
+   ]
+  ],
+  "e": "configure_azure_monitor() from the Azure Monitor OpenTelemetry Distro sets up export to Application Insights. trace.get_tracer() returns a tracer, and start_as_current_span() creates a custom span that becomes the current span, so child calls nest under it.",
+  "r": "m-instrument-app-opentelemetry"
+ }
+]

@@ -36,9 +36,10 @@
   const lsDel = (k) => { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } };
   const sameSet = (a, b) => a.length === b.length && a.every((x) => b.includes(x));
   // "order" questions: correct = keys in sequence. "yesno": correct[i] is "Y"/"N" for statement i.
-  const seqType = (q) => q.type === "order" || q.type === "yesno";
+  const slotType = (q) => q.type === "match" || q.type === "fill";
+  const seqType = (q) => q.type === "order" || q.type === "yesno" || slotType(q);
   const isRight = (q, sel) => seqType(q) ? sel.length === q.correct.length && sel.every((x, i) => x === q.correct[i]) : sameSet(sel, q.correct);
-  const isDone = (q, sel) => !!sel && (q.type === "yesno" ? sel.length === q.options.length && sel.every(Boolean) : q.type === "order" ? sel.length === q.options.length : sel.length > 0);
+  const isDone = (q, sel) => !!sel && (slotType(q) ? sel.length === q.slots.length && sel.every(Boolean) : q.type === "yesno" ? sel.length === q.options.length && sel.every(Boolean) : q.type === "order" ? sel.length === q.options.length : sel.length > 0);
   const caseBlock = (q, open) => q.case_text ? `<details class="case" ${open ? "open" : ""}><summary>Case study: ${esc(q.case_title || "")}</summary>${q.case_text.split(/\n+/).map((p) => `<p>${esc(p)}</p>`).join("")}</details>` : "";
   const isFull = (a) => a.mode === "mock" || a.mode === "random";
   const skillName = (code) => (bank.find((q) => q.skill === code) || {}).skill_name || code;
@@ -135,7 +136,7 @@
   /* ---------- learning model: first attempts and spaced repetition ---------- */
   const DAY = 86400000, INTERVALS = [1, 3, 7];
   const dayStart = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
-  const optOrder = (o, q) => { if (q.type === "yesno") return q.options; const ord = o && o.order && o.order[q.id]; return ord ? ord.map((k) => q.options.find((x) => x.key === k)).filter(Boolean) : q.options; };
+  const optOrder = (o, q) => { if (q.type === "yesno" || slotType(q)) return q.options; const ord = o && o.order && o.order[q.id]; return ord ? ord.map((k) => q.options.find((x) => x.key === k)).filter(Boolean) : q.options; };
 
   function learning() {
     const seen = new Set(), fresh = [], srs = new Map();
@@ -358,6 +359,26 @@
     if (discard) discard.onclick = () => { if (confirm("Discard the test in progress?")) { lsDel(LS_CURRENT); renderDashboard(); } };
   }
 
+  const optText = (q, k) => { const o = q.options.find((x) => x.key === k); return o ? o.text : ""; };
+  function slotSelect(q, i, mine, checked) {
+    const keys = q.slots[i].keys || q.options.map((o) => o.key), right = q.correct[i];
+    const state = checked ? (mine === right ? "right" : "wrong") : "";
+    return `<select class="slotsel ${state}" data-slot="${i}" aria-label="${esc(q.type === "fill" ? "Blank " + (i + 1) : q.slots[i].text)}" ${checked ? "disabled" : ""}>
+      <option value="">${q.type === "fill" ? "Blank " + (i + 1) + "…" : "Choose…"}</option>
+      ${keys.map((k) => `<option value="${k}" ${mine === k ? "selected" : ""}>${esc(optText(q, k))}</option>`).join("")}
+    </select>`;
+  }
+  function slotUI(q, chosen, checked) {
+    const fix = (i) => checked && chosen[i] !== q.correct[i] ? `<span class="mark errc">✗ Answer: ${esc(optText(q, q.correct[i]))}</span>` : checked ? `<span class="mark okc">✓</span>` : "";
+    if (q.type === "fill") {
+      const parts = q.code.split(/\{\{(\d)\}\}/);
+      return `<pre class="code">${parts.map((p, n) => n % 2 ? slotSelect(q, +p - 1, chosen[+p - 1], checked) : esc(p)).join("")}</pre>
+        ${checked ? `<ol class="fillres">${q.slots.map((_, i) => `<li class="${chosen[i] === q.correct[i] ? "right" : "wrong"}">Blank ${i + 1}: ${fix(i)}</li>`).join("")}</ol>` : ""}`;
+    }
+    return `<div class="match">${q.slots.map((sl, i) => `<div class="mrow ${checked ? (chosen[i] === q.correct[i] ? "right" : "wrong") : ""}">
+      <span class="txt">${esc(sl.text)}</span>${slotSelect(q, i, chosen[i], checked)}${fix(i)}</div>`).join("")}</div>`;
+  }
+
   function renderTest() {
     const t = lsGet(LS_CURRENT, null);
     if (!t) { location.hash = "#/"; return; }
@@ -368,8 +389,8 @@
 
     function draw() {
       const q = qs[t.index];
-      const multi = q.type === "multi", ord = q.type === "order", yn = q.type === "yesno";
-      const need = seqType(q) ? q.options.length : q.correct.length;
+      const multi = q.type === "multi", ord = q.type === "order", yn = q.type === "yesno", slot = slotType(q);
+      const need = slot ? q.slots.length : seqType(q) ? q.options.length : q.correct.length;
       const chosen = t.answers[q.id] || [];
       const opts = optOrder(t, q);
       const checked = t.study && t.checked[q.id];
@@ -388,8 +409,8 @@
           ${caseBlock(q, true)}
           <fieldset ${checked ? "disabled" : ""}>
             <legend class="stem">${esc(q.stem)}</legend>
-            ${multi ? `<p class="hint">Select ${need} answers.</p>` : ord ? `<p class="hint">Select the steps in the order you'd do them. Select a step again to remove it.</p>` : yn ? `<p class="hint">For each statement, choose Yes if it's true. Otherwise, choose No.</p>` : ""}
-            ${yn ? `<div class="yn">${q.options.map((o, i) => {
+            ${multi ? `<p class="hint">Select ${need} answers.</p>` : ord ? `<p class="hint">Select the steps in the order you'd do them. Select a step again to remove it.</p>` : yn ? `<p class="hint">For each statement, choose Yes if it's true. Otherwise, choose No.</p>` : q.type === "match" ? `<p class="hint">Choose the matching answer for each item. An answer can be used once, more than once, or not at all.</p>` : q.type === "fill" ? `<p class="hint">Choose the correct value for each blank.</p>` : ""}
+            ${slot ? slotUI(q, chosen, checked) : yn ? `<div class="yn">${q.options.map((o, i) => {
                 const mine = chosen[i] || "", right = q.correct[i];
                 const state = checked ? (mine === right ? "right" : "wrong") : "";
                 return `<div class="ynrow ${state}" role="radiogroup" aria-label="Statement ${i + 1}">
@@ -422,7 +443,7 @@
             ${t.study && !checked ? `<button class="btn primary" id="check" ${isDone(q, chosen) && (seqType(q) || chosen.length === need) ? "" : "disabled"}>Check answer</button>`
               : last ? `<button class="btn primary" id="submit2">Finish test</button>` : `<button class="btn primary" id="next">Next →</button>`}
           </div>
-          <p class="muted small keys">Keyboard: ${yn ? "" : `A–${"ABCDEF"[opts.length - 1]} choose · `}${t.study ? "Enter check/next · " : "Enter next · "}←/→ move · F flag</p>
+          <p class="muted small keys">Keyboard: ${yn || slot ? "" : `A–${"ABCDEF"[opts.length - 1]} choose · `}${t.study ? "Enter check/next · " : "Enter next · "}←/→ move · F flag</p>
         </section>
         <section class="card">
           <div class="palette" role="list">
@@ -444,6 +465,12 @@
         const el = document.querySelector(`.opt input[value="${key}"]`); if (el) el.focus();
       };
       document.querySelectorAll(".opt input").forEach((inp) => inp.onchange = () => pickKey(inp.value));
+      document.querySelectorAll("select[data-slot]").forEach((el) => el.onchange = () => {
+        if (checked) return;
+        const sel = Array.from({ length: q.slots.length }, (_, i) => (t.answers[q.id] || [])[i] || "");
+        sel[+el.dataset.slot] = el.value; t.answers[q.id] = sel; save(); draw();
+        const again = document.querySelector(`select[data-slot="${el.dataset.slot}"]`); if (again) again.focus();
+      });
       document.querySelectorAll(".yn input").forEach((inp) => inp.onchange = () => {
         if (checked) return;
         const sel = Array.from({ length: q.options.length }, (_, i) => (t.answers[q.id] || [])[i] || "");
@@ -479,7 +506,7 @@
         if (typing(e) || e.ctrlKey || e.metaKey || e.altKey) return;
         const k = e.key.toUpperCase();
         const pos = k.length === 1 ? "ABCDEF".indexOf(k) : -1;
-        const opt = yn ? null : (pos >= 0 ? opts[pos] : null) || (/^[1-6]$/.test(k) ? opts[+k - 1] : null);
+        const opt = yn || slot ? null : (pos >= 0 ? opts[pos] : null) || (/^[1-6]$/.test(k) ? opts[+k - 1] : null);
         if (opt) { e.preventDefault(); pickKey(opt.key); }
         else if (e.key === "ArrowRight") { e.preventDefault(); go(t.index + 1); }
         else if (e.key === "ArrowLeft") { e.preventDefault(); go(t.index - 1); }
@@ -572,6 +599,9 @@
 
     function reviewBody(x) {
       const q = x.q, sel = x.ans.selected || [];
+      if (slotType(q)) return `${q.code ? `<pre class="code">${esc(q.code)}</pre>` : ""}<ul class="ropts">${q.slots.map((sl, i) => {
+        const ok = sel[i] === q.correct[i];
+        return `<li class="${ok ? "c" : "w"}"><span class="key">${i + 1}</span><span>${q.type === "fill" ? "" : esc(sl.text) + " → "}<b>${esc(optText(q, q.correct[i]))}</b></span>${sel.length ? `<em class="mine">${ok ? "your answer" : "✗ you: " + esc(optText(q, sel[i]) || "–")}</em>` : ""}</li>`; }).join("")}</ul>`;
       if (q.type === "yesno") return `<ul class="ropts">${q.options.map((o, i) => {
         const ok = sel[i] === q.correct[i], yes = (v) => (v === "Y" ? "Yes" : v === "N" ? "No" : "–");
         return `<li class="${ok ? "c" : "w"}"><span class="key">${i + 1}</span><span>${esc(o.text)}</span><em>Answer: ${yes(q.correct[i])}</em>${sel.length ? `<em class="mine">${ok ? "you: " : "✗ you: "}${yes(sel[i])}</em>` : ""}</li>`; }).join("")}</ul>`;

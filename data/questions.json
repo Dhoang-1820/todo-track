@@ -1,6 +1,6 @@
 {
-"version": "9308bdc99435",
-"count": 517,
+"version": "007632713d11",
+"count": 540,
 "questions": [
 {
 "id": "D1-acr-01",
@@ -3216,11 +3216,72 @@
 "source_url": "https://learn.microsoft.com/en-us/training/modules/store-manage-containers-azure-container-registry/"
 },
 {
+"slots": [
+{
+"text": "Blank 1",
+"keys": [
+"1A",
+"1B",
+"1C"
+]
+},
+{
+"text": "Blank 2",
+"keys": [
+"2A",
+"2B",
+"2C"
+]
+}
+],
+"code": "az acr {{1}} --registry myregistry \\\n  --image inference-api:v1.0.0 \\\n  {{2}}",
+"id": "D1-acrt-15",
+"domain": "D1",
+"skill": "acrt",
+"skill_name": "Build and run images with ACR Tasks",
+"mock": 7,
+"type": "fill",
+"stem": "Complete the command so ACR builds the image in Azure straight from a GitHub repository, with no local Docker and no clone.",
+"options": [
+{
+"key": "1A",
+"text": "build"
+},
+{
+"key": "1B",
+"text": "import"
+},
+{
+"key": "1C",
+"text": "run"
+},
+{
+"key": "2A",
+"text": "--git-clone ./inference-api"
+},
+{
+"key": "2B",
+"text": "--source docker.io/myorg/inference-api"
+},
+{
+"key": "2C",
+"text": "https://github.com/myorg/inference-api.git"
+}
+],
+"correct": [
+"1A",
+"2C"
+],
+"explanation": "az acr build runs an ACR quick task, and its build context can be a local folder, a Git repository URL, or a remote tarball. az acr import copies an existing image from another registry instead of building one.",
+"source_title": "Microsoft Learn module (AI-200T00): Store and manage containers in Azure Container Registry",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/store-manage-containers-azure-container-registry/"
+},
+{
 "id": "D1-app-14",
 "domain": "D1",
 "skill": "app",
 "skill_name": "Deploy containers to App Service (environment variables and secrets)",
-"mock": 7,
+"mock": 8,
 "type": "single",
 "stem": "Your custom container on Azure App Service listens on port 8000. Requests to the app time out. What should you configure?",
 "options": [
@@ -3253,7 +3314,7 @@
 "domain": "D1",
 "skill": "app",
 "skill_name": "Deploy containers to App Service (environment variables and secrets)",
-"mock": 8,
+"mock": 9,
 "type": "single",
 "stem": "In App Service, you add a connection string named Db with the type PostgreSQL. Which environment variable does your Python container read?",
 "options": [
@@ -3286,7 +3347,7 @@
 "domain": "D1",
 "skill": "app",
 "skill_name": "Deploy containers to App Service (environment variables and secrets)",
-"mock": 9,
+"mock": 10,
 "type": "single",
 "stem": "A .NET container expects the setting ConnectionStrings:Default, but App Service app setting names can't contain a colon. What name do you use?",
 "options": [
@@ -3319,7 +3380,7 @@
 "domain": "D1",
 "skill": "app",
 "skill_name": "Deploy containers to App Service (environment variables and secrets)",
-"mock": 10,
+"mock": 1,
 "type": "single",
 "stem": "Before your container's app starts, App Service must run python migrate.py and then start gunicorn. Which startup command works?",
 "options": [
@@ -3352,7 +3413,7 @@
 "domain": "D1",
 "skill": "app",
 "skill_name": "Deploy containers to App Service (environment variables and secrets)",
-"mock": 1,
+"mock": 2,
 "type": "single",
 "stem": "You configure an App Service web app to pull from Azure Container Registry with its system-assigned managed identity. Image pulls fail with an authorization error. What's missing?",
 "options": [
@@ -3381,11 +3442,162 @@
 "source_url": "https://learn.microsoft.com/en-us/training/modules/deploy-containers-azure-app-service/"
 },
 {
+"slots": [
+{
+"text": "SQL Azure",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E",
+"F"
+]
+},
+{
+"text": "MySQL",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E",
+"F"
+]
+},
+{
+"text": "PostgreSQL",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E",
+"F"
+]
+},
+{
+"text": "Custom",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E",
+"F"
+]
+}
+],
+"id": "D1-app-19",
+"domain": "D1",
+"skill": "app",
+"skill_name": "Deploy containers to App Service (environment variables and secrets)",
+"mock": 3,
+"type": "match",
+"stem": "In App Service, you add connection strings with these types. Match each type to the environment variable prefix your container sees.",
+"options": [
+{
+"key": "A",
+"text": "CUSTOMCONNSTR_"
+},
+{
+"key": "B",
+"text": "SQLAZURECONNSTR_"
+},
+{
+"key": "C",
+"text": "APPSETTING_"
+},
+{
+"key": "D",
+"text": "SQLCONNSTR_"
+},
+{
+"key": "E",
+"text": "POSTGRESQLCONNSTR_"
+},
+{
+"key": "F",
+"text": "MYSQLCONNSTR_"
+}
+],
+"correct": [
+"B",
+"F",
+"E",
+"A"
+],
+"explanation": "App Service injects each connection string as an environment variable whose prefix depends on its type: SQLCONNSTR_ for SQL Server, SQLAZURECONNSTR_ for SQL Azure, MYSQLCONNSTR_, POSTGRESQLCONNSTR_, and CUSTOMCONNSTR_ for Custom.",
+"source_title": "Microsoft Learn module (AI-200T00): Deploy containers to Azure App Service",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/deploy-containers-azure-app-service/"
+},
+{
+"slots": [
+{
+"text": "Blank 1",
+"keys": [
+"1A",
+"1B",
+"1C"
+]
+},
+{
+"text": "Blank 2",
+"keys": [
+"2A",
+"2B",
+"2C"
+]
+}
+],
+"code": "az webapp config appsettings set \\\n  --resource-group rg-ai --name doc-processor \\\n  --settings {{1}}={{2}}",
+"id": "D1-app-20",
+"domain": "D1",
+"skill": "app",
+"skill_name": "Deploy containers to App Service (environment variables and secrets)",
+"mock": 4,
+"type": "fill",
+"stem": "Your container listens on port 8000. Complete the command so App Service sends traffic to it.",
+"options": [
+{
+"key": "1A",
+"text": "WEBSITES_PORT"
+},
+{
+"key": "1B",
+"text": "WEBSITE_HTTP_PORT"
+},
+{
+"key": "1C",
+"text": "PORT"
+},
+{
+"key": "2A",
+"text": "8080"
+},
+{
+"key": "2B",
+"text": "8000"
+},
+{
+"key": "2C",
+"text": "80"
+}
+],
+"correct": [
+"1A",
+"2B"
+],
+"explanation": "App Service routes automatically only to ports 80 and 8080. For any other port, set the WEBSITES_PORT app setting to the port your container listens on.",
+"source_title": "Microsoft Learn module (AI-200T00): Deploy containers to Azure App Service",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/deploy-containers-azure-app-service/"
+},
+{
 "id": "D1-aca-15",
 "domain": "D1",
 "skill": "aca",
 "skill_name": "Deploy to Azure Container Apps (environments and revisions)",
-"mock": 2,
+"mock": 5,
 "type": "single",
 "stem": "A container app already has five environment variables. You want to change LOG_LEVEL to debug and keep the others. Which command should you run?",
 "options": [
@@ -3418,7 +3630,7 @@
 "domain": "D1",
 "skill": "aca",
 "skill_name": "Deploy to Azure Container Apps (environments and revisions)",
-"mock": 3,
+"mock": 6,
 "type": "order",
 "stem": "You're preparing a new workstation and deploying your first container app with the Azure CLI. Put the steps in order.",
 "options": [
@@ -3459,7 +3671,7 @@
 "domain": "D1",
 "skill": "aca",
 "skill_name": "Deploy to Azure Container Apps (environments and revisions)",
-"mock": 4,
+"mock": 7,
 "type": "single",
 "stem": "You set a container app's CPU to 0.5 cores. What's the smallest memory value you can set?",
 "options": [
@@ -3492,7 +3704,7 @@
 "domain": "D1",
 "skill": "aca",
 "skill_name": "Deploy to Azure Container Apps (environments and revisions)",
-"mock": 5,
+"mock": 8,
 "type": "yesno",
 "stem": "Evaluate each statement about Azure Container Apps revisions and resources.",
 "options": [
@@ -3528,7 +3740,7 @@
 "domain": "D1",
 "skill": "aca",
 "skill_name": "Deploy to Azure Container Apps (environments and revisions)",
-"mock": 6,
+"mock": 9,
 "type": "single",
 "stem": "During an incident you must make sure a container app runs no replicas at all until you finish your fix, regardless of scale rules. What should you do?",
 "options": [
@@ -3627,11 +3839,72 @@
 "case_text": "Fabrikam is building a document-processing AI solution on Azure.\nThe solution has two parts: an inference API that clients call over HTTPS, and a background worker that reads jobs from an Azure Service Bus queue named docs-in. Both run in the same Azure Container Apps environment. Images are built and stored in an Azure Container Registry named fabrikamacr.\nRequirements: the apps must pull images without any registry password stored in configuration. The worker must use no compute when the queue is empty and add replicas as the queue grows. A new model build must first receive about 10% of API traffic before full rollout. Operations must be able to tell exactly which image build served any request."
 },
 {
+"slots": [
+{
+"text": "Blank 1",
+"keys": [
+"1A",
+"1B",
+"1C"
+]
+},
+{
+"text": "Blank 2",
+"keys": [
+"2A",
+"2B",
+"2C"
+]
+}
+],
+"code": "az containerapp secret set -n ai-api -g rg-ai \\\n  --secrets openai-key=$KEY\n\naz containerapp update -n ai-api -g rg-ai \\\n  {{1}} OPENAI_KEY={{2}}",
+"id": "D1-aca-22",
+"domain": "D1",
+"skill": "aca",
+"skill_name": "Deploy to Azure Container Apps (environments and revisions)",
+"mock": 10,
+"type": "fill",
+"stem": "Complete the commands so the container app gets the OpenAI key as a secret and exposes it to the app as OPENAI_KEY, keeping its other environment variables.",
+"options": [
+{
+"key": "1A",
+"text": "--replace-env-vars"
+},
+{
+"key": "1B",
+"text": "--set-env-vars"
+},
+{
+"key": "1C",
+"text": "--secrets"
+},
+{
+"key": "2A",
+"text": "$KEY"
+},
+{
+"key": "2B",
+"text": "secretref:openai-key"
+},
+{
+"key": "2C",
+"text": "keyvaultref:openai-key"
+}
+],
+"correct": [
+"1B",
+"2B"
+],
+"explanation": "--set-env-vars adds or updates variables without removing the others, while --replace-env-vars replaces the whole set. secretref:<name> points an environment variable at a Container Apps secret, so the value never appears in the app's configuration.",
+"source_title": "Microsoft Learn module (AI-200T00): Deploy containers to Azure Container Apps",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/deploy-containers-azure-container-apps/"
+},
+{
 "id": "D1-keda-14",
 "domain": "D1",
 "skill": "keda",
 "skill_name": "Event-driven scaling with KEDA in Container Apps",
-"mock": 7,
+"mock": 1,
 "type": "single",
 "stem": "A container app has ingress turned off, no minimum replica count, and no custom scale rules. What happens after it scales in?",
 "options": [
@@ -3664,7 +3937,7 @@
 "domain": "D1",
 "skill": "keda",
 "skill_name": "Event-driven scaling with KEDA in Container Apps",
-"mock": 8,
+"mock": 2,
 "type": "single",
 "stem": "How often does Azure Container Apps poll an event source, such as a Service Bus queue, to calculate a custom scale rule's replica count?",
 "options": [
@@ -3697,7 +3970,7 @@
 "domain": "D1",
 "skill": "keda",
 "skill_name": "Event-driven scaling with KEDA in Container Apps",
-"mock": 9,
+"mock": 3,
 "type": "single",
 "stem": "A worker in Container Apps reads from Apache Kafka. Which metric does the Kafka scaler use to add replicas?",
 "options": [
@@ -3761,11 +4034,85 @@
 "case_text": "Fabrikam is building a document-processing AI solution on Azure.\nThe solution has two parts: an inference API that clients call over HTTPS, and a background worker that reads jobs from an Azure Service Bus queue named docs-in. Both run in the same Azure Container Apps environment. Images are built and stored in an Azure Container Registry named fabrikamacr.\nRequirements: the apps must pull images without any registry password stored in configuration. The worker must use no compute when the queue is empty and add replicas as the queue grows. A new model build must first receive about 10% of API traffic before full rollout. Operations must be able to tell exactly which image build served any request."
 },
 {
+"slots": [
+{
+"text": "A REST API that clients call over HTTPS",
+"keys": [
+"A",
+"B",
+"C",
+"D"
+]
+},
+{
+"text": "A worker that reads jobs from a Service Bus queue",
+"keys": [
+"A",
+"B",
+"C",
+"D"
+]
+},
+{
+"text": "A consumer that reads from Apache Kafka",
+"keys": [
+"A",
+"B",
+"C",
+"D"
+]
+},
+{
+"text": "A batch job that must run every night at 2 AM",
+"keys": [
+"A",
+"B",
+"C",
+"D"
+]
+}
+],
+"id": "D1-keda-18",
+"domain": "D1",
+"skill": "keda",
+"skill_name": "Event-driven scaling with KEDA in Container Apps",
+"mock": 4,
+"type": "match",
+"stem": "Match each Container Apps workload to the scale rule that fits it.",
+"options": [
+{
+"key": "A",
+"text": "kafka scale rule (consumer lag)"
+},
+{
+"key": "B",
+"text": "HTTP scale rule"
+},
+{
+"key": "C",
+"text": "azure-servicebus scale rule"
+},
+{
+"key": "D",
+"text": "cron scale rule"
+}
+],
+"correct": [
+"B",
+"C",
+"A",
+"D"
+],
+"explanation": "HTTP rules scale on concurrent requests. Event-driven KEDA rules scale on the event source: queue length for Service Bus and consumer group lag for Kafka. The cron scaler scales replicas up for a scheduled time window.",
+"source_title": "Microsoft Learn module (AI-200T00): Scale containers in Azure Container Apps",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/scale-containers-azure-container-apps/"
+},
+{
 "id": "D1-aks-14",
 "domain": "D1",
 "skill": "aks",
 "skill_name": "Deploy and manage applications on AKS with manifest files",
-"mock": 10,
+"mock": 5,
 "type": "single",
 "stem": "A vector search service runs in two AKS pods. Only other workloads in the cluster call it. Which Service type should you use?",
 "options": [
@@ -3798,7 +4145,7 @@
 "domain": "D1",
 "skill": "aks",
 "skill_name": "Deploy and manage applications on AKS with manifest files",
-"mock": 1,
+"mock": 6,
 "type": "single",
 "stem": "A Deployment uses selector.matchLabels app: inference-api, but the pod template has the label app: inference. What happens when you apply it?",
 "options": [
@@ -3831,7 +4178,7 @@
 "domain": "D1",
 "skill": "aks",
 "skill_name": "Deploy and manage applications on AKS with manifest files",
-"mock": 2,
+"mock": 7,
 "type": "single",
 "stem": "Pods read FEATURE_X_ENABLED from a ConfigMap by using env with configMapKeyRef. You change the value in the ConfigMap. What must you do for the pods to see it?",
 "options": [
@@ -3864,7 +4211,7 @@
 "domain": "D1",
 "skill": "aks",
 "skill_name": "Deploy and manage applications on AKS with manifest files",
-"mock": 3,
+"mock": 8,
 "type": "yesno",
 "stem": "Evaluate each statement about Kubernetes ConfigMaps on AKS.",
 "options": [
@@ -3900,7 +4247,7 @@
 "domain": "D1",
 "skill": "aks",
 "skill_name": "Deploy and manage applications on AKS with manifest files",
-"mock": 4,
+"mock": 9,
 "type": "single",
 "stem": "Several pods on different AKS nodes must read and write the same shared folder of cached model files. Which built-in storage class fits?",
 "options": [
@@ -3929,11 +4276,146 @@
 "source_url": "https://learn.microsoft.com/en-us/training/modules/configure-apps-azure-kubernetes-service/"
 },
 {
+"slots": [
+{
+"text": "An internal vector search service that only other pods call",
+"keys": [
+"A",
+"B",
+"C",
+"D"
+]
+},
+{
+"text": "A public inference API that needs an Azure public IP",
+"keys": [
+"A",
+"B",
+"C",
+"D"
+]
+},
+{
+"text": "Quick development access on a port of every node",
+"keys": [
+"A",
+"B",
+"C",
+"D"
+]
+},
+{
+"text": "Pods that call an outside database by its DNS name",
+"keys": [
+"A",
+"B",
+"C",
+"D"
+]
+}
+],
+"id": "D1-aks-19",
+"domain": "D1",
+"skill": "aks",
+"skill_name": "Deploy and manage applications on AKS with manifest files",
+"mock": 10,
+"type": "match",
+"stem": "Match each workload to the Kubernetes Service type it should use on AKS.",
+"options": [
+{
+"key": "A",
+"text": "ExternalName"
+},
+{
+"key": "B",
+"text": "LoadBalancer"
+},
+{
+"key": "C",
+"text": "ClusterIP"
+},
+{
+"key": "D",
+"text": "NodePort"
+}
+],
+"correct": [
+"C",
+"B",
+"D",
+"A"
+],
+"explanation": "ClusterIP (the default) is reachable only inside the cluster. LoadBalancer creates an Azure Load Balancer with a public IP. NodePort opens the same port on every node. ExternalName maps the Service to an external DNS name without load balancing.",
+"source_title": "Microsoft Learn module (AI-200T00): Deploy applications to Azure Kubernetes Service",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/deploy-apps-azure-kubernetes-service/"
+},
+{
+"slots": [
+{
+"text": "Blank 1",
+"keys": [
+"1A",
+"1B",
+"1C"
+]
+},
+{
+"text": "Blank 2",
+"keys": [
+"2A",
+"2B",
+"2C"
+]
+}
+],
+"code": "spec:\n  replicas: 2\n  selector:\n    {{1}}:\n      app: inference-api\n  template:\n    metadata:\n      labels:\n        app: inference-api\n    spec:\n      containers:\n      - name: api\n        image: myregistry.azurecr.io/inference-api:v1.0\n        env:\n        - name: API_KEY\n          valueFrom:\n            {{2}}:\n              name: api-secrets\n              key: api-key",
+"id": "D1-aks-20",
+"domain": "D1",
+"skill": "aks",
+"skill_name": "Deploy and manage applications on AKS with manifest files",
+"mock": 1,
+"type": "fill",
+"stem": "Complete the Deployment manifest so it manages pods labeled app: inference-api and reads API_KEY from the Kubernetes secret api-secrets.",
+"options": [
+{
+"key": "1A",
+"text": "matchLabels"
+},
+{
+"key": "1B",
+"text": "labels"
+},
+{
+"key": "1C",
+"text": "matchSelector"
+},
+{
+"key": "2A",
+"text": "secretKeyRef"
+},
+{
+"key": "2B",
+"text": "configMapKeyRef"
+},
+{
+"key": "2C",
+"text": "secretRef"
+}
+],
+"correct": [
+"1A",
+"2A"
+],
+"explanation": "spec.selector.matchLabels must match the pod template's labels. valueFrom.secretKeyRef reads one key from a Secret. configMapKeyRef reads from a ConfigMap, and secretRef is used under envFrom to load a whole Secret.",
+"source_title": "Microsoft Learn module (AI-200T00): Deploy applications to Azure Kubernetes Service",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/deploy-apps-azure-kubernetes-service/"
+},
+{
 "id": "D1-mon-13",
 "domain": "D1",
 "skill": "mon",
 "skill_name": "Monitor and troubleshoot AKS and Container Apps",
-"mock": 5,
+"mock": 2,
 "type": "single",
 "stem": "A new pod on AKS shows the status ImagePullBackOff. What's the most likely cause?",
 "options": [
@@ -3966,7 +4448,7 @@
 "domain": "D1",
 "skill": "mon",
 "skill_name": "Monitor and troubleshoot AKS and Container Apps",
-"mock": 6,
+"mock": 3,
 "type": "single",
 "stem": "An AKS Service of type LoadBalancer has an external IP, but requests fail. In the portal, the Service's Endpoints list is empty. What should you check first?",
 "options": [
@@ -3999,7 +4481,7 @@
 "domain": "D1",
 "skill": "mon",
 "skill_name": "Monitor and troubleshoot AKS and Container Apps",
-"mock": 7,
+"mock": 4,
 "type": "single",
 "stem": "An AI API on Container Apps loads a large model at startup. During rollouts, users get errors from new replicas that are still loading. What should you configure?",
 "options": [
@@ -4032,7 +4514,7 @@
 "domain": "D1",
 "skill": "mon",
 "skill_name": "Monitor and troubleshoot AKS and Container Apps",
-"mock": 8,
+"mock": 5,
 "type": "single",
 "stem": "You need to see all environment variables that App Service passes to your custom container. Which tool shows them?",
 "options": [
@@ -4059,6 +4541,77 @@
 "explanation": "Kudu, the SCM site at https://<app-name>.scm.azurewebsites.net, has an Environment page that lists every environment variable available to the container. The log stream shows output, not settings, and the Dockerfile doesn't include App Service settings.",
 "source_title": "Microsoft Learn module (AI-200T00): Deploy containers to Azure App Service",
 "source_url": "https://learn.microsoft.com/en-us/training/modules/deploy-containers-azure-app-service/"
+},
+{
+"slots": [
+{
+"text": "The image tag doesn't exist in the registry",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E"
+]
+},
+{
+"text": "The app throws an exception and exits right after it starts",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E"
+]
+},
+{
+"text": "No node has enough free memory for the pod's requests",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E"
+]
+}
+],
+"id": "D1-mon-17",
+"domain": "D1",
+"skill": "mon",
+"skill_name": "Monitor and troubleshoot AKS and Container Apps",
+"mock": 6,
+"type": "match",
+"stem": "Match each AKS pod symptom to the most likely status you'll see.",
+"options": [
+{
+"key": "A",
+"text": "CrashLoopBackOff"
+},
+{
+"key": "B",
+"text": "ImagePullBackOff"
+},
+{
+"key": "C",
+"text": "Completed"
+},
+{
+"key": "D",
+"text": "Pending"
+},
+{
+"key": "E",
+"text": "Terminating"
+}
+],
+"correct": [
+"B",
+"A",
+"D"
+],
+"explanation": "A failed image pull (wrong name, tag, or credentials) shows ImagePullBackOff. A container that keeps exiting shows CrashLoopBackOff, and you read kubectl logs to find out why. A pod that can't be scheduled because of resource requests stays Pending.",
+"source_title": "Microsoft Learn module (AI-200T00): Monitor and troubleshoot applications on Azure Kubernetes Service",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/monitor-apps-azure-kubernetes-service/"
 },
 {
 "id": "D2-cconn-01",
@@ -8158,7 +8711,7 @@
 "domain": "D2",
 "skill": "cidx",
 "skill_name": "Optimize Cosmos DB queries and RUs (indexing, consistency)",
-"mock": 2,
+"mock": null,
 "type": "single",
 "stem": "A query filters on category and sorts by price DESC, then createdDate DESC. What index does it need?",
 "options": [
@@ -8191,7 +8744,7 @@
 "domain": "D2",
 "skill": "cidx",
 "skill_name": "Optimize Cosmos DB queries and RUs (indexing, consistency)",
-"mock": null,
+"mock": 2,
 "type": "yesno",
 "stem": "Evaluate each statement about Azure Cosmos DB consistency levels.",
 "options": [
@@ -8219,6 +8772,99 @@
 "Y"
 ],
 "explanation": "Strong consistency needs a global majority before a write is confirmed, which adds write latency across regions, and it isn't supported with multiple write regions. Strong reads use about twice the RUs. Eventual consistency gives no ordering guarantee. Consistent prefix is the level that guarantees order.",
+"source_title": "Microsoft Learn module (AI-200T00): Optimize query performance for Azure Cosmos DB for NoSQL",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/optimize-query-performance-azure-cosmos-db/"
+},
+{
+"slots": [
+{
+"text": "Reads always return the most recent committed write",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E"
+]
+},
+{
+"text": "Reads lag behind writes by at most K versions or T seconds",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E"
+]
+},
+{
+"text": "A client always reads its own writes within its session",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E"
+]
+},
+{
+"text": "Reads never see writes out of order, but may be stale",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E"
+]
+},
+{
+"text": "No ordering guarantee, lowest latency",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E"
+]
+}
+],
+"id": "D2-cidx-16",
+"domain": "D2",
+"skill": "cidx",
+"skill_name": "Optimize Cosmos DB queries and RUs (indexing, consistency)",
+"mock": null,
+"type": "match",
+"stem": "Match each requirement to the Azure Cosmos DB consistency level that provides it.",
+"options": [
+{
+"key": "A",
+"text": "Bounded staleness"
+},
+{
+"key": "B",
+"text": "Consistent prefix"
+},
+{
+"key": "C",
+"text": "Strong"
+},
+{
+"key": "D",
+"text": "Eventual"
+},
+{
+"key": "E",
+"text": "Session"
+}
+],
+"correct": [
+"C",
+"A",
+"E",
+"B",
+"D"
+],
+"explanation": "From strongest to weakest: Strong (linearizable), Bounded staleness (lag limited by versions or time), Session (read your own writes, the default), Consistent prefix (order preserved), and Eventual (no ordering guarantee).",
 "source_title": "Microsoft Learn module (AI-200T00): Optimize query performance for Azure Cosmos DB for NoSQL",
 "source_url": "https://learn.microsoft.com/en-us/training/modules/optimize-query-performance-azure-cosmos-db/"
 },
@@ -8287,6 +8933,67 @@
 "explanation": "Vector indexes require a vector policy (vector embedding policy) on the container that describes the embedding properties. The indexing policy's vector index then refers to those paths.",
 "source_title": "Microsoft Learn module (AI-200T00): Optimize query performance for Azure Cosmos DB for NoSQL",
 "source_url": "https://learn.microsoft.com/en-us/training/modules/optimize-query-performance-azure-cosmos-db/"
+},
+{
+"slots": [
+{
+"text": "Blank 1",
+"keys": [
+"1A",
+"1B",
+"1C"
+]
+},
+{
+"text": "Blank 2",
+"keys": [
+"2A",
+"2B",
+"2C"
+]
+}
+],
+"code": "SELECT {{1}} 5 c.id, c.title\nFROM c\nWHERE c.category = @category\nORDER BY {{2}}(c.embedding, @queryVector)",
+"id": "D2-cvec-14",
+"domain": "D2",
+"skill": "cvec",
+"skill_name": "Store embeddings and run vector search in Cosmos DB",
+"mock": null,
+"type": "fill",
+"stem": "Complete the Cosmos DB query so it returns the 5 most similar articles in one category.",
+"options": [
+{
+"key": "1A",
+"text": "FIRST"
+},
+{
+"key": "1B",
+"text": "LIMIT"
+},
+{
+"key": "1C",
+"text": "TOP"
+},
+{
+"key": "2A",
+"text": "CosineSimilarity"
+},
+{
+"key": "2B",
+"text": "VECTOR_SEARCH"
+},
+{
+"key": "2C",
+"text": "VectorDistance"
+}
+],
+"correct": [
+"1C",
+"2C"
+],
+"explanation": "Cosmos DB for NoSQL limits results with TOP N (there's no LIMIT clause) and ranks by the VectorDistance function. A WHERE filter combines metadata filtering with the vector search.",
+"source_title": "Microsoft Learn module (AI-200T00): Implement vector search on Azure Cosmos DB for NoSQL",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/implement-vector-search-azure-cosmos-db/"
 },
 {
 "id": "D2-cfeed-11",
@@ -8593,7 +9300,7 @@
 "domain": "D2",
 "skill": "pschema",
 "skill_name": "Model PostgreSQL schemas and choose data types",
-"mock": 8,
+"mock": null,
 "type": "single",
 "stem": "Each conversation has many messages. Deleting a conversation must delete its messages too. How should you define messages.conversation_id?",
 "options": [
@@ -8626,7 +9333,7 @@
 "domain": "D2",
 "skill": "pschema",
 "skill_name": "Model PostgreSQL schemas and choose data types",
-"mock": null,
+"mock": 8,
 "type": "single",
 "stem": "You create an index on messages(conversation_id, created_at). Which query can use it most effectively?",
 "options": [
@@ -8659,7 +9366,7 @@
 "domain": "D2",
 "skill": "pschema",
 "skill_name": "Model PostgreSQL schemas and choose data types",
-"mock": 9,
+"mock": null,
 "type": "single",
 "stem": "This query fails with 'column \"msg_date\" does not exist': SELECT DATE(created_at) AS msg_date FROM messages WHERE msg_date > '2024-01-01'. Why?",
 "options": [
@@ -8725,7 +9432,7 @@
 "domain": "D2",
 "skill": "pschema",
 "skill_name": "Model PostgreSQL schemas and choose data types",
-"mock": 10,
+"mock": 9,
 "type": "single",
 "stem": "Page 1,000 of a message list with OFFSET is slow. Which query pattern keeps deep pages fast?",
 "options": [
@@ -8794,7 +9501,7 @@
 "domain": "D2",
 "skill": "pidx",
 "skill_name": "PostgreSQL indexing strategies and pgvector overhead",
-"mock": null,
+"mock": 10,
 "type": "single",
 "stem": "You create an HNSW index with vector_l2_ops, but your queries use ORDER BY embedding <=> :q LIMIT 10. EXPLAIN ANALYZE shows a Seq Scan. What's the cause?",
 "options": [
@@ -8827,7 +9534,7 @@
 "domain": "D2",
 "skill": "pidx",
 "skill_name": "PostgreSQL indexing strategies and pgvector overhead",
-"mock": 1,
+"mock": null,
 "type": "single",
 "stem": "You create an IVFFlat index on an empty documents table and then load 500,000 embeddings. Search quality is poor. Why?",
 "options": [
@@ -8893,7 +9600,7 @@
 "domain": "D2",
 "skill": "pidx",
 "skill_name": "PostgreSQL indexing strategies and pgvector overhead",
-"mock": 2,
+"mock": 1,
 "type": "yesno",
 "stem": "Evaluate each statement about pgvector HNSW indexes.",
 "options": [
@@ -8960,11 +9667,93 @@
 "case_text": "Contoso runs an AI support assistant. Conversation history and 1536-dimension embeddings of help articles are stored in Azure Database for PostgreSQL flexible server (General Purpose, 4 vCores). Hot answers are cached in Azure Managed Redis.\nThe articles table has about 3 million rows and a category_id column. Most searches filter to one category before ranking by similarity.\nRequirements: semantic search must return in under 100 ms at 99% recall. The app runs as many short-lived serverless instances that each open database connections, and the team has seen 'too many connections' errors at peak. Cached answers must expire after 10 minutes and be removed immediately when an article is edited."
 },
 {
+"slots": [
+{
+"text": "Blank 1",
+"keys": [
+"1A",
+"1B",
+"1C"
+]
+},
+{
+"text": "Blank 2",
+"keys": [
+"2A",
+"2B",
+"2C"
+]
+},
+{
+"text": "Blank 3",
+"keys": [
+"3A",
+"3B",
+"3C"
+]
+}
+],
+"code": "CREATE INDEX ON documents\n  USING {{1}} (embedding {{2}});\n\nSELECT id, title\nFROM documents\nORDER BY embedding {{3}} :query_vector\nLIMIT 10;",
+"id": "D2-pidx-18",
+"domain": "D2",
+"skill": "pidx",
+"skill_name": "PostgreSQL indexing strategies and pgvector overhead",
+"mock": null,
+"type": "fill",
+"stem": "Complete the SQL so the index supports ranking documents by cosine distance and the query uses it.",
+"options": [
+{
+"key": "1A",
+"text": "gin"
+},
+{
+"key": "1B",
+"text": "hnsw"
+},
+{
+"key": "1C",
+"text": "btree"
+},
+{
+"key": "2A",
+"text": "vector_cosine_ops"
+},
+{
+"key": "2B",
+"text": "vector_ip_ops"
+},
+{
+"key": "2C",
+"text": "vector_l2_ops"
+},
+{
+"key": "3A",
+"text": "<->"
+},
+{
+"key": "3B",
+"text": "<=>"
+},
+{
+"key": "3C",
+"text": "<#>"
+}
+],
+"correct": [
+"1B",
+"2A",
+"3B"
+],
+"explanation": "HNSW is a pgvector approximate nearest-neighbor index. The operator class must match the query's operator: vector_cosine_ops goes with <=>. With a mismatched class, PostgreSQL falls back to a sequential scan.",
+"source_title": "Microsoft Learn module (AI-200T00): Implement vector search with Azure Database for PostgreSQL",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/implement-vector-search-azure-database-postgresql/"
+},
+{
 "id": "D2-pcomp-09",
 "domain": "D2",
 "skill": "pcomp",
 "skill_name": "Configure PostgreSQL compute, memory, and storage for vectors",
-"mock": null,
+"mock": 2,
 "type": "single",
 "stem": "About how much storage does the vector column need for 1 million 1536-dimension embeddings stored as vector (float4)?",
 "options": [
@@ -8997,7 +9786,7 @@
 "domain": "D2",
 "skill": "pcomp",
 "skill_name": "Configure PostgreSQL compute, memory, and storage for vectors",
-"mock": 3,
+"mock": null,
 "type": "single",
 "stem": "A vector search workload has a buffer cache hit ratio of 93%, and disk reads are high. What's the recommended first change?",
 "options": [
@@ -9063,7 +9852,7 @@
 "domain": "D2",
 "skill": "pcomp",
 "skill_name": "Configure PostgreSQL compute, memory, and storage for vectors",
-"mock": 4,
+"mock": 3,
 "type": "single",
 "stem": "You're choosing an embedding size. Compared with 1,536 dimensions, what does a 3,072-dimension model cost in PostgreSQL?",
 "options": [
@@ -9132,7 +9921,7 @@
 "domain": "D2",
 "skill": "pcomp",
 "skill_name": "Configure PostgreSQL compute, memory, and storage for vectors",
-"mock": 5,
+"mock": 4,
 "type": "single",
 "stem": "How long are automatic backups kept by default, and what does a point-in-time restore create?",
 "options": [
@@ -9196,6 +9985,63 @@
 "case_text": "Contoso runs an AI support assistant. Conversation history and 1536-dimension embeddings of help articles are stored in Azure Database for PostgreSQL flexible server (General Purpose, 4 vCores). Hot answers are cached in Azure Managed Redis.\nThe articles table has about 3 million rows and a category_id column. Most searches filter to one category before ranking by similarity.\nRequirements: semantic search must return in under 100 ms at 99% recall. The app runs as many short-lived serverless instances that each open database connections, and the team has seen 'too many connections' errors at peak. Cached answers must expire after 10 minutes and be removed immediately when an article is edited."
 },
 {
+"slots": [
+{
+"text": "A dev/test server with occasional use",
+"keys": [
+"A",
+"B",
+"C"
+]
+},
+{
+"text": "A production web backend with steady load",
+"keys": [
+"A",
+"B",
+"C"
+]
+},
+{
+"text": "Five million embeddings with an HNSW index kept in memory",
+"keys": [
+"A",
+"B",
+"C"
+]
+}
+],
+"id": "D2-pcomp-16",
+"domain": "D2",
+"skill": "pcomp",
+"skill_name": "Configure PostgreSQL compute, memory, and storage for vectors",
+"mock": null,
+"type": "match",
+"stem": "Match each Azure Database for PostgreSQL workload to the compute tier that fits it best.",
+"options": [
+{
+"key": "A",
+"text": "Memory Optimized"
+},
+{
+"key": "B",
+"text": "Burstable"
+},
+{
+"key": "C",
+"text": "General Purpose"
+}
+],
+"correct": [
+"B",
+"C",
+"A"
+],
+"explanation": "Burstable (B-series, 2 GB per vCore) suits development and intermittent loads. General Purpose (D-series, 4 GB per vCore) suits typical production apps. Memory Optimized (E-series, 8 GB per vCore) suits large in-memory working sets such as vector indexes.",
+"source_title": "Microsoft Learn module (AI-200T00): Optimize vector search in Azure Database for PostgreSQL",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/optimize-vector-search-azure-database-postgresql/"
+},
+{
 "id": "D2-pvec-12",
 "domain": "D2",
 "skill": "pvec",
@@ -9233,7 +10079,7 @@
 "domain": "D2",
 "skill": "pvec",
 "skill_name": "PostgreSQL vector search and RAG with metadata filters",
-"mock": null,
+"mock": 5,
 "type": "single",
 "stem": "Storage for 1536-dimension embeddings is too high. You benchmarked half precision and search quality is still acceptable. Which type should you use?",
 "options": [
@@ -9262,11 +10108,75 @@
 "source_url": "https://learn.microsoft.com/en-us/training/modules/implement-vector-search-azure-database-postgresql/"
 },
 {
+"slots": [
+{
+"text": "<->",
+"keys": [
+"A",
+"B",
+"C",
+"D"
+]
+},
+{
+"text": "<=>",
+"keys": [
+"A",
+"B",
+"C",
+"D"
+]
+},
+{
+"text": "<#>",
+"keys": [
+"A",
+"B",
+"C",
+"D"
+]
+}
+],
+"id": "D2-pvec-14",
+"domain": "D2",
+"skill": "pvec",
+"skill_name": "PostgreSQL vector search and RAG with metadata filters",
+"mock": null,
+"type": "match",
+"stem": "Match each pgvector distance operator to what it measures.",
+"options": [
+{
+"key": "A",
+"text": "JSONB containment"
+},
+{
+"key": "B",
+"text": "Cosine distance"
+},
+{
+"key": "C",
+"text": "Negative inner product"
+},
+{
+"key": "D",
+"text": "L2 (Euclidean) distance"
+}
+],
+"correct": [
+"D",
+"B",
+"C"
+],
+"explanation": "pgvector provides <-> for L2 distance, <=> for cosine distance (the usual choice for text embeddings), and <#> for negative inner product. @> is the JSONB containment operator, not a vector operator.",
+"source_title": "Microsoft Learn module (AI-200T00): Implement vector search with Azure Database for PostgreSQL",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/implement-vector-search-azure-database-postgresql/"
+},
+{
 "id": "D2-ppool-09",
 "domain": "D2",
 "skill": "ppool",
 "skill_name": "PostgreSQL connection optimization",
-"mock": 6,
+"mock": null,
 "type": "single",
 "stem": "Your dev server uses the Burstable tier, and you try to turn on built-in PgBouncer. What happens?",
 "options": [
@@ -9299,7 +10209,7 @@
 "domain": "D2",
 "skill": "ppool",
 "skill_name": "PostgreSQL connection optimization",
-"mock": null,
+"mock": 6,
 "type": "single",
 "stem": "A General Purpose 2-vCore server allows 859 connections. A serverless app opens a new connection per request and fails during spikes. Which change helps most?",
 "options": [
@@ -9332,7 +10242,7 @@
 "domain": "D2",
 "skill": "ppool",
 "skill_name": "PostgreSQL connection optimization",
-"mock": 7,
+"mock": null,
 "type": "single",
 "stem": "Which PgBouncer pooling mode gives the most connection reuse but doesn't support multi-statement transactions?",
 "options": [
@@ -9365,7 +10275,7 @@
 "domain": "D2",
 "skill": "ppool",
 "skill_name": "PostgreSQL connection optimization",
-"mock": null,
+"mock": 7,
 "type": "single",
 "stem": "About how long does opening a new connection to Azure Database for PostgreSQL take, and why?",
 "options": [
@@ -9398,7 +10308,7 @@
 "domain": "D2",
 "skill": "ppool",
 "skill_name": "PostgreSQL connection optimization",
-"mock": 8,
+"mock": null,
 "type": "single",
 "stem": "In a Python service, how should you avoid opening a new database connection for every request?",
 "options": [
@@ -9503,11 +10413,72 @@
 "case_text": "Contoso runs an AI support assistant. Conversation history and 1536-dimension embeddings of help articles are stored in Azure Database for PostgreSQL flexible server (General Purpose, 4 vCores). Hot answers are cached in Azure Managed Redis.\nThe articles table has about 3 million rows and a category_id column. Most searches filter to one category before ranking by similarity.\nRequirements: semantic search must return in under 100 ms at 99% recall. The app runs as many short-lived serverless instances that each open database connections, and the team has seen 'too many connections' errors at peak. Cached answers must expire after 10 minutes and be removed immediately when an article is edited."
 },
 {
+"slots": [
+{
+"text": "Blank 1",
+"keys": [
+"1A",
+"1B",
+"1C"
+]
+},
+{
+"text": "Blank 2",
+"keys": [
+"2A",
+"2B",
+"2C"
+]
+}
+],
+"code": "postgresql://app@myserver.postgres.database.azure.com:{{1}}/mydb?sslmode={{2}}",
+"id": "D2-ppool-16",
+"domain": "D2",
+"skill": "ppool",
+"skill_name": "PostgreSQL connection optimization",
+"mock": 8,
+"type": "fill",
+"stem": "Complete the connection string so the app connects through built-in PgBouncer and fully validates the server certificate.",
+"options": [
+{
+"key": "1A",
+"text": "6432"
+},
+{
+"key": "1B",
+"text": "5432"
+},
+{
+"key": "1C",
+"text": "10000"
+},
+{
+"key": "2A",
+"text": "verify-full"
+},
+{
+"key": "2B",
+"text": "require"
+},
+{
+"key": "2C",
+"text": "allow"
+}
+],
+"correct": [
+"1A",
+"2A"
+],
+"explanation": "Built-in PgBouncer listens on port 6432 (5432 is direct PostgreSQL). verify-full checks the certificate chain and the hostname. require encrypts without checking the certificate.",
+"source_title": "Microsoft Learn module (AI-200T00): Build and query with Azure Database for PostgreSQL",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/build-query-azure-database-postgresql/"
+},
+{
 "id": "D2-rcache-11",
 "domain": "D2",
 "skill": "rcache",
 "skill_name": "Azure Managed Redis caching, expiration, and invalidation",
-"mock": 9,
+"mock": null,
 "type": "single",
 "stem": "Your Python app connects to Azure Managed Redis with redis-py on port 6380 and times out. What's the likely fix?",
 "options": [
@@ -9540,7 +10511,7 @@
 "domain": "D2",
 "skill": "rcache",
 "skill_name": "Azure Managed Redis caching, expiration, and invalidation",
-"mock": null,
+"mock": 9,
 "type": "single",
 "stem": "Your Azure Managed Redis instance uses the OSS clustering policy. Which redis-py client should you use?",
 "options": [
@@ -9573,7 +10544,7 @@
 "domain": "D2",
 "skill": "rcache",
 "skill_name": "Azure Managed Redis caching, expiration, and invalidation",
-"mock": 10,
+"mock": null,
 "type": "yesno",
 "stem": "Evaluate each statement about Azure Managed Redis data operations.",
 "options": [
@@ -9638,6 +10609,138 @@
 "source_url": "https://learn.microsoft.com/en-us/training/modules/implement-data-operations-azure-managed-redis/",
 "case_title": "Contoso support assistant",
 "case_text": "Contoso runs an AI support assistant. Conversation history and 1536-dimension embeddings of help articles are stored in Azure Database for PostgreSQL flexible server (General Purpose, 4 vCores). Hot answers are cached in Azure Managed Redis.\nThe articles table has about 3 million rows and a category_id column. Most searches filter to one category before ranking by similarity.\nRequirements: semantic search must return in under 100 ms at 99% recall. The app runs as many short-lived serverless instances that each open database connections, and the team has seen 'too many connections' errors at peak. Cached answers must expire after 10 minutes and be removed immediately when an article is edited."
+},
+{
+"slots": [
+{
+"text": "A user profile with name, plan, and locale fields",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E"
+]
+},
+{
+"text": "The 20 most recent activity events, in order",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E"
+]
+},
+{
+"text": "A per-minute request counter for rate limiting",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E"
+]
+}
+],
+"id": "D2-rcache-15",
+"domain": "D2",
+"skill": "rcache",
+"skill_name": "Azure Managed Redis caching, expiration, and invalidation",
+"mock": null,
+"type": "match",
+"stem": "Match each piece of data to the Redis data type that fits it best.",
+"options": [
+{
+"key": "A",
+"text": "Stream consumer group"
+},
+{
+"key": "B",
+"text": "Set"
+},
+{
+"key": "C",
+"text": "String with INCR"
+},
+{
+"key": "D",
+"text": "List"
+},
+{
+"key": "E",
+"text": "Hash"
+}
+],
+"correct": [
+"E",
+"D",
+"C"
+],
+"explanation": "Hashes store an object's fields under one key. Lists keep ordered items, which suits feeds and recent items. Atomic INCR on a string value suits counters and rate limiting without race conditions.",
+"source_title": "Microsoft Learn module (AI-200T00): Implement data operations in Azure Managed Redis",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/implement-data-operations-azure-managed-redis/"
+},
+{
+"slots": [
+{
+"text": "Blank 1",
+"keys": [
+"1A",
+"1B",
+"1C"
+]
+},
+{
+"text": "Blank 2",
+"keys": [
+"2A",
+"2B",
+"2C"
+]
+}
+],
+"code": "cached = r.get(key)\nif cached is None:\n    answer = load_answer(article_id)\n    r.set(key, answer, {{1}}=600)\n\ndef on_article_edited(article_id):\n    r.{{2}}(key_for(article_id))",
+"id": "D2-rcache-16",
+"domain": "D2",
+"skill": "rcache",
+"skill_name": "Azure Managed Redis caching, expiration, and invalidation",
+"mock": 10,
+"type": "fill",
+"stem": "Complete the cache-aside code so answers expire after 10 minutes and are removed right away when an article is edited.",
+"options": [
+{
+"key": "1A",
+"text": "ttl"
+},
+{
+"key": "1B",
+"text": "ex"
+},
+{
+"key": "1C",
+"text": "px"
+},
+{
+"key": "2A",
+"text": "delete"
+},
+{
+"key": "2B",
+"text": "persist"
+},
+{
+"key": "2C",
+"text": "expire"
+}
+],
+"correct": [
+"1B",
+"2A"
+],
+"explanation": "In redis-py, set(..., ex=600) sets a time-to-live in seconds (px is milliseconds). Deleting the key when the source changes invalidates the cache immediately. persist removes the expiry instead.",
+"source_title": "Microsoft Learn module (AI-200T00): Implement data operations in Azure Managed Redis",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/implement-data-operations-azure-managed-redis/"
 },
 {
 "id": "D2-rvec-11",
@@ -13253,11 +14356,162 @@
 "case_text": "Northwind processes AI-enriched orders. An Azure Function app receives orders over HTTP and sends them to an Azure Service Bus topic named orders. A billing subscription and an enrichment subscription each process every order. Blob uploads of invoices raise Azure Event Grid events that start a second function.\nAll services read connection settings from Azure App Configuration and secrets from Azure Key Vault by using managed identities, and send telemetry to Application Insights through OpenTelemetry.\nRequirements: messages that fail processing repeatedly must be kept for inspection, not lost. Only invoice blobs with a .pdf suffix should start the second function. Operators must be able to follow one order across all services in a single end-to-end trace."
 },
 {
+"slots": [
+{
+"text": "The model call succeeded and the result is saved",
+"keys": [
+"A",
+"B",
+"C",
+"D"
+]
+},
+{
+"text": "A transient timeout: make the message available again now",
+"keys": [
+"A",
+"B",
+"C",
+"D"
+]
+},
+{
+"text": "The payload is invalid and must be kept for inspection",
+"keys": [
+"A",
+"B",
+"C",
+"D"
+]
+},
+{
+"text": "Process this later and retrieve it by sequence number",
+"keys": [
+"A",
+"B",
+"C",
+"D"
+]
+}
+],
+"id": "D3-sb-43",
+"domain": "D3",
+"skill": "sb",
+"skill_name": "Azure Service Bus queues, topics, subscriptions, and dead-lettering",
+"mock": 6,
+"type": "match",
+"stem": "A processor uses peek-lock. Match each situation to the settlement operation it should call.",
+"options": [
+{
+"key": "A",
+"text": "Defer"
+},
+{
+"key": "B",
+"text": "Complete"
+},
+{
+"key": "C",
+"text": "Abandon"
+},
+{
+"key": "D",
+"text": "Dead-letter"
+}
+],
+"correct": [
+"B",
+"C",
+"D",
+"A"
+],
+"explanation": "Complete removes the message. Abandon releases the lock so it can be received again (raising its delivery count). Dead-letter moves it to the dead-letter subqueue for inspection. Defer sets it aside so you can receive it later by sequence number.",
+"source_title": "Microsoft Learn module (AI-200T00): Queue and process AI operations with Azure Service Bus",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/queue-process-operations-service-bus/"
+},
+{
+"slots": [
+{
+"text": "Blank 1",
+"keys": [
+"1A",
+"1B"
+]
+},
+{
+"text": "Blank 2",
+"keys": [
+"2A",
+"2B",
+"2C"
+]
+},
+{
+"text": "Blank 3",
+"keys": [
+"3A",
+"3B",
+"3C"
+]
+}
+],
+"code": "with client.get_queue_receiver(\n        \"docs-in\",\n        receive_mode=ServiceBusReceiveMode.{{1}}) as receiver:\n    for msg in receiver:\n        try:\n            process(msg)\n            receiver.{{2}}(msg)\n        except InvalidPayload:\n            receiver.{{3}}(msg, reason=\"bad-payload\")",
+"id": "D3-sb-44",
+"domain": "D3",
+"skill": "sb",
+"skill_name": "Azure Service Bus queues, topics, subscriptions, and dead-lettering",
+"mock": 7,
+"type": "fill",
+"stem": "Complete the Python receiver so it uses at-least-once delivery, completes processed messages, and keeps invalid payloads for inspection.",
+"options": [
+{
+"key": "1A",
+"text": "PEEK_LOCK"
+},
+{
+"key": "1B",
+"text": "RECEIVE_AND_DELETE"
+},
+{
+"key": "2A",
+"text": "defer_message"
+},
+{
+"key": "2B",
+"text": "abandon_message"
+},
+{
+"key": "2C",
+"text": "complete_message"
+},
+{
+"key": "3A",
+"text": "dead_letter_message"
+},
+{
+"key": "3B",
+"text": "abandon_message"
+},
+{
+"key": "3C",
+"text": "complete_message"
+}
+],
+"correct": [
+"1A",
+"2C",
+"3A"
+],
+"explanation": "PEEK_LOCK keeps the message until it's settled, giving at-least-once delivery. complete_message removes it after success, and dead_letter_message moves an invalid one to the dead-letter subqueue. Abandoning a bad payload would only redeliver it until the max delivery count.",
+"source_title": "Microsoft Learn module (AI-200T00): Queue and process AI operations with Azure Service Bus",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/queue-process-operations-service-bus/"
+},
+{
 "id": "D3-eg-31",
 "domain": "D3",
 "skill": "eg",
 "skill_name": "Azure Event Grid filters, custom events, and retries",
-"mock": 6,
+"mock": 8,
 "type": "single",
 "stem": "An Event Grid webhook handler takes about 45 seconds to process each event, and Event Grid keeps retrying events that succeeded. Why?",
 "options": [
@@ -13290,7 +14544,7 @@
 "domain": "D3",
 "skill": "eg",
 "skill_name": "Azure Event Grid filters, custom events, and retries",
-"mock": 7,
+"mock": 9,
 "type": "single",
 "stem": "You create a new Event Grid custom topic for AI pipeline events and want a vendor-neutral, standard event format. Which input schema should you set?",
 "options": [
@@ -13323,7 +14577,7 @@
 "domain": "D3",
 "skill": "eg",
 "skill_name": "Azure Event Grid filters, custom events, and retries",
-"mock": 8,
+"mock": 10,
 "type": "yesno",
 "stem": "Evaluate each statement about Azure Event Grid delivery.",
 "options": [
@@ -13359,7 +14613,7 @@
 "domain": "D3",
 "skill": "eg",
 "skill_name": "Azure Event Grid filters, custom events, and retries",
-"mock": 9,
+"mock": 1,
 "type": "single",
 "stem": "An AI app publishes to an Event Grid custom topic in production. Which authentication method is recommended?",
 "options": [
@@ -13427,7 +14681,7 @@
 "domain": "D3",
 "skill": "fn",
 "skill_name": "Azure Functions triggers and bindings (serverless APIs)",
-"mock": 10,
+"mock": 2,
 "type": "single",
 "stem": "You start a Python Functions project locally with func start. Where is an HTTP-triggered function served by default?",
 "options": [
@@ -13460,7 +14714,7 @@
 "domain": "D3",
 "skill": "fn",
 "skill_name": "Azure Functions triggers and bindings (serverless APIs)",
-"mock": 1,
+"mock": 3,
 "type": "single",
 "stem": "What's the main benefit of using an output binding to write to Azure Blob Storage instead of calling the Storage SDK directly?",
 "options": [
@@ -13493,7 +14747,7 @@
 "domain": "D3",
 "skill": "fn",
 "skill_name": "Azure Functions triggers and bindings (serverless APIs)",
-"mock": 2,
+"mock": 4,
 "type": "single",
 "stem": "An HTTP-triggered inference function must require a key from callers. Which authorization level should it use?",
 "options": [
@@ -13526,7 +14780,7 @@
 "domain": "D3",
 "skill": "fdep",
 "skill_name": "Configure and deploy function apps",
-"mock": 3,
+"mock": 5,
 "type": "single",
 "stem": "You're creating a new serverless function app for an AI backend on Linux and want per-function scaling and always-ready instances. Which hosting plan is the recommended default?",
 "options": [
@@ -13559,7 +14813,7 @@
 "domain": "D3",
 "skill": "fdep",
 "skill_name": "Configure and deploy function apps",
-"mock": 4,
+"mock": 6,
 "type": "single",
 "stem": "A function app's Service Bus trigger should use the app's managed identity instead of a connection string. Which app setting do you add for a connection named SB?",
 "options": [
@@ -13592,7 +14846,7 @@
 "domain": "D3",
 "skill": "fdep",
 "skill_name": "Configure and deploy function apps",
-"mock": 5,
+"mock": 7,
 "type": "single",
 "stem": "Your local.settings.json contains a test API key. You publish the project to Azure. What happens to that file's values?",
 "options": [
@@ -13625,7 +14879,7 @@
 "domain": "D3",
 "skill": "fdep",
 "skill_name": "Configure and deploy function apps",
-"mock": 6,
+"mock": 8,
 "type": "yesno",
 "stem": "Evaluate each statement about Azure Functions hosting and configuration.",
 "options": [
@@ -16763,11 +18017,93 @@
 "source_url": "https://learn.microsoft.com/en-us/training/modules/manage-app-secrets-key-vault/"
 },
 {
+"slots": [
+{
+"text": "Blank 1",
+"keys": [
+"1A",
+"1B",
+"1C"
+]
+},
+{
+"text": "Blank 2",
+"keys": [
+"2A",
+"2B",
+"2C"
+]
+},
+{
+"text": "Blank 3",
+"keys": [
+"3A",
+"3B",
+"3C"
+]
+}
+],
+"code": "from azure.keyvault.secrets import SecretClient\n\nclient = SecretClient(\n    vault_url=\"https://kv-ai.{{1}}/\",\n    credential={{2}}())\napi_key = client.{{3}}(\"openai-key\").value",
+"id": "D4-kv-30",
+"domain": "D4",
+"skill": "kv",
+"skill_name": "Secure secrets with Azure Key Vault (rotation and retrieval)",
+"mock": 5,
+"type": "fill",
+"stem": "Complete the Python code that reads the openai-key secret with the app's identity.",
+"options": [
+{
+"key": "1A",
+"text": "vault.azure.net"
+},
+{
+"key": "1B",
+"text": "keyvault.azure.com"
+},
+{
+"key": "1C",
+"text": "vault.windows.net"
+},
+{
+"key": "2A",
+"text": "DefaultAzureCredential"
+},
+{
+"key": "2B",
+"text": "SecretCredential"
+},
+{
+"key": "2C",
+"text": "AzureKeyCredential"
+},
+{
+"key": "3A",
+"text": "read_secret"
+},
+{
+"key": "3B",
+"text": "get_secret"
+},
+{
+"key": "3C",
+"text": "fetch_secret"
+}
+],
+"correct": [
+"1A",
+"2A",
+"3B"
+],
+"explanation": "DefaultAzureCredential uses a managed identity in Azure and developer credentials locally. Vault URLs follow https://<vault-name>.vault.azure.net/, and SecretClient.get_secret returns the latest version unless you pass a version.",
+"source_title": "Microsoft Learn module (AI-200T00): Manage application secrets with Azure Key Vault",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/manage-app-secrets-key-vault/"
+},
+{
 "id": "D4-appc-21",
 "domain": "D4",
 "skill": "appc",
 "skill_name": "Azure App Configuration",
-"mock": 5,
+"mock": 6,
 "type": "single",
 "stem": "In Azure App Configuration, the key Pipeline:BatchSize has a value with no label and another with the label Production. The app loads keys with no label, then keys labeled Production. What value does it use in production?",
 "options": [
@@ -16800,7 +18136,7 @@
 "domain": "D4",
 "skill": "appc",
 "skill_name": "Azure App Configuration",
-"mock": 6,
+"mock": 7,
 "type": "yesno",
 "stem": "Evaluate each statement about Azure App Configuration key-values.",
 "options": [
@@ -16836,7 +18172,7 @@
 "domain": "D4",
 "skill": "appc",
 "skill_name": "Azure App Configuration",
-"mock": 7,
+"mock": 8,
 "type": "single",
 "stem": "An app reads settings from App Configuration, and one setting is a Key Vault reference. What identity permissions does the app need?",
 "options": [
@@ -16869,7 +18205,7 @@
 "domain": "D4",
 "skill": "appc",
 "skill_name": "Azure App Configuration",
-"mock": 8,
+"mock": 9,
 "type": "single",
 "stem": "Which setting should go in Azure Key Vault instead of App Configuration?",
 "options": [
@@ -16898,11 +18234,77 @@
 "source_url": "https://learn.microsoft.com/en-us/training/modules/manage-app-settings-app-config/"
 },
 {
+"slots": [
+{
+"text": "The Azure OpenAI API key",
+"keys": [
+"A",
+"B",
+"C"
+]
+},
+{
+"text": "The model deployment name gpt-4o",
+"keys": [
+"A",
+"B",
+"C"
+]
+},
+{
+"text": "A feature flag that turns reranking on",
+"keys": [
+"A",
+"B",
+"C"
+]
+},
+{
+"text": "The TLS certificate for the API's domain",
+"keys": [
+"A",
+"B",
+"C"
+]
+}
+],
+"id": "D4-appc-25",
+"domain": "D4",
+"skill": "appc",
+"skill_name": "Azure App Configuration",
+"mock": 10,
+"type": "match",
+"stem": "Match each value to where it should be stored.",
+"options": [
+{
+"key": "A",
+"text": "Azure Key Vault"
+},
+{
+"key": "B",
+"text": "Azure App Configuration"
+},
+{
+"key": "C",
+"text": "App Service app settings in plaintext"
+}
+],
+"correct": [
+"A",
+"B",
+"B",
+"A"
+],
+"explanation": "Values that grant access (keys, passwords, certificates) belong in Key Vault. Nonsensitive settings and feature flags belong in App Configuration, where they get labels, feature flags, and higher throughput. An App Configuration Key Vault reference can point to a secret when you want one place to read from.",
+"source_title": "Microsoft Learn module (AI-200T00): Manage application settings with Azure App Configuration",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/manage-app-settings-app-config/"
+},
+{
 "id": "D4-otel-21",
 "domain": "D4",
 "skill": "otel",
 "skill_name": "Trace distributed systems with OpenTelemetry",
-"mock": 9,
+"mock": 1,
 "type": "single",
 "stem": "The automatic instrumentation shows HTTP and database calls, but nothing for embedding generation or prompt assembly. How do you make those steps appear in traces?",
 "options": [
@@ -16935,7 +18337,7 @@
 "domain": "D4",
 "skill": "otel",
 "skill_name": "Trace distributed systems with OpenTelemetry",
-"mock": 10,
+"mock": 2,
 "type": "single",
 "stem": "With the Azure Monitor OpenTelemetry Distro, in which Application Insights table do server spans (SpanKind.SERVER and CONSUMER) appear?",
 "options": [
@@ -16968,7 +18370,7 @@
 "domain": "D4",
 "skill": "otel",
 "skill_name": "Trace distributed systems with OpenTelemetry",
-"mock": 1,
+"mock": 3,
 "type": "single",
 "stem": "A RAG request takes 10 seconds. You want a visual of all services with average response time and failure rate on each node to find the slow one. Which Application Insights feature should you open?",
 "options": [
@@ -17032,11 +18434,93 @@
 "case_text": "Northwind processes AI-enriched orders. An Azure Function app receives orders over HTTP and sends them to an Azure Service Bus topic named orders. A billing subscription and an enrichment subscription each process every order. Blob uploads of invoices raise Azure Event Grid events that start a second function.\nAll services read connection settings from Azure App Configuration and secrets from Azure Key Vault by using managed identities, and send telemetry to Application Insights through OpenTelemetry.\nRequirements: messages that fail processing repeatedly must be kept for inspection, not lost. Only invoice blobs with a .pdf suffix should start the second function. Operators must be able to follow one order across all services in a single end-to-end trace."
 },
 {
+"slots": [
+{
+"text": "Blank 1",
+"keys": [
+"1A",
+"1B",
+"1C"
+]
+},
+{
+"text": "Blank 2",
+"keys": [
+"2A",
+"2B",
+"2C"
+]
+},
+{
+"text": "Blank 3",
+"keys": [
+"3A",
+"3B",
+"3C"
+]
+}
+],
+"code": "from azure.monitor import opentelemetry as azmon\nfrom opentelemetry import trace\n\nazmon.{{1}}()\ntracer = trace.{{2}}(__name__)\n\nwith tracer.{{3}}(\"generate-embedding\") as span:\n    span.set_attribute(\"model\", model_name)\n    vector = embed(text)",
+"id": "D4-otel-25",
+"domain": "D4",
+"skill": "otel",
+"skill_name": "Trace distributed systems with OpenTelemetry",
+"mock": 4,
+"type": "fill",
+"stem": "Complete the Python code so embedding generation shows up as its own span in Application Insights.",
+"options": [
+{
+"key": "1A",
+"text": "configure_azure_monitor"
+},
+{
+"key": "1B",
+"text": "AzureMonitorTraceExporter"
+},
+{
+"key": "1C",
+"text": "enable_azure_monitor"
+},
+{
+"key": "2A",
+"text": "get_tracer"
+},
+{
+"key": "2B",
+"text": "create_tracer"
+},
+{
+"key": "2C",
+"text": "Tracer"
+},
+{
+"key": "3A",
+"text": "begin_span"
+},
+{
+"key": "3B",
+"text": "create_span"
+},
+{
+"key": "3C",
+"text": "start_as_current_span"
+}
+],
+"correct": [
+"1A",
+"2A",
+"3C"
+],
+"explanation": "configure_azure_monitor() from the Azure Monitor OpenTelemetry Distro sets up export to Application Insights. trace.get_tracer() returns a tracer, and start_as_current_span() creates a custom span that becomes the current span, so child calls nest under it.",
+"source_title": "Microsoft Learn module (AI-200T00): Instrument an app with OpenTelemetry",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/instrument-app-opentelemetry/"
+},
+{
 "id": "D4-kql-26",
 "domain": "D4",
 "skill": "kql",
 "skill_name": "Write KQL queries to analyze logs and metrics",
-"mock": 2,
+"mock": 5,
 "type": "single",
 "stem": "Application Insights sampling is active. Which query gives an accurate count of exceptions per hour?",
 "options": [
@@ -17069,7 +18553,7 @@
 "domain": "D4",
 "skill": "kql",
 "skill_name": "Write KQL queries to analyze logs and metrics",
-"mock": 3,
+"mock": 6,
 "type": "order",
 "stem": "Put the parts of this KQL query in a valid order to chart failed requests per hour over the last day.",
 "options": [
@@ -17105,7 +18589,7 @@
 "domain": "D4",
 "skill": "kql",
 "skill_name": "Write KQL queries to analyze logs and metrics",
-"mock": 4,
+"mock": 7,
 "type": "single",
 "stem": "You need a reusable, interactive report that combines text, KQL queries, and parameters such as a time range picker for incident investigation. What should you build?",
 "options": [
@@ -17138,7 +18622,7 @@
 "domain": "D4",
 "skill": "kql",
 "skill_name": "Write KQL queries to analyze logs and metrics",
-"mock": 5,
+"mock": 8,
 "type": "yesno",
 "stem": "Evaluate each statement about Azure Monitor alert rules.",
 "options": [
@@ -17166,6 +18650,178 @@
 "Y"
 ],
 "explanation": "An alert rule has four parts: scope, condition, action group, and severity. Severity runs from 0 (Critical) to 4 (Verbose), so 4 is the least urgent. The action group holds the notifications and actions.",
+"source_title": "Microsoft Learn module (AI-200T00): Analyze app telemetry with logs and metrics",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/analyze-telemetry-logs-metrics/"
+},
+{
+"slots": [
+{
+"text": "Incoming HTTP requests to your API (server spans)",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E",
+"F"
+]
+},
+{
+"text": "Outgoing calls to databases and other APIs",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E",
+"F"
+]
+},
+{
+"text": "Log messages written by the app",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E",
+"F"
+]
+},
+{
+"text": "Unhandled and logged exceptions",
+"keys": [
+"A",
+"B",
+"C",
+"D",
+"E",
+"F"
+]
+}
+],
+"id": "D4-kql-30",
+"domain": "D4",
+"skill": "kql",
+"skill_name": "Write KQL queries to analyze logs and metrics",
+"mock": 9,
+"type": "match",
+"stem": "Match each kind of telemetry to the Application Insights table where you query it.",
+"options": [
+{
+"key": "A",
+"text": "customEvents"
+},
+{
+"key": "B",
+"text": "dependencies"
+},
+{
+"key": "C",
+"text": "requests"
+},
+{
+"key": "D",
+"text": "traces"
+},
+{
+"key": "E",
+"text": "pageViews"
+},
+{
+"key": "F",
+"text": "exceptions"
+}
+],
+"correct": [
+"C",
+"B",
+"D",
+"F"
+],
+"explanation": "Server and consumer spans land in requests, client and internal spans in dependencies, log records in traces, and exceptions in exceptions. customEvents and pageViews hold custom events and browser page views.",
+"source_title": "Microsoft Learn module (AI-200T00): Analyze app telemetry with logs and metrics",
+"source_url": "https://learn.microsoft.com/en-us/training/modules/analyze-telemetry-logs-metrics/"
+},
+{
+"slots": [
+{
+"text": "Blank 1",
+"keys": [
+"1A",
+"1B",
+"1C"
+]
+},
+{
+"text": "Blank 2",
+"keys": [
+"2A",
+"2B",
+"2C"
+]
+},
+{
+"text": "Blank 3",
+"keys": [
+"3A",
+"3B",
+"3C"
+]
+}
+],
+"code": "requests\n| where timestamp > {{1}}(1d) and success == false\n| summarize failures = {{2}}(itemCount) by {{3}}(timestamp, 1h)\n| render timechart",
+"id": "D4-kql-31",
+"domain": "D4",
+"skill": "kql",
+"skill_name": "Write KQL queries to analyze logs and metrics",
+"mock": 10,
+"type": "fill",
+"stem": "Complete the KQL query so it charts failed requests per hour for the last day and stays accurate when sampling is on.",
+"options": [
+{
+"key": "1A",
+"text": "now"
+},
+{
+"key": "1B",
+"text": "ago"
+},
+{
+"key": "1C",
+"text": "since"
+},
+{
+"key": "2A",
+"text": "sum"
+},
+{
+"key": "2B",
+"text": "dcount"
+},
+{
+"key": "2C",
+"text": "count"
+},
+{
+"key": "3A",
+"text": "bin"
+},
+{
+"key": "3B",
+"text": "group"
+},
+{
+"key": "3C",
+"text": "round"
+}
+],
+"correct": [
+"1B",
+"2A",
+"3A"
+],
+"explanation": "ago(1d) gives the time one day back, and bin() groups timestamps into one-hour buckets. With sampling, each record stands for itemCount events, so sum(itemCount) counts accurately while count() undercounts.",
 "source_title": "Microsoft Learn module (AI-200T00): Analyze app telemetry with logs and metrics",
 "source_url": "https://learn.microsoft.com/en-us/training/modules/analyze-telemetry-logs-metrics/"
 }

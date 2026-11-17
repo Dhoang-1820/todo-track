@@ -255,3 +255,14 @@ ol.ropts { padding-left: 0; list-style: none; }
 }
 .ropts em.mine:not(:first-of-type) { color: var(--accent); }
 .ropts li.w em.mine { color: var(--bad); }
+/* match and fill-in-code */
+.match { display: grid; gap: 8px; }
+.mrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.mrow .txt { flex: 1 1 220px; min-width: 0; overflow-wrap: anywhere; }
+.mrow.right { border-color: var(--good); background: var(--good-soft); } .mrow.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.slotsel { font: inherit; min-height: 40px; max-width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); }
+.slotsel.right { border-color: var(--good); } .slotsel.wrong { border-color: var(--bad); }
+pre.code { background: var(--accent-soft); border: 1px solid var(--line); border-radius: 10px; padding: 12px; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .9rem; line-height: 2.2; margin: 0 0 10px; }
+pre.code .slotsel { font-family: inherit; font-size: .85rem; min-height: 32px; padding: 2px 6px; }
+.fillres { margin: 0 0 8px; padding-left: 1.2rem; } .fillres li { margin: 2px 0; }
+.feedback, .expl, .txt, .stem, .ropts, .slotsel { font-feature-settings: "calt" 0, "liga" 0; }
