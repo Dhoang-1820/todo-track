@@ -276,17 +276,40 @@
     const weak = skillBreakdown(stats).filter((s) => s.total >= 2).sort((a, b) => a.correct / a.total - b.correct / b.total || b.total - a.total).slice(0, 5);
     const L = learning();
     const ready = readiness(L);
+    const skillStats = new Map(skillBreakdown(stats).map((x) => [x.skill, x]));
+    // Today's session: the single most useful next step.
+    const plan = current ? { label: "Resume your test", why: `${esc(modeLabel(current))} is waiting where you left off.`, act: "resume" }
+      : L.due.length ? { label: `Review ${Math.min(40, L.due.length)} due question${L.due.length > 1 ? "s" : ""}`, why: "Spaced review first: these are questions you missed that are due today.", act: "srs" }
+      : weak[0] && pct(weak[0].correct, weak[0].total) < passLine ? { label: `Drill: ${esc(weak[0].name)}`, why: `Your weakest skill right now (${pct(weak[0].correct, weak[0].total)}% correct). 10 questions in Study mode.`, act: "weak" }
+      : stats.latest.size < bank.length ? { label: "Start a smart mixed test", why: "40 questions in exam proportions, new questions first.", act: "smart" }
+      : { label: `Take Mock ${nextMockN()}`, why: "You've seen every question. A full timed mock is the best check now.", act: "mock" };
+    function nextMockN() { return (Array.from({ length: 10 }, (_, i) => i + 1).find((n) => bestMock[n] === undefined)) || 1; }
+    const catalog = Object.entries(DOMAINS).map(([k, d]) => {
+      const qs = bank.filter((q) => q.domain === k);
+      const skills = [...new Map(qs.filter((q) => q.skill).map((q) => [q.skill, q.skill_name || q.skill])).entries()];
+      const v = dom[k].total ? pct(dom[k].correct, dom[k].total) : 0;
+      const seen = qs.filter((q) => stats.latest.has(q.id)).length;
+      return `<article class="course ${k}">
+        <div class="ctop"><span class="badge" aria-hidden="true">${k}</span><div><h3>${esc(d.name)}</h3><div class="meta">${d.weight} of the exam · ${qs.length} questions · ${skills.length} skills</div></div></div>
+        <div class="pline"><span>${dom[k].total ? `${v}% correct` : "Not started"}</span><span class="muted">${seen}/${qs.length} seen</span></div>
+        <div class="pbar" role="img" aria-label="${k} mastery ${v}%, pass line 70%"><i style="width:${v}%"></i><em style="left:${passLine}%"></em></div>
+        <div class="chips">${skills.map(([sk, nm]) => { const st = skillStats.get(sk); return `<button class="chip" data-drill="${esc(sk)}" title="Drill 10 questions on ${esc(nm)}">${esc(nm.split(" (")[0])}${st ? `<span class="pc">${pct(st.correct, st.total)}%</span>` : ""}</button>`; }).join("")}</div>
+        <button class="btn small" data-domain="${k}">Practice 20 in ${k}</button>
+      </article>`;
+    }).join("");
 
     setView(`
       ${current ? `<div class="banner"><span>Test in progress: <b>${esc(modeLabel(current))}</b>, ${current.ids.filter((id) => byId.get(id) && isDone(byId.get(id), current.answers[id] || [])).length}/${current.ids.length} answered.</span><span><a class="btn small primary" href="#/test">Resume</a> <button class="btn small ghost" id="discard">Discard</button></span></div>` : ""}
-      <section class="hero">
+      <section class="today" aria-labelledby="todayH">
         <div>
-          <h1>Exam AI-200 practice</h1>
-          <p class="muted">Developing AI Cloud Solutions on Azure · ${bank.length} questions${bank.some((q) => q.origin === "upload") ? " (including your uploads)" : ""} · 10 mock tests of 40 questions</p>
+          <p class="eyebrow">Today's session</p>
+          <h1 id="todayH">${plan.label}</h1>
+          <p>Exam AI-200 · Developing AI Cloud Solutions on Azure</p>
+          <button class="btn cta" id="todayGo">${current ? "Resume" : "Start now"} →</button>
+          <p class="why">${plan.why}</p>
         </div>
-        <div class="overall ${L.estimate === null ? "" : L.estimate >= CFG.passScore ? "pass" : "fail"}">
-          <div class="big">${L.estimate ?? "—"}</div>
-          <div class="small">Estimated exam score<br>${L.estimate === null ? "Answer 20 new questions to see it" : `first attempts only · ${L.estimate >= CFG.passScore ? "✓ above" : "✗ below"} ${CFG.passScore}`}</div>
+        <div class="score ${L.estimate === null ? "" : L.estimate >= CFG.passScore ? "pass" : "fail"}" role="img" aria-label="Estimated exam score ${L.estimate ?? "not available yet"}">
+          <div><b>${L.estimate ?? "—"}</b><span>${L.estimate === null ? "Est. score after 20 new answers" : `Est. score · pass ${CFG.passScore}`}</span></div>
         </div>
       </section>
 
@@ -295,6 +318,17 @@
         <div class="stat"><b>${attempts.length ? avg : "—"}</b><span>Average test score</span></div>
         <div class="stat"><b>${attempts.length ? pct(passed, attempts.length) + "%" : "—"}</b><span>Tests passed</span></div>
         <div class="stat"><b>${stats.latest.size}/${bank.length}</b><span>Questions seen</span></div>
+      </section>
+
+      <section class="card">
+        <div class="rowhead"><h2>Progress</h2><span class="ready ${ready.cls}">${esc(ready.label)}</span></div>
+        ${trendChart()}
+      </section>
+
+      <section class="card">
+        <h2>Course catalog</h2>
+        <p class="muted small">The four exam domains, with your mastery from your latest answer to each question. Pick a skill to drill 10 questions in Study mode.</p>
+        <div class="catalog">${catalog}</div>
       </section>
 
       <section class="card srs">
@@ -317,27 +351,12 @@
       </section>
 
       <section class="card">
-        <div class="rowhead"><h2>Progress</h2><span class="ready ${ready.cls}">${esc(ready.label)}</span></div>
-        ${trendChart()}
-      </section>
-
-      <section class="card">
         <h2>Weakest skills</h2>
         ${weak.length ? `<p class="muted small">Skills you've answered at least twice, weakest first. Drills use Study mode.</p>
           <ul class="weak">${weak.map((s) => { const v = pct(s.correct, s.total); return `<li>
             <div class="weakhead"><span><span class="tag">${s.domain}</span> ${esc(s.name)}</span><span class="${v >= passLine ? "okc" : "errc"}">${v}% · ${s.correct}/${s.total}</span></div>
             <div class="weakrow">${bar(v, passLine, `${s.name}: ${v}% correct`)}<button class="btn small" data-drill="${esc(s.skill)}">Drill ${Math.min(10, s.pool)}</button></div></li>`; }).join("")}</ul>`
           : `<p class="muted small">After a test or two, your weakest skills show up here with a one-click drill.</p>`}
-      </section>
-
-      <section class="card">
-        <h2>Mastery by exam domain</h2>
-        <p class="muted small">Based on your most recent answer to each question. The marker shows the 70% pass line.</p>
-        ${Object.entries(DOMAINS).map(([k, d]) => { const v = pct(dom[k].correct, dom[k].total); return `
-          <div class="domrow">
-            <div class="domhead"><span><b>${k}</b> ${esc(d.name)} <span class="muted">(${d.weight})</span></span><span>${dom[k].total ? v + "% · " + dom[k].correct + "/" + dom[k].total : "not started"}</span></div>
-            ${bar(dom[k].total ? v : 0, passLine, `${k}: ${dom[k].total ? v + "% correct" : "not started"}`)}
-          </div>`; }).join("")}
       </section>
 
       <section class="card">
@@ -376,6 +395,14 @@
     };
     document.querySelectorAll(".mock").forEach((b) => b.onclick = () => startTest(generate({ mode: "mock", mock: +b.dataset.mock })));
     document.querySelectorAll("[data-drill]").forEach((b) => b.onclick = () => startTest(generate({ mode: "skill", skill: b.dataset.drill, count: 10, study: true })));
+    document.querySelectorAll("[data-domain]").forEach((b) => b.onclick = () => startTest(generate({ mode: "domain", domain: b.dataset.domain, count: 20, study: true, timed: false })));
+    document.getElementById("todayGo").onclick = () => {
+      if (plan.act === "resume") location.hash = "#/test";
+      if (plan.act === "srs") startTest(generate({ mode: "review", ids: L.due, count: 40, study: true, timed: false }));
+      if (plan.act === "weak") startTest(generate({ mode: "skill", skill: weak[0].skill, count: 10, study: true }));
+      if (plan.act === "smart") startTest(generate({ mode: "random" }));
+      if (plan.act === "mock") startTest(generate({ mode: "mock", mock: nextMockN() }));
+    };
     const srsBtn = document.getElementById("srsStart");
     if (srsBtn) srsBtn.onclick = () => startTest(generate({ mode: "review", ids: L.due, count: 40, study: true, timed: false }));
     const discard = document.getElementById("discard");
